@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ni-model-app
+  namespace: ni-model
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ni-model-app
+  template:
+    metadata:
+      labels:
+        app: ni-model-app
+    spec:
+      containers:
+      - name: app
+        image: ni-model:latest
+        env:
+        - name: DATABASE_URL
+          value: postgresql://ni_user:ni_password@postgres:5432/ni_model
+        - name: REDIS_URL
+          value: redis://redis:6379/0
+        command: ["tail", "-f", "/dev/null"]
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+      volumes:
+      - name: app-code
+        hostPath:
+          path: /home/sean/source/ni-model
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ni-model-app
+  namespace: ni-model
+spec:
+  selector:
+    app: ni-model-app
+  ports:
+  - port: 8000
+    targetPort: 8000

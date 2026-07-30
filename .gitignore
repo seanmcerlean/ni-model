@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Local databases and environment
+*.db
+.env
+.env.*
+!.env.example
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Editors and local tooling
+.amazonq/
+.idea/
+.vscode/
+*.swp
+
+# Operating system
+.DS_Store

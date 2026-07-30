@@ -1,0 +1,244 @@
+name: "NI Historical Model"
+description: >
+  Northern Ireland demographic model with era-specific rates.
+  Troubles era (1969-1994): higher birth rates, higher mortality, net emigration.
+  Post-GFA (1998-2009): normalising rates, return migration.
+  Modern (2010+): contemporary rates, lower Catholic/Protestant gap.
+
+rate_jitter: 0.05  # ±5% random variation applied to each rate per simulation year
+
+# ---------------------------------------------------------------------------
+# BIRTH RATES (per 1000 of cohort)
+# ---------------------------------------------------------------------------
+
+birth_rates:
+  # --- Troubles era: high Catholic birth rate, moderate Protestant ---
+  - rate: 26.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      religious_background: "CATHOLIC"
+  - rate: 17.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      religious_background: "PROTESTANT"
+  - rate: 18.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      religious_background: "OTHER"
+  - rate: 15.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      religious_background: "NONE"
+
+  # --- Transition (1995-2009): rates declining, gap narrowing ---
+  - rate: 20.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      religious_background: "CATHOLIC"
+  - rate: 14.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      religious_background: "PROTESTANT"
+  - rate: 15.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      religious_background: "OTHER"
+  - rate: 12.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      religious_background: "NONE"
+
+  # --- Modern (2010+): contemporary rates, smaller gap ---
+  - rate: 15.0
+    year_min: 2010
+    filters:
+      religious_background: "CATHOLIC"
+  - rate: 11.0
+    year_min: 2010
+    filters:
+      religious_background: "PROTESTANT"
+  - rate: 12.0
+    year_min: 2010
+    filters:
+      religious_background: "OTHER"
+  - rate: 10.0
+    year_min: 2010
+    filters:
+      religious_background: "NONE"
+
+# ---------------------------------------------------------------------------
+# DEATH RATES (per 1000 of cohort)
+# ---------------------------------------------------------------------------
+
+death_rates:
+  # --- Troubles era: higher mortality across all age bands ---
+  - rate: 1.5
+    year_min: 1969
+    year_max: 1994
+    filters:
+      age_max: 20
+  - rate: 5.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      age_min: 21
+      age_max: 50
+  - rate: 18.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      age_min: 51
+      age_max: 70
+  - rate: 70.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      age_min: 71
+      age_max: 85
+  - rate: 180.0
+    year_min: 1969
+    year_max: 1994
+    filters:
+      age_min: 86
+
+  # --- Transition (1995-2009): improving life expectancy ---
+  - rate: 0.8
+    year_min: 1995
+    year_max: 2009
+    filters:
+      age_max: 20
+  - rate: 3.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      age_min: 21
+      age_max: 50
+  - rate: 12.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      age_min: 51
+      age_max: 70
+  - rate: 58.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      age_min: 71
+      age_max: 85
+  - rate: 165.0
+    year_min: 1995
+    year_max: 2009
+    filters:
+      age_min: 86
+
+  # --- Modern (2010+): contemporary mortality ---
+  - rate: 0.5
+    year_min: 2010
+    filters:
+      age_max: 20
+  - rate: 2.0
+    year_min: 2010
+    filters:
+      age_min: 21
+      age_max: 50
+  - rate: 8.0
+    year_min: 2010
+    filters:
+      age_min: 51
+      age_max: 70
+  - rate: 50.0
+    year_min: 2010
+    filters:
+      age_min: 71
+      age_max: 85
+  - rate: 150.0
+    year_min: 2010
+    filters:
+      age_min: 86
+
+# ---------------------------------------------------------------------------
+# EXTERNAL MIGRATION RATES (per 1000 of cohort, negative = net emigration)
+# ---------------------------------------------------------------------------
+
+migration_rates:
+  # --- Troubles era: significant net emigration ---
+  - rate: -8.0
+    year_min: 1969
+    year_max: 1994
+    filters: {}
+
+  # --- Post-GFA (1998-2009): return migration, net positive ---
+  - rate: 4.0
+    year_min: 1998
+    year_max: 2009
+    filters: {}
+
+  # --- Modern (2010+): modest net inflow ---
+  - rate: 2.0
+    year_min: 2010
+    filters: {}
+
+# ---------------------------------------------------------------------------
+# INTERNAL MIGRATION RATES (per 1000 of source cohort)
+# ---------------------------------------------------------------------------
+
+internal_migration_rates:
+  # Young adults (18-35) from rural counties move to Belfast for work
+  - rate: 15.0
+    destination: "BELFAST_WEST"
+    filters:
+      age_min: 18
+      age_max: 35
+      location: "DERRY"
+  - rate: 15.0
+    destination: "BELFAST_NORTH"
+    filters:
+      age_min: 18
+      age_max: 35
+      location: "ANTRIM"
+  - rate: 15.0
+    destination: "BELFAST_EAST"
+    filters:
+      age_min: 18
+      age_max: 35
+      location: "DOWN"
+  - rate: 10.0
+    destination: "BELFAST_SOUTH"
+    filters:
+      age_min: 18
+      age_max: 35
+      location: "ARMAGH"
+
+  # Families (35-55) move out of Belfast to rural areas
+  - rate: 8.0
+    destination: "ANTRIM"
+    filters:
+      age_min: 35
+      age_max: 55
+      location: "BELFAST_NORTH"
+  - rate: 8.0
+    destination: "DOWN"
+    filters:
+      age_min: 35
+      age_max: 55
+      location: "BELFAST_EAST"
+  - rate: 8.0
+    destination: "ARMAGH"
+    filters:
+      age_min: 35
+      age_max: 55
+      location: "BELFAST_SOUTH"
+  - rate: 8.0
+    destination: "DERRY"
+    filters:
+      age_min: 35
+      age_max: 55
+      location: "BELFAST_WEST"

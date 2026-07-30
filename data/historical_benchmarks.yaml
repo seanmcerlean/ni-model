@@ -1,0 +1,55 @@
+# Northern Ireland Historical Census Benchmarks
+# Sources: NISRA Census 1971, 1981, 1991, 2001, 2011, 2021
+# Religious breakdown uses community background (Catholic / Protestant & Other Christian / Other / None)
+# Populations in absolute counts
+
+benchmarks:
+  1971:
+    total_population: 1536065
+    religious_breakdown:
+      catholic: 477919      # 31.1%
+      protestant: 997383    # 64.9%
+      other: 30763          # 2.0%
+      none: 30000           # ~2.0% (estimated, not separately recorded)
+
+  1981:
+    total_population: 1481959
+    # ~7.3% non-response (108,548 persons). Raw responses: Catholic 414,532 / Protestant 892,601 / Other 59,278 / None ~7,000
+    # Figures below are non-responses redistributed proportionally across responding groups
+    religious_breakdown:
+      catholic: 447295      # 30.2% (adjusted from raw 28.0%)
+      protestant: 963148    # 65.0% (adjusted from raw 60.2%)
+      other: 63963          # 4.3%  (adjusted from raw 4.0%)
+      none: 7553            # 0.5%  (adjusted from raw 0.5% — 'none' barely recorded in 1981)
+
+  1991:
+    total_population: 1577836
+    religious_breakdown:
+      catholic: 605639      # 38.4%
+      protestant: 788941    # 50.0%
+      other: 47335          # 3.0%
+      none: 135921          # 8.6%
+
+  2001:
+    total_population: 1685267
+    religious_breakdown:
+      catholic: 678462      # 40.3%
+      protestant: 752555    # 44.7%
+      other: 50558          # 3.0%
+      none: 203692          # 12.1%
+
+  2011:
+    total_population: 1810863
+    religious_breakdown:
+      catholic: 817385      # 45.1%
+      protestant: 751634    # 41.5%
+      other: 72434          # 4.0%
+      none: 169410          # 9.4%
+
+  2021:
+    total_population: 1903175
+    religious_breakdown:
+      catholic: 864249      # 45.4%
+      protestant: 758066    # 39.8%
+      other: 156061         # 8.2%
+      none: 124799          # 6.6%
