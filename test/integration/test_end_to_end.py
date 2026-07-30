@@ -118,6 +118,8 @@ def test_simulation_all_result_keys_present(populated_db, orchestrator):
         "year",
         "births",
         "deaths",
+        "immigration",
+        "emigration",
         "migration",
         "internal_migration",
         "net_change",

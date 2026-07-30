@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.2 - 2026-07-30
+
+### Added
+
+- Model discovery, selection, assumption details, and a zero-net-migration
+  sensitivity scenario.
+- Overall annual statistics and separate immigration/emigration results.
+- Live per-area community, gender, origin, and age-band snapshots.
+- Sourced OSNI county and Belfast constituency map boundaries.
+
+### Changed
+
+- Redesigned the dashboard, playback controls, map tooltips, and area panel.
+- Area panels now follow the active playback year.
+- Map colours use green for Catholic background, blue for Protestant
+  background, and slate for balanced areas.
+- Community-background statistics show the complete four-category split.
+
 ## 0.2.1 - 2026-07-30
 
 ### Fixed

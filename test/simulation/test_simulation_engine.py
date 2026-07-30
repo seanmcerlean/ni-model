@@ -93,6 +93,8 @@ def test_engine_result_structure(postgres_db_session, initial_population, direct
         "year",
         "births",
         "deaths",
+        "immigration",
+        "emigration",
         "migration",
         "internal_migration",
         "net_change",

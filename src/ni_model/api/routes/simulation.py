@@ -2,15 +2,25 @@ import json
 from pathlib import Path
 from typing import AsyncGenerator, List
 
+import yaml
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ...core.models import Location
 from ...simulation.model_director import ModelDirector
 from ...simulation.orchestrator import SimulationOrchestrator
-from ..queries import gender_breakdown, location_totals, religious_breakdown
+from ..queries import (
+    age_band_breakdown,
+    gender_breakdown,
+    location_totals,
+    origin_breakdown,
+    religious_breakdown,
+)
 from ..routes.population import get_db
 from ..schemas import (
+    SimulationLocationSnapshot,
+    SimulationModelSummary,
     SimulationRunRequest,
     SimulationRunResponse,
     SimulationYearResult,
@@ -59,6 +69,44 @@ def _load_director(db: Session, model_path: str) -> ModelDirector:
         ) from exc
 
 
+@router.get("/models", response_model=list[SimulationModelSummary])
+def simulation_models():
+    models = []
+    for path in sorted(MODELS_DIR.glob("*.y*ml")):
+        with path.open() as model_file:
+            config = yaml.safe_load(model_file) or {}
+        rule_groups = [
+            config.get("birth_rates", []),
+            config.get("death_rates", []),
+            config.get("migration_rates", []),
+            config.get("internal_migration_rates", []),
+        ]
+        years = [
+            rule[key]
+            for rules in rule_groups
+            for rule in rules
+            for key in ("year_min", "year_max")
+            if rule.get(key) is not None
+        ]
+        models.append(
+            SimulationModelSummary(
+                id=path.stem,
+                path=f"models/{path.name}",
+                name=config.get("name", path.stem),
+                description=str(config.get("description", "")).strip(),
+                rate_jitter=float(config.get("rate_jitter", 0)),
+                random_seed=config.get("random_seed"),
+                birth_rules=len(rule_groups[0]),
+                death_rules=len(rule_groups[1]),
+                migration_rules=len(rule_groups[2]),
+                internal_migration_rules=len(rule_groups[3]),
+                year_min=min(years) if years else None,
+                year_max=max(years) if years else None,
+            )
+        )
+    return models
+
+
 def store_results(
     results: List[dict], db, snapshots: dict[int, SimulationYearSnapshot]
 ):
@@ -71,12 +119,23 @@ def store_results(
 
 def _capture_snapshot(year: int, result: dict, db: Session) -> SimulationYearSnapshot:
     loc_breakdown = {loc.value: count for loc, count in location_totals(db)}
+    locations = {
+        location.value: SimulationLocationSnapshot(
+            total=loc_breakdown.get(location.value, 0),
+            religious_breakdown=religious_breakdown(db, location),
+            gender_breakdown=gender_breakdown(db, location),
+            origin_breakdown=origin_breakdown(db, location),
+            age_bands=age_band_breakdown(db, location),
+        )
+        for location in Location
+    }
     return SimulationYearSnapshot(
         year=year,
         total_population=sum(loc_breakdown.values()),
         religious_breakdown=religious_breakdown(db),
         gender_breakdown=gender_breakdown(db),
         location_breakdown=loc_breakdown,
+        locations=locations,
         simulation_result=SimulationYearResult(**result),
     )
 

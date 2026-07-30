@@ -64,7 +64,7 @@ describe("Controls", () => {
   it("highlights active speed button", () => {
     render(<Controls {...baseProps} speed={2} />);
     const btn = screen.getByText("2×");
-    expect(btn).toHaveStyle({ background: "#e94560" });
+    expect(btn).toHaveClass("active");
   });
 
   it("shows current year in display", () => {
@@ -74,6 +74,6 @@ describe("Controls", () => {
 
   it("shows error message on error status", () => {
     render(<Controls {...baseProps} status="error" />);
-    expect(screen.getByText("Stream error")).toBeInTheDocument();
+    expect(screen.getByText(/Stream error/)).toBeInTheDocument();
   });
 });

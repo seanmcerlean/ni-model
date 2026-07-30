@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import "./app.css";
 import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { PlaybackSpeed, YearSnapshot } from "./types";
+import { PlaybackSpeed, SimulationModel, YearSnapshot } from "./types";
 
 export default function App() {
   const { snapshots, years, status, startStream, abort } = useSimulationStream();
@@ -15,11 +16,21 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [models, setModels] = useState<SimulationModel[]>([]);
+  const [modelPath, setModelPath] = useState("models/ni_base_2024.yaml");
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const snapshot: YearSnapshot | null =
     currentYear !== null ? (snapshots[currentYear] ?? null) : null;
+  const selectedModel = models.find((model) => model.path === modelPath);
+
+  useEffect(() => {
+    fetch("/api/simulation/models")
+      .then((response) => response.json())
+      .then((availableModels: SimulationModel[]) => setModels(availableModels))
+      .catch(() => setModels([]));
+  }, []);
 
   // Auto-advance to first buffered year when stream starts
   useEffect(() => {
@@ -52,8 +63,8 @@ export default function App() {
   const handleStartStream = useCallback(() => {
     setCurrentYear(null);
     setIsPlaying(false);
-    startStream(startYear, endYear);
-  }, [startYear, endYear, startStream]);
+    startStream(startYear, endYear, modelPath);
+  }, [startYear, endYear, modelPath, startStream]);
 
   const handlePlayPause = useCallback(() => {
     setIsPlaying((p) => !p);
@@ -69,23 +80,60 @@ export default function App() {
   }, [years]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <header style={styles.header}>
-        <span style={styles.title}>NI Population Model</span>
+    <div className="app-shell">
+      <header className="app-header">
+        <div>
+          <span className="brand-kicker">DEMOGRAPHIC SCENARIO LAB</span>
+          <div className="brand-title">Northern Ireland Population Model</div>
+        </div>
         {currentYear && (
-          <span style={styles.yearBadge}>{currentYear}</span>
+          <span className="year-badge">{currentYear}</span>
         )}
         {status === "streaming" && (
-          <button style={styles.abortBtn} onClick={abort}>Stop</button>
+          <button className="stop-button" onClick={abort}>Stop simulation</button>
         )}
       </header>
 
-      <div style={{ flex: 1, position: "relative" }}>
-        <NiMap snapshot={snapshot} onLocationClick={setSelectedLocation} />
-        <LocationDetail
-          locationId={selectedLocation}
-          onClose={() => setSelectedLocation(null)}
-        />
+      <div className="workspace">
+        <aside className="model-panel">
+          <div className="panel-kicker">MODEL</div>
+          <label className="field-label" htmlFor="model-select">Scenario definition</label>
+          <select
+            id="model-select"
+            className="model-select"
+            value={modelPath}
+            onChange={(event) => setModelPath(event.target.value)}
+          >
+            {models.length === 0 && <option value={modelPath}>NI Historical Model</option>}
+            {models.map((model) => <option key={model.id} value={model.path}>{model.name}</option>)}
+          </select>
+          {selectedModel && (
+            <>
+              <p className="model-description">{selectedModel.description}</p>
+              <dl className="model-facts">
+                <div><dt>Seed</dt><dd>{selectedModel.random_seed ?? "Random"}</dd></div>
+                <div><dt>Rate jitter</dt><dd>±{(selectedModel.rate_jitter * 100).toFixed(0)}%</dd></div>
+                <div><dt>Birth rules</dt><dd>{selectedModel.birth_rules}</dd></div>
+                <div><dt>Mortality rules</dt><dd>{selectedModel.death_rules}</dd></div>
+                <div><dt>Migration rules</dt><dd>{selectedModel.migration_rules + selectedModel.internal_migration_rules}</dd></div>
+              </dl>
+              <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
+            </>
+          )}
+        </aside>
+
+        <main className="map-column">
+          <OverallStats snapshot={snapshot} />
+          <div className="map-frame">
+            <NiMap snapshot={snapshot} onLocationClick={setSelectedLocation} />
+            <LocationDetail
+              locationId={selectedLocation}
+              year={currentYear}
+              detail={selectedLocation && snapshot ? snapshot.locations?.[selectedLocation] ?? null : null}
+              onClose={() => setSelectedLocation(null)}
+            />
+          </div>
+        </main>
       </div>
 
       <Controls
@@ -107,31 +155,48 @@ export default function App() {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  header: {
-    background: "#0f3460",
-    padding: "8px 16px",
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    borderBottom: "1px solid #333",
-  },
-  title: { fontWeight: "bold", fontSize: 16, color: "#eee" },
-  yearBadge: {
-    background: "#e94560",
-    color: "#fff",
-    borderRadius: 4,
-    padding: "2px 10px",
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  abortBtn: {
-    marginLeft: "auto",
-    background: "#333",
-    color: "#eee",
-    border: "1px solid #555",
-    borderRadius: 4,
-    padding: "3px 10px",
-    cursor: "pointer",
-  },
-};
+function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
+  const result = snapshot?.simulation_result;
+  const cards = [
+    ["Population", snapshot?.total_population.toLocaleString() ?? "—"],
+    ["Net annual change", result ? signed(result.net_change) : "—"],
+    ["Births / deaths", result ? `${result.births.toLocaleString()} / ${result.deaths.toLocaleString()}` : "—"],
+    ["Immigration / emigration", result ? `${result.immigration.toLocaleString()} / ${result.emigration.toLocaleString()}` : "—"],
+  ];
+  return (
+    <div className="stats-strip">
+      {cards.map(([label, value]) => (
+        <div className="stat-card" key={label}>
+          <div className="stat-label">{label}</div>
+          <div className="stat-value">{value}</div>
+        </div>
+      ))}
+      <div className="stat-card community-card">
+        <div className="stat-label">Community background</div>
+        {snapshot ? (
+          <div className="community-split">
+            {[
+              ["Catholic", "catholic"],
+              ["Protestant", "protestant"],
+              ["Other", "other"],
+              ["None", "none"],
+            ].map(([label, key]) => (
+              <span key={key}>
+                <b>{label}</b>
+                {percentage(snapshot.religious_breakdown[key] ?? 0, snapshot.total_population)}
+              </span>
+            ))}
+          </div>
+        ) : <div className="stat-value">—</div>}
+      </div>
+    </div>
+  );
+}
+
+function signed(value: number) {
+  return `${value >= 0 ? "+" : ""}${value.toLocaleString()}`;
+}
+
+function percentage(value: number, total: number) {
+  return `${((value / Math.max(total, 1)) * 100).toFixed(1)}%`;
+}

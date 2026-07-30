@@ -1,0 +1,46 @@
+name: "Zero Net Migration Sensitivity"
+description: >
+  A deterministic sensitivity scenario using the modern fertility and mortality
+  assumptions from the historical model, with external and internal net
+  migration held at zero. Use it to isolate natural population change.
+
+rate_jitter: 0.0
+random_seed: 42
+
+birth_rates:
+  - rate: 15.0
+    year_min: 2010
+    filters: {religious_background: "CATHOLIC"}
+  - rate: 11.0
+    year_min: 2010
+    filters: {religious_background: "PROTESTANT"}
+  - rate: 12.0
+    year_min: 2010
+    filters: {religious_background: "OTHER"}
+  - rate: 10.0
+    year_min: 2010
+    filters: {religious_background: "NONE"}
+
+death_rates:
+  - rate: 0.5
+    year_min: 2010
+    filters: {age_max: 20}
+  - rate: 2.0
+    year_min: 2010
+    filters: {age_min: 21, age_max: 50}
+  - rate: 8.0
+    year_min: 2010
+    filters: {age_min: 51, age_max: 70}
+  - rate: 50.0
+    year_min: 2010
+    filters: {age_min: 71, age_max: 85}
+  - rate: 150.0
+    year_min: 2010
+    filters: {age_min: 86}
+
+migration_rates:
+  - rate: 0.0
+    year_min: 2010
+    filters: {}
+
+internal_migration_rates: []

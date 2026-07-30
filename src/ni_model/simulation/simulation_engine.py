@@ -20,13 +20,16 @@ class SimulationEngine:
         )
         births = self.director.simulate_births(year)
         deaths = self.director.simulate_deaths(year)
-        migration = self.director.simulate_migration(year)
+        immigration, emigration = self.director.simulate_migration_components(year)
+        migration = immigration - emigration
         internal_migration = self.director.simulate_internal_migration(year)
 
         return {
             "year": year,
             "births": births,
             "deaths": deaths,
+            "immigration": immigration,
+            "emigration": emigration,
             "migration": migration,
             "internal_migration": internal_migration,
             "net_change": births - deaths + migration,

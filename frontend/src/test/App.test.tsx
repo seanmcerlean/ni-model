@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock react-leaflet to avoid DOM/canvas issues in jsdom
 vi.mock("react-leaflet", () => ({
@@ -14,10 +14,18 @@ vi.mock("../geo/ni.geojson?raw", () => ({
 
 import App from "../App";
 
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(() => new Promise(() => undefined)));
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("App", () => {
   it("renders header title", () => {
     render(<App />);
-    expect(screen.getByText("NI Population Model")).toBeInTheDocument();
+    expect(screen.getByText("Northern Ireland Population Model")).toBeInTheDocument();
   });
 
   it("renders map container", () => {

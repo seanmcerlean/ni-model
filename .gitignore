@@ -10,6 +10,7 @@ venv/
 
 # Local databases and environment
 *.db
+*.db-journal
 .env
 .env.*
 !.env.example

@@ -33,6 +33,17 @@ def test_simulation_years_empty(client):
     assert response.json() == {"years": []}
 
 
+def test_simulation_models_describes_available_configs(client):
+    response = client.get("/api/simulation/models")
+
+    assert response.status_code == 200
+    models = response.json()
+    assert models[0]["path"] == "models/ni_base_2024.yaml"
+    assert models[0]["name"] == "NI Historical Model"
+    assert models[0]["birth_rules"] == 12
+    assert models[0]["death_rules"] == 15
+
+
 def test_simulation_years_after_store(client):
     _year_snapshots[2024] = _make_snapshot(2024)
     _year_snapshots[2025] = _make_snapshot(2025)
@@ -164,6 +175,8 @@ def test_run_simulation_response_schema(client):
         "year",
         "births",
         "deaths",
+        "immigration",
+        "emigration",
         "migration",
         "internal_migration",
         "net_change",

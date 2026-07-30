@@ -196,10 +196,18 @@ class ModelDirector:
 
     def simulate_migration(self, year: int) -> int:
         """Execute migration calculators active for year and return net migration"""
+        immigration, emigration = self.simulate_migration_components(year)
+        return immigration - emigration
+
+    def simulate_migration_components(self, year: int) -> tuple[int, int]:
+        """Execute migration rules and return separate inflow and outflow counts."""
         calcs = self._build_calculators(
             self.config.get("migration_rates", []), MigrationCalculator, year
         )
-        return sum(c.calculate() for c in calcs)
+        changes = [calculator.calculate() for calculator in calcs]
+        immigration = sum(change for change in changes if change > 0)
+        emigration = sum(abs(change) for change in changes if change < 0)
+        return immigration, emigration
 
     def simulate_internal_migration(self, year: int) -> int:
         """Execute internal migration calculators active for year"""

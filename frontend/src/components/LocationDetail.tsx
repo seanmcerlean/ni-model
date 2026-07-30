@@ -1,37 +1,27 @@
-import { useEffect, useState } from "react";
-
-import { LocationDetail as LocationDetailType } from "../types";
+import { LOCATION_KEYS, SimulationLocationSnapshot } from "../types";
 
 interface Props {
   locationId: string | null;
+  year: number | null;
+  detail: SimulationLocationSnapshot | null;
   onClose: () => void;
 }
 
-export function LocationDetail({ locationId, onClose }: Props) {
-  const [detail, setDetail] = useState<LocationDetailType | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!locationId) { setDetail(null); return; }
-    setLoading(true);
-    fetch(`/api/population/location/${locationId}`)
-      .then((r) => r.json())
-      .then((d) => { setDetail(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [locationId]);
-
+export function LocationDetail({ locationId, year, detail, onClose }: Props) {
   if (!locationId) return null;
 
   return (
     <div style={styles.panel}>
       <button style={styles.close} onClick={onClose}>✕</button>
-      {loading && <div style={styles.loading}>Loading…</div>}
+      <div style={styles.eyebrow}>AREA SNAPSHOT {year ?? "—"}</div>
+      <h3 style={styles.title}>{LOCATION_KEYS[locationId] ?? locationId}</h3>
+      {!detail && <div style={styles.loading}>Run the model to see area statistics.</div>}
       {detail && (
         <>
-          <h3 style={styles.title}>{detail.location.replace(/_/g, " ").toUpperCase()}</h3>
-          <div style={styles.stat}>Population: <strong>{detail.total.toLocaleString()}</strong></div>
+          <div style={styles.population}>{detail.total.toLocaleString()}</div>
+          <div style={styles.populationLabel}>simulated residents</div>
 
-          <Section title="Religion" data={detail.religious_breakdown} />
+          <Section title="Community background" data={detail.religious_breakdown} />
           <Section title="Gender" data={detail.gender_breakdown} />
           <Section title="Origin" data={detail.origin_breakdown} />
           <Section title="Age Bands" data={detail.age_bands} />
@@ -84,7 +74,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
   },
   title: { fontSize: 14, fontWeight: "bold", marginBottom: 8, paddingRight: 20 },
-  stat: { fontSize: 13, color: "#ccc" },
+  eyebrow: { color: "#7dd3fc", fontSize: 10, letterSpacing: 1.4, marginBottom: 5 },
+  population: { fontSize: 26, fontWeight: 700, color: "#f8fafc" },
+  populationLabel: { fontSize: 11, color: "#94a3b8", marginBottom: 12 },
   loading: { color: "#aaa", fontSize: 13 },
   sectionTitle: { fontSize: 11, color: "#888", textTransform: "uppercase", marginBottom: 4 },
   barRow: { display: "flex", alignItems: "center", gap: 6, marginBottom: 3 },

@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AgeStats(BaseModel):
@@ -35,9 +35,19 @@ class SimulationYearResult(BaseModel):
     year: int
     births: int
     deaths: int
+    immigration: int = 0
+    emigration: int = 0
     migration: int
     internal_migration: int
     net_change: int
+
+
+class SimulationLocationSnapshot(BaseModel):
+    total: int
+    religious_breakdown: Dict[str, int]
+    gender_breakdown: Dict[str, int]
+    origin_breakdown: Dict[str, int]
+    age_bands: Dict[str, int]
 
 
 class SimulationYearSnapshot(BaseModel):
@@ -46,7 +56,23 @@ class SimulationYearSnapshot(BaseModel):
     religious_breakdown: Dict[str, int]
     gender_breakdown: Dict[str, int]
     location_breakdown: Dict[str, int]
+    locations: Dict[str, SimulationLocationSnapshot] = Field(default_factory=dict)
     simulation_result: Optional[SimulationYearResult] = None
+
+
+class SimulationModelSummary(BaseModel):
+    id: str
+    path: str
+    name: str
+    description: str
+    rate_jitter: float
+    random_seed: Optional[int]
+    birth_rules: int
+    death_rules: int
+    migration_rules: int
+    internal_migration_rules: int
+    year_min: Optional[int]
+    year_max: Optional[int]
 
 
 class SimulationYearsList(BaseModel):

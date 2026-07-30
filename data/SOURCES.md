@@ -40,10 +40,26 @@ Values are observations for calibration and back-testing, not future assumptions
 
 Downloaded and normalized on 2026-07-30. No values were interpolated.
 
+## Map boundaries
+
+- **Producer:** Land & Property Services, Ordnance Survey of Northern Ireland
+  (OSNI).
+- **County layer:** OSNI Open Data Largescale County Boundaries.
+- **Belfast layer:** OSNI Open Data 50K Parliamentary Constituencies (2008),
+  using Belfast North, South, East and West to match the model area enum.
+- **Licence:** UK Open Government Licence.
+- **Transform:** WGS84 geometries are simplified for browser display in
+  `frontend/src/geo/ni.geojson`.
+
+The map is necessarily hybrid: six historic counties plus four 2008 Belfast
+constituencies. It matches the model categories but is not a single current
+administrative geography.
+
 ## Assumptions not yet replaced
 
 - `location` uses a non-standard mix of six historic counties and four Belfast
-  areas and remains synthetic.
+  areas; its weights remain synthetic even though the displayed boundaries are
+  now sourced.
 - education is conditionally sampled from hand-authored age assumptions.
 - mortality by age, community-specific fertility, and internal migration rates
   in `models/ni_base_2024.yaml` remain assumptions.

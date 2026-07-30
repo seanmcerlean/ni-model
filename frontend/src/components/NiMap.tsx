@@ -11,43 +11,45 @@ interface Props {
   onLocationClick: (locationId: string) => void;
 }
 
-function catholicRatio(snapshot: YearSnapshot, locationId: string): number {
-  const locTotal = snapshot.location_breakdown[locationId] ?? 0;
-  if (locTotal === 0) return 0.5;
-  // Approximate: scale religious breakdown proportionally to location share
-  const totalPop = snapshot.total_population || 1;
-  const locShare = locTotal / totalPop;
-  const catholic = (snapshot.religious_breakdown["catholic"] ?? 0) * locShare;
-  return catholic / locTotal;
+function communityBalance(snapshot: YearSnapshot, locationId: string): number {
+  const detail = snapshot.locations?.[locationId];
+  if (!detail) return 0;
+  const catholic = detail.religious_breakdown.catholic ?? 0;
+  const protestant = detail.religious_breakdown.protestant ?? 0;
+  return (catholic - protestant) / Math.max(catholic + protestant, 1);
 }
 
-function choroColor(ratio: number): string {
-  // Green = Catholic majority, Orange = Protestant majority, Grey = neutral
-  if (ratio > 0.55) return `rgba(34,139,34,${0.3 + ratio * 0.5})`;
-  if (ratio < 0.45) return `rgba(255,140,0,${0.3 + (1 - ratio) * 0.5})`;
-  return "rgba(150,150,150,0.4)";
+function choroColor(balance: number): string {
+  if (balance > 0.08) return balance > 0.3 ? "#15803d" : "#22c55e";
+  if (balance < -0.08) return balance < -0.3 ? "#0369a1" : "#0ea5e9";
+  return "#64748b";
 }
 
 export function NiMap({ snapshot, onLocationClick }: Props) {
   function style(feature: GeoJSON.Feature | undefined): PathOptions {
-    if (!feature || !snapshot) return { fillColor: "#555", fillOpacity: 0.4, weight: 1, color: "#fff" };
-    const ratio = catholicRatio(snapshot, feature.properties?.id ?? "");
+    if (!feature || !snapshot) return { fillColor: "#334155", fillOpacity: 0.65, weight: 1.2, color: "#cbd5e1" };
+    const balance = communityBalance(snapshot, feature.properties?.id ?? "");
     return {
-      fillColor: choroColor(ratio),
-      fillOpacity: 0.75,
-      weight: 1.5,
-      color: "#fff",
+      fillColor: choroColor(balance),
+      fillOpacity: 0.82,
+      weight: feature.properties?.id?.startsWith("belfast_") ? 2.5 : 1.2,
+      color: "#f8fafc",
     };
   }
 
   function onEachFeature(feature: GeoJSON.Feature, layer: Layer) {
-    layer.on("click", () => onLocationClick(feature.properties?.id ?? ""));
-    layer.bindTooltip(feature.properties?.name ?? "", { sticky: true });
+    const id = feature.properties?.id ?? "";
+    layer.on("click", () => onLocationClick(id));
+    const total = snapshot?.location_breakdown[id];
+    layer.bindTooltip(
+      `<strong>${feature.properties?.name ?? ""}</strong>${total === undefined ? "" : `<br>${total.toLocaleString()} residents`}`,
+      { sticky: true },
+    );
   }
 
   return (
     <MapContainer
-      center={[54.65, -6.7]}
+      center={[54.66, -6.72]}
       zoom={8}
       style={{ height: "100%", width: "100%", background: "#1a1a2e" }}
       zoomControl={true}
@@ -62,6 +64,11 @@ export function NiMap({ snapshot, onLocationClick }: Props) {
         style={style}
         onEachFeature={onEachFeature}
       />
+      <div className="map-legend">
+        <span><i className="swatch catholic" />Catholic background</span>
+        <span><i className="swatch balanced" />Balanced</span>
+        <span><i className="swatch protestant" />Protestant background</span>
+      </div>
     </MapContainer>
   );
 }

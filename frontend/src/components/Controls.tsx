@@ -39,47 +39,47 @@ export function Controls({
   const scrubMin = years.length > 0 ? years[0] : startYear;
 
   return (
-    <div style={styles.panel}>
-      <div style={styles.row}>
-        <label style={styles.label}>Start</label>
+    <div className="controls">
+      <div className="control-row">
+        <label className="control-label">Start</label>
         <input
           type="number"
           value={startYear}
           min={1900}
           max={2200}
-          style={styles.yearInput}
+          className="year-input"
           onChange={(e) => onStartYearChange(Number(e.target.value))}
         />
-        <label style={styles.label}>End</label>
+        <label className="control-label">End</label>
         <input
           type="number"
           value={endYear}
           min={1900}
           max={2200}
-          style={styles.yearInput}
+          className="year-input"
           onChange={(e) => onEndYearChange(Number(e.target.value))}
         />
-        <button style={styles.btn} onClick={onStartStream} disabled={status === "streaming"}>
+        <button className="primary-button" onClick={onStartStream} disabled={status === "streaming"}>
           {status === "streaming" ? "Streaming…" : "Run"}
         </button>
       </div>
 
-      <div style={styles.row}>
+      <div className="control-row playback-row">
         <button
-          style={styles.btn}
+          className="control-button"
           onClick={onPlayPause}
           disabled={years.length === 0}
         >
           {isPlaying ? "⏸ Pause" : "▶ Play"}
         </button>
-        <span style={styles.yearDisplay}>
+        <span className="current-year">
           {currentYear ?? "—"}
         </span>
-        <span style={styles.label}>Speed:</span>
+        <span className="control-label">Speed</span>
         {SPEEDS.map((s) => (
           <button
             key={s}
-            style={{ ...styles.btn, ...(speed === s ? styles.btnActive : {}) }}
+            className={`control-button ${speed === s ? "active" : ""}`}
             onClick={() => onSpeedChange(s)}
           >
             {s}×
@@ -87,64 +87,26 @@ export function Controls({
         ))}
       </div>
 
-      <div style={styles.row}>
+      <div className="scrub-row">
         <input
           type="range"
           min={scrubMin}
           max={scrubMax}
           value={currentYear ?? scrubMin}
-          style={{ flex: 1 }}
           disabled={years.length === 0}
           onChange={(e) => onScrub(Number(e.target.value))}
         />
       </div>
 
-      <div style={styles.progressBar}>
+      <div className="progress-bar">
         <div
-          style={{
-            ...styles.progressFill,
-            width: `${total > 0 ? (buffered / total) * 100 : 0}%`,
-          }}
+          className="progress-fill"
+          style={{ width: `${total > 0 ? (buffered / total) * 100 : 0}%` }}
         />
       </div>
       {status === "error" && (
-        <div style={{ color: "#f66", fontSize: 12 }}>Stream error</div>
+        <div className="stream-error">Stream error — check the local API.</div>
       )}
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  panel: {
-    background: "#16213e",
-    padding: "10px 14px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    borderTop: "1px solid #333",
-  },
-  row: { display: "flex", alignItems: "center", gap: 8 },
-  label: { fontSize: 12, color: "#aaa" },
-  yearInput: {
-    width: 70,
-    background: "#0f3460",
-    color: "#eee",
-    border: "1px solid #444",
-    borderRadius: 4,
-    padding: "2px 6px",
-    fontSize: 13,
-  },
-  btn: {
-    background: "#0f3460",
-    color: "#eee",
-    border: "1px solid #444",
-    borderRadius: 4,
-    padding: "4px 10px",
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  btnActive: { background: "#e94560", borderColor: "#e94560" },
-  yearDisplay: { fontSize: 20, fontWeight: "bold", minWidth: 60, textAlign: "center" },
-  progressBar: { height: 4, background: "#333", borderRadius: 2 },
-  progressFill: { height: "100%", background: "#e94560", borderRadius: 2, transition: "width 0.3s" },
-};
