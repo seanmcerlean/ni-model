@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="NI Population Model API",
         description="Northern Ireland demographic simulation API",
-        version="0.2.0",
+        version="0.2.1",
         lifespan=lifespan,
     )
     app.include_router(population_router)
