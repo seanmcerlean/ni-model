@@ -20,6 +20,7 @@ frontend/dist/
 
 # Editors and local tooling
 .amazonq/
+.tools/
 .idea/
 .vscode/
 *.swp

@@ -1,12 +1,15 @@
 # Northern Ireland Population & Voting Model
 
-A demographic simulation system that models Northern Ireland's ~2 million population at individual person level. Runs iterative year-by-year simulations (births → deaths → migration) and generates voting predictions from the resulting population state.
+A demographic simulation system that models Northern Ireland's ~2 million
+population at individual person level. Runs iterative year-by-year simulations
+(ageing → births → deaths → migration) and generates voting scenarios from the
+resulting population state.
 
 ## What it does
 
 - Maintains a full individual-level population in PostgreSQL (~2M person records)
 - Simulates demographic change year-by-year using configurable, era-specific rates
-- Applies different rates to different cohorts (e.g. Catholic vs Protestant birth rates, age-specific mortality)
+- Applies different rates to different cohorts (e.g. community-background birth rates and age-specific mortality)
 - Tracks internal migration between NI locations and external migration in/out
 - Generates border poll voting predictions (Unite/Remain/Undecided) from the simulated population
 - Validates model output against NISRA census benchmarks (1971–2021)
@@ -23,10 +26,10 @@ src/ni_model/
 └── validation/     # Historical validator, model comparator
 ```
 
-The simulation follows a mandatory sequential DB-update pattern per year:
+The simulation follows a sequential DB-update pattern per year:
 
 ```
-generate births → INSERT rows → remove deaths → DELETE rows → apply migration → UPDATE rows → snapshot results
+age all residents → generate births → remove deaths → apply migration → snapshot
 ```
 
 Model assumptions are defined in YAML and loaded at runtime via `ModelDirector`. Snapshots use PostgreSQL SAVEPOINTs for zero-copy rollback.
@@ -85,6 +88,7 @@ Models are defined in YAML. The default model is `models/ni_base_2024.yaml`.
 ```yaml
 name: "NI Historical Model"
 rate_jitter: 0.05   # ±5% random variation per year
+random_seed: 42     # reproducible run when population/config are unchanged
 
 birth_rates:
   - rate: 26.0
@@ -143,7 +147,8 @@ venv/bin/pytest test/integration/
 venv/bin/pytest test/ --cov=src/ni_model --cov-report=html
 ```
 
-Current coverage: **97.86%** across 205 tests.
+The suite includes unit, API, and PostgreSQL integration tests. Database-backed
+tests require a working Docker daemon because they use testcontainers.
 
 ## Linting
 
@@ -166,8 +171,22 @@ print(result.accuracy_score)   # 0.0–1.0
 print(result.within_threshold) # True if MARE <= 10%
 ```
 
-## Data sources
+## Data provenance and interpretation
 
-- Population benchmarks: [NISRA Census](https://www.nisra.gov.uk/statistics/census) 1971–2021
-- Geographic boundaries: NI GeoJSON (10 locations: Belfast N/S/E/W, Antrim, Armagh, Down, Derry, Fermanagh, Tyrone)
-- Demographic rates: derived from NISRA vital statistics and academic literature
+- The 2021 population, sex, age structure, and community-background baseline is
+  grounded in [NISRA Census 2021](https://www.nisra.gov.uk/statistics/census/2021-census).
+- `religious_background` currently represents NISRA's **religion or religion
+  brought up in** measure, used here as a community-background proxy. It does
+  not represent current religious practice or voting intention.
+- NISRA only provides this comparable combined measure from 2001. The 1971–1991
+  benchmark entries remain legacy estimates and are explicitly flagged in the
+  YAML pending reconstruction from historical source tables.
+- Geographic location and education weights and most demographic rates remain
+  model assumptions, not fully sourced observations. They must be calibrated
+  before interpreting forecasts as estimates.
+- Official births, deaths, net migration, and population reconciliation for
+  2002–2024 are checked in for calibration and back-testing. See
+  [`data/SOURCES.md`](data/SOURCES.md) for definitions and direct source files.
+- Border-poll outputs are scenarios based on configurable propensity assumptions.
+  They are not forecasts validated against observed referendum results (no
+  Northern Ireland border poll has occurred).

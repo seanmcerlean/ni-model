@@ -26,6 +26,7 @@ export interface LocationDetail {
 }
 
 export type PlaybackSpeed = 0.5 | 1 | 2 | 5;
+export type StreamStatus = "idle" | "streaming" | "complete" | "error";
 
 export const LOCATION_KEYS: Record<string, string> = {
   belfast_north: "Belfast North",

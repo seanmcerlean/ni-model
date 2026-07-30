@@ -1,15 +1,17 @@
 import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import { Layer, PathOptions } from "leaflet";
 
-import niGeoJson from "../geo/ni.geojson";
+import niGeoJsonRaw from "../geo/ni.geojson?raw";
 import { YearSnapshot } from "../types";
+
+const niGeoJson = JSON.parse(niGeoJsonRaw) as GeoJSON.FeatureCollection;
 
 interface Props {
   snapshot: YearSnapshot | null;
   onLocationClick: (locationId: string) => void;
 }
 
-function catholocRatio(snapshot: YearSnapshot, locationId: string): number {
+function catholicRatio(snapshot: YearSnapshot, locationId: string): number {
   const locTotal = snapshot.location_breakdown[locationId] ?? 0;
   if (locTotal === 0) return 0.5;
   // Approximate: scale religious breakdown proportionally to location share
@@ -29,7 +31,7 @@ function choroColor(ratio: number): string {
 export function NiMap({ snapshot, onLocationClick }: Props) {
   function style(feature: GeoJSON.Feature | undefined): PathOptions {
     if (!feature || !snapshot) return { fillColor: "#555", fillOpacity: 0.4, weight: 1, color: "#fff" };
-    const ratio = catholocRatio(snapshot, feature.properties?.id ?? "");
+    const ratio = catholicRatio(snapshot, feature.properties?.id ?? "");
     return {
       fillColor: choroColor(ratio),
       fillOpacity: 0.75,
@@ -56,7 +58,7 @@ export function NiMap({ snapshot, onLocationClick }: Props) {
       />
       <GeoJSON
         key={snapshot?.year ?? "empty"}
-        data={niGeoJson as GeoJSON.FeatureCollection}
+        data={niGeoJson}
         style={style}
         onEachFeature={onEachFeature}
       />

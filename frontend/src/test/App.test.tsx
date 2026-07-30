@@ -8,7 +8,9 @@ vi.mock("react-leaflet", () => ({
   GeoJSON: () => null,
 }));
 
-vi.mock("../geo/ni.geojson", () => ({ default: { type: "FeatureCollection", features: [] } }));
+vi.mock("../geo/ni.geojson?raw", () => ({
+  default: '{"type":"FeatureCollection","features":[]}',
+}));
 
 import App from "../App";
 

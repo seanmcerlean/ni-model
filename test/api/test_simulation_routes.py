@@ -153,11 +153,20 @@ def test_run_simulation_response_schema(client):
     assert response.status_code == 200
     data = response.json()
     expected_keys = {
-        "model_path", "start_year", "end_year", "years_simulated", "results"
+        "model_path",
+        "start_year",
+        "end_year",
+        "years_simulated",
+        "results",
     }
     assert set(data.keys()) == expected_keys
     result_keys = {
-        "year", "births", "deaths", "migration", "internal_migration", "net_change"
+        "year",
+        "births",
+        "deaths",
+        "migration",
+        "internal_migration",
+        "net_change",
     }
     for r in data["results"]:
         assert set(r.keys()) == result_keys
@@ -176,9 +185,9 @@ def _parse_sse(text: str) -> list:
     current = {}
     for line in text.splitlines():
         if line.startswith("event:"):
-            current["event"] = line[len("event:"):].strip()
+            current["event"] = line[len("event:") :].strip()
         elif line.startswith("data:"):
-            current["data"] = json.loads(line[len("data:"):].strip())
+            current["data"] = json.loads(line[len("data:") :].strip())
         elif line == "" and current:
             events.append(current)
             current = {}
@@ -221,6 +230,15 @@ def test_stream_invalid_model_path(client):
         "&start_year=2024&end_year=2025"
     )
     assert response.status_code == 422
+
+
+def test_stream_rejects_model_path_outside_models_directory(client):
+    response = client.get(
+        "/api/simulation/stream?model_path=project-goals.md"
+        "&start_year=2024&end_year=2025"
+    )
+    assert response.status_code == 422
+    assert "models/" in response.json()["detail"]
 
 
 def test_stream_end_before_start(client):

@@ -6,6 +6,7 @@ Integration tests: full stack end-to-end scenarios.
   - Compare two model runs
   - Voting predictions on simulated population
 """
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -64,27 +65,28 @@ def orchestrator(populated_db):
 # Population generation integration
 # ---------------------------------------------------------------------------
 
+
 def test_generated_population_persisted(populated_db):
     repo = PersonRepository(populated_db)
     assert repo.count() == 5_000
 
 
 def test_generated_population_has_all_locations(populated_db):
-    from src.ni_model.core.models import Location
-    from sqlalchemy import func
-    from src.ni_model.core.models import Person
-    locations = {
-        loc for (loc,) in populated_db.query(Person.location).distinct()
-    }
+    from src.ni_model.core.models import Location, Person
+
+    locations = {loc for (loc,) in populated_db.query(Person.location).distinct()}
     assert locations == set(Location)
 
 
 def test_generated_population_religious_distribution(populated_db):
     from sqlalchemy import func
+
     from src.ni_model.core.models import Person, ReligiousBackground
+
     counts = dict(
         populated_db.query(Person.religious_background, func.count(Person.id))
-        .group_by(Person.religious_background).all()
+        .group_by(Person.religious_background)
+        .all()
     )
     total = sum(counts.values())
     catholic_share = counts[ReligiousBackground.CATHOLIC] / total
@@ -94,6 +96,7 @@ def test_generated_population_religious_distribution(populated_db):
 # ---------------------------------------------------------------------------
 # Simulation integration
 # ---------------------------------------------------------------------------
+
 
 def test_simulation_runs_multiple_years(populated_db, orchestrator):
     results = orchestrator.run(2010, 2014)
@@ -112,7 +115,12 @@ def test_simulation_population_changes_over_time(populated_db, orchestrator):
 def test_simulation_all_result_keys_present(populated_db, orchestrator):
     results = orchestrator.run(2010, 2010)
     assert set(results[0].keys()) == {
-        "year", "births", "deaths", "migration", "internal_migration", "net_change"
+        "year",
+        "births",
+        "deaths",
+        "migration",
+        "internal_migration",
+        "net_change",
     }
 
 
@@ -135,6 +143,7 @@ def test_simulation_rollback_restores_population(populated_db, orchestrator):
 # Validation integration
 # ---------------------------------------------------------------------------
 
+
 def test_validator_loads_yaml_benchmarks():
     validator = HistoricalValidator.from_yaml("data/historical_benchmarks.yaml")
     assert len(validator.available_years()) == 6
@@ -142,7 +151,7 @@ def test_validator_loads_yaml_benchmarks():
 
 def test_validator_returns_none_for_non_benchmark_year(populated_db, orchestrator):
     validator = HistoricalValidator.from_yaml("data/historical_benchmarks.yaml")
-    results = orchestrator.run(2025, 2025)
+    orchestrator.run(2025, 2025)
     repo = PersonRepository(populated_db)
     snap = {
         "total_population": repo.count(),
@@ -157,10 +166,10 @@ def test_validator_produces_result_for_benchmark_year(populated_db):
     snap = {
         "total_population": 1_810_863,
         "religious_breakdown": {
-            "catholic": 817_385,
-            "protestant": 751_634,
-            "other": 72_434,
-            "none": 169_410,
+            "catholic": 817_400,
+            "protestant": 875_700,
+            "other": 16_600,
+            "none": 101_200,
         },
     }
     result = validator.validate(2011, snap)
@@ -188,6 +197,7 @@ def test_validator_summary_across_multiple_years():
 # ---------------------------------------------------------------------------
 # Model comparison integration
 # ---------------------------------------------------------------------------
+
 
 def test_compare_two_model_runs(postgres_container):
     """Run same population through two different year ranges and compare."""
@@ -229,6 +239,7 @@ def test_compare_two_model_runs(postgres_container):
 # Voting prediction integration
 # ---------------------------------------------------------------------------
 
+
 def test_voting_prediction_on_simulated_population(populated_db, orchestrator):
     orchestrator.run(2010, 2012)
     predictor = VotingPredictor(populated_db)
@@ -240,6 +251,7 @@ def test_voting_prediction_on_simulated_population(populated_db, orchestrator):
 
 def test_voting_prediction_by_location_complete(populated_db):
     from src.ni_model.core.models import Location
+
     predictor = VotingPredictor(populated_db)
     by_loc = predictor.predict_by_location()
     assert set(by_loc.keys()) == {loc.value for loc in Location}

@@ -48,7 +48,7 @@ def initial_population(postgres_db_session):
                 if i % 2 == 0
                 else ReligiousBackground.PROTESTANT
             ),
-            gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
+            gender=Gender.MALE if (i // 2) % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
             location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
             origin=Origin.NI,
@@ -108,6 +108,19 @@ def test_engine_multiple_years(postgres_db_session, initial_population, director
 
     assert len(results) == 3
     assert [r["year"] for r in results] == [2024, 2025, 2026]
+
+
+def test_engine_ages_population_each_year(
+    postgres_db_session, initial_population, director
+):
+    engine = SimulationEngine(postgres_db_session, director)
+    person = postgres_db_session.query(Person).order_by(Person.age).first()
+    initial_age = person.age
+
+    engine.run_simulation_year(2024)
+    postgres_db_session.refresh(person)
+
+    assert person.age == initial_age + 1
 
 
 def test_engine_commits_each_step(postgres_db_session, initial_population, director):

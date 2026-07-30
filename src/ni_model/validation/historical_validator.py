@@ -79,9 +79,7 @@ class HistoricalValidator:
         b_rb = benchmark.get("religious_breakdown", {})
         s_rb = snapshot.get("religious_breakdown", {})
         for key in b_rb:
-            rb_errors.append(
-                self._metric_error(key, b_rb[key], s_rb.get(key, 0))
-            )
+            rb_errors.append(self._metric_error(key, b_rb[key], s_rb.get(key, 0)))
 
         all_errors = [pop_error] + rb_errors
         rmse = self._rmse([e.absolute_error for e in all_errors])
@@ -106,9 +104,7 @@ class HistoricalValidator:
             if (result := self.validate(year, snap)) is not None
         }
 
-    def summary(
-        self, results: Dict[int, ValidationResult]
-    ) -> Dict[str, Any]:
+    def summary(self, results: Dict[int, ValidationResult]) -> Dict[str, Any]:
         """Aggregate summary across all validation results."""
         if not results:
             return {
@@ -147,4 +143,4 @@ class HistoricalValidator:
     def _rmse(errors: List[float]) -> float:
         if not errors:
             return 0.0
-        return math.sqrt(sum(e ** 2 for e in errors) / len(errors))
+        return math.sqrt(sum(e**2 for e in errors) / len(errors))

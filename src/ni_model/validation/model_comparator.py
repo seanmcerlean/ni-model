@@ -61,12 +61,12 @@ class ModelComparator:
         }
 
         mean_rmse = (
-            sum(c.rmse for c in per_year.values()) / len(per_year)
-            if per_year else 0.0
+            sum(c.rmse for c in per_year.values()) / len(per_year) if per_year else 0.0
         )
         mean_div = (
             sum(c.max_divergence for c in per_year.values()) / len(per_year)
-            if per_year else 0.0
+            if per_year
+            else 0.0
         )
 
         return ComparisonReport(
@@ -105,15 +105,17 @@ class ModelComparator:
             val_b = self._extract(snap_b, key)
             abs_diff = abs(val_b - val_a)
             rel_diff = (val_b - val_a) / val_a if val_a != 0 else 0.0
-            diffs.append(MetricDiff(
-                key=key,
-                model_a=val_a,
-                model_b=val_b,
-                absolute_diff=abs_diff,
-                relative_diff=round(rel_diff, 4),
-            ))
+            diffs.append(
+                MetricDiff(
+                    key=key,
+                    model_a=val_a,
+                    model_b=val_b,
+                    absolute_diff=abs_diff,
+                    relative_diff=round(rel_diff, 4),
+                )
+            )
 
-        rmse = math.sqrt(sum(d.absolute_diff ** 2 for d in diffs) / len(diffs))
+        rmse = math.sqrt(sum(d.absolute_diff**2 for d in diffs) / len(diffs))
         max_diff = max(diffs, key=lambda d: abs(d.relative_diff))
 
         return YearComparison(

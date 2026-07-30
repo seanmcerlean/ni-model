@@ -107,13 +107,16 @@ def test_roi_origin_highest_unite_propensity(db_session):
 
 
 def test_predict_by_location_returns_all_locations(db_session):
-    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 30,
-                 Location.BELFAST_NORTH)
-    _make_person(db_session, ReligiousBackground.PROTESTANT, Origin.NI, 40,
-                 Location.DERRY)
+    _make_person(
+        db_session, ReligiousBackground.CATHOLIC, Origin.NI, 30, Location.BELFAST_NORTH
+    )
+    _make_person(
+        db_session, ReligiousBackground.PROTESTANT, Origin.NI, 40, Location.DERRY
+    )
     predictor = VotingPredictor(db_session)
     by_loc = predictor.predict_by_location()
     from src.ni_model.core.models import Location as Loc
+
     assert set(by_loc.keys()) == {loc.value for loc in Loc}
 
 

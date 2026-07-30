@@ -6,6 +6,7 @@ description: >
   Modern (2010+): contemporary rates, lower Catholic/Protestant gap.
 
 rate_jitter: 0.05  # ±5% random variation applied to each rate per simulation year
+random_seed: 42    # same population + model + seed produces the same run
 
 # ---------------------------------------------------------------------------
 # BIRTH RATES (per 1000 of cohort)

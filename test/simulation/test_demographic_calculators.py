@@ -57,7 +57,7 @@ def initial_population(postgres_db_session):
                 if i % 2 == 0
                 else ReligiousBackground.PROTESTANT
             ),
-            gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
+            gender=Gender.MALE if (i // 2) % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
             location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
             origin=Origin.NI,

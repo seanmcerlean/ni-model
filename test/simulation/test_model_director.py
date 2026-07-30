@@ -57,7 +57,7 @@ def initial_population(postgres_db_session):
                 if i % 2 == 0
                 else ReligiousBackground.PROTESTANT
             ),
-            gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
+            gender=Gender.MALE if (i // 2) % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
             location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
             origin=Origin.NI,
@@ -207,7 +207,7 @@ def test_no_year_bounds_applies_to_all_years(postgres_db_session):
             Person(
                 age=30,
                 religious_background=ReligiousBackground.CATHOLIC,
-                gender=Gender.MALE,
+                gender=Gender.FEMALE,
                 education_level=EducationLevel.TERTIARY,
                 location=Location.BELFAST_NORTH,
                 origin=Origin.NI,
@@ -342,3 +342,43 @@ def test_default_jitter_applied_when_not_configured(postgres_db_session):
     director = ModelDirector(postgres_db_session, config)
 
     assert director.jitter == 0.05
+
+
+def test_same_seed_produces_same_rate_sequence(postgres_db_session):
+    config = {
+        "random_seed": 123,
+        "rate_jitter": 0.10,
+        "birth_rates": [],
+        "death_rates": [],
+        "migration_rates": [],
+    }
+    first = ModelDirector(postgres_db_session, config)
+    second = ModelDirector(postgres_db_session, config)
+
+    assert [first._jittered_rate(10) for _ in range(5)] == [
+        second._jittered_rate(10) for _ in range(5)
+    ]
+
+
+@pytest.mark.parametrize(
+    "config, message",
+    [
+        (None, "mapping"),
+        ({"rate_jitter": 1.1}, "rate_jitter"),
+        ({"rate_jitter": "0.1"}, "rate_jitter"),
+        ({"random_seed": "42"}, "random_seed"),
+        ({"death_rates": [{"rate": -1}]}, "non-negative"),
+        ({"birth_rates": [{"rate": 1, "filters": []}]}, "filters"),
+        (
+            {"birth_rates": [{"rate": 1, "filters": {"unknown": 1}}]},
+            "unsupported filters",
+        ),
+        (
+            {"death_rates": [{"rate": 1, "year_min": 2025, "year_max": 2024}]},
+            "year_min",
+        ),
+    ],
+)
+def test_invalid_model_config_rejected(postgres_db_session, config, message):
+    with pytest.raises(ValueError, match=message):
+        ModelDirector(postgres_db_session, config)

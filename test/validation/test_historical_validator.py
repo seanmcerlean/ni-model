@@ -39,22 +39,22 @@ PERFECT_SNAPSHOT = {
 }
 
 CLOSE_SNAPSHOT = {
-    "total_population": 1_050_000,   # 5% over
+    "total_population": 1_050_000,  # 5% over
     "religious_breakdown": {
-        "catholic": 420_000,         # 5% over
-        "protestant": 472_500,       # 5% over
-        "other": 105_000,            # 5% over
-        "none": 52_500,              # 5% over
+        "catholic": 420_000,  # 5% over
+        "protestant": 472_500,  # 5% over
+        "other": 105_000,  # 5% over
+        "none": 52_500,  # 5% over
     },
 }
 
 FAR_SNAPSHOT = {
-    "total_population": 1_300_000,   # 30% over
+    "total_population": 1_300_000,  # 30% over
     "religious_breakdown": {
-        "catholic": 600_000,         # 50% over
-        "protestant": 400_000,       # 11% under
-        "other": 200_000,            # 100% over
-        "none": 100_000,             # 100% over
+        "catholic": 600_000,  # 50% over
+        "protestant": 400_000,  # 11% under
+        "other": 200_000,  # 100% over
+        "none": 100_000,  # 100% over
     },
 }
 
@@ -123,7 +123,7 @@ def test_validate_rmse_formula(validator):
     errors = [result.total_population_error.absolute_error] + [
         e.absolute_error for e in result.religious_breakdown_errors
     ]
-    expected = math.sqrt(sum(e ** 2 for e in errors) / len(errors))
+    expected = math.sqrt(sum(e**2 for e in errors) / len(errors))
     assert result.rmse == pytest.approx(expected, rel=0.01)
 
 
@@ -154,11 +154,20 @@ def test_summary_empty(validator):
 
 
 def test_summary_all_perfect(validator):
-    results = validator.validate_all({2001: PERFECT_SNAPSHOT, 2011: {
-        "total_population": 1_100_000,
-        "religious_breakdown": {"catholic": 450_000, "protestant": 440_000,
-                                "other": 130_000, "none": 80_000},
-    }})
+    results = validator.validate_all(
+        {
+            2001: PERFECT_SNAPSHOT,
+            2011: {
+                "total_population": 1_100_000,
+                "religious_breakdown": {
+                    "catholic": 450_000,
+                    "protestant": 440_000,
+                    "other": 130_000,
+                    "none": 80_000,
+                },
+            },
+        }
+    )
     s = validator.summary(results)
     assert s["years_validated"] == 2
     assert s["mean_accuracy"] == pytest.approx(1.0)
@@ -197,7 +206,7 @@ def test_from_yaml_benchmark_values():
     validator = HistoricalValidator.from_yaml("data/historical_benchmarks.yaml")
     b = validator.benchmarks[2021]
     assert b["total_population"] == 1_903_175
-    assert b["religious_breakdown"]["catholic"] == 864_249
+    assert b["religious_breakdown"]["catholic"] == 869_753
 
 
 def test_missing_religious_key_treated_as_zero(validator):

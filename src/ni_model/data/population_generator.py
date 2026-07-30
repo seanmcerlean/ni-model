@@ -10,18 +10,21 @@ from ..core.models import (
     ReligiousBackground,
 )
 
-# NI 2021 census approximate shares
+# NI Census 2021 "religion or religion brought up in" (community-background
+# proxy), table MS-B23. Topic tables are independently disclosure-controlled,
+# so this table totals 1,903,172 rather than the headline population 1,903,175.
 _RELIGION_WEIGHTS = [
-    (ReligiousBackground.CATHOLIC, 0.454),
-    (ReligiousBackground.PROTESTANT, 0.398),
-    (ReligiousBackground.OTHER, 0.082),
-    (ReligiousBackground.NONE, 0.066),
+    (ReligiousBackground.CATHOLIC, 869_753 / 1_903_172),
+    (ReligiousBackground.PROTESTANT, 827_545 / 1_903_172),
+    (ReligiousBackground.OTHER, 28_514 / 1_903_172),
+    (ReligiousBackground.NONE, 177_360 / 1_903_172),
 ]
 
+# Census 2021 usual residents: 935,973 male and 967,202 female. The database
+# retains OTHER for scenarios, but Census 2021 published this table by sex.
 _GENDER_WEIGHTS = [
-    (Gender.MALE, 0.494),
-    (Gender.FEMALE, 0.504),
-    (Gender.OTHER, 0.002),
+    (Gender.MALE, 935_973 / 1_903_175),
+    (Gender.FEMALE, 967_202 / 1_903_175),
 ]
 
 # Population-weighted location shares (Belfast areas split ~30% of total)
@@ -38,61 +41,85 @@ _LOCATION_WEIGHTS = [
     (Location.FERMANAGH, 0.055),
 ]
 
+# Census 2021 country of birth, MS-A16. `GB` combines England, Scotland and
+# Wales; `OTHER` combines all remaining published categories.
 _ORIGIN_WEIGHTS = [
-    (Origin.NI, 0.920),
-    (Origin.ROI, 0.040),
-    (Origin.GB, 0.030),
-    (Origin.OTHER, 0.010),
+    (Origin.NI, 1_646_276 / 1_903_173),
+    (Origin.ROI, 40_357 / 1_903_173),
+    (Origin.GB, 92_257 / 1_903_173),
+    (Origin.OTHER, 124_283 / 1_903_173),
 ]
 
-# Age band (min, max, weight) — NI pyramid: broad base, tapering top
+# Census 2021 five-year age bands, MS-A02. MS-A02 combines everybody aged 90+;
+# that band is split using an explicit approximate centenarian share (0.015%)
+# consistent with NISRA's published 2024 count of 294.
+_AGE_TOTAL = 1_903_174
+_CENTENARIAN_WEIGHT = 0.00015
 _AGE_BANDS = [
-    (0, 4, 0.060),
-    (5, 14, 0.115),
-    (15, 24, 0.120),
-    (25, 34, 0.135),
-    (35, 44, 0.130),
-    (45, 54, 0.130),
-    (55, 64, 0.110),
-    (65, 74, 0.090),
-    (75, 84, 0.055),
-    (85, 100, 0.025),
-    (101, 110, 0.030),
+    (0, 4, 113_820 / _AGE_TOTAL),
+    (5, 9, 124_475 / _AGE_TOTAL),
+    (10, 14, 126_918 / _AGE_TOTAL),
+    (15, 19, 113_203 / _AGE_TOTAL),
+    (20, 24, 111_386 / _AGE_TOTAL),
+    (25, 29, 116_409 / _AGE_TOTAL),
+    (30, 34, 126_050 / _AGE_TOTAL),
+    (35, 39, 127_313 / _AGE_TOTAL),
+    (40, 44, 122_163 / _AGE_TOTAL),
+    (45, 49, 121_670 / _AGE_TOTAL),
+    (50, 54, 130_967 / _AGE_TOTAL),
+    (55, 59, 129_276 / _AGE_TOTAL),
+    (60, 64, 113_049 / _AGE_TOTAL),
+    (65, 69, 93_464 / _AGE_TOTAL),
+    (70, 74, 83_467 / _AGE_TOTAL),
+    (75, 79, 66_377 / _AGE_TOTAL),
+    (80, 84, 43_776 / _AGE_TOTAL),
+    (85, 89, 25_879 / _AGE_TOTAL),
+    (90, 99, (13_512 / _AGE_TOTAL) - _CENTENARIAN_WEIGHT),
+    (100, 110, _CENTENARIAN_WEIGHT),
 ]
 
-# Education level by age band index (0-based, matching _AGE_BANDS)
+# Education weights are scenario assumptions selected by broad age, not
+# observed joint Census distributions.
 _PRE = EducationLevel.PRE_PRIMARY
 _PRI = EducationLevel.PRIMARY
 _SEC = EducationLevel.SECONDARY
 _TER = EducationLevel.TERTIARY
 _PGR = EducationLevel.POSTGRADUATE
 
-_EDUCATION_BY_AGE: List[List[tuple]] = [
-    [(_PRE, 1.0)],                                              # 0-4
-    [(_PRE, 0.5), (_PRI, 0.5)],                                 # 5-14
-    [(_PRI, 0.1), (_SEC, 0.9)],                                 # 15-24
-    [(_SEC, 0.5), (_TER, 0.5)],                                 # 25-34
-    [(_SEC, 0.4), (_TER, 0.45), (_PGR, 0.15)],                  # 35-44
-    [(_SEC, 0.45), (_TER, 0.40), (_PGR, 0.15)],                 # 45-54
-    [(_PRI, 0.1), (_SEC, 0.55), (_TER, 0.30), (_PGR, 0.05)],   # 55-64
-    [(_PRI, 0.2), (_SEC, 0.55), (_TER, 0.25)],                  # 65-74
-    [(_PRI, 0.3), (_SEC, 0.55), (_TER, 0.15)],                  # 75-84
-    [(_PRI, 0.4), (_SEC, 0.50), (_TER, 0.10)],                  # 85-100
-    [(_PRI, 0.5), (_SEC, 0.40), (_TER, 0.10)],                  # 101+
+_EDUCATION_BY_BROAD_AGE: List[tuple[int, int, List[tuple]]] = [
+    (0, 4, [(_PRE, 1.0)]),
+    (5, 14, [(_PRE, 0.5), (_PRI, 0.5)]),
+    (15, 24, [(_PRI, 0.1), (_SEC, 0.9)]),
+    (25, 34, [(_SEC, 0.5), (_TER, 0.5)]),
+    (35, 44, [(_SEC, 0.4), (_TER, 0.45), (_PGR, 0.15)]),
+    (45, 54, [(_SEC, 0.45), (_TER, 0.40), (_PGR, 0.15)]),
+    (55, 64, [(_PRI, 0.1), (_SEC, 0.55), (_TER, 0.30), (_PGR, 0.05)]),
+    (65, 74, [(_PRI, 0.2), (_SEC, 0.55), (_TER, 0.25)]),
+    (75, 84, [(_PRI, 0.3), (_SEC, 0.55), (_TER, 0.15)]),
+    (85, 99, [(_PRI, 0.4), (_SEC, 0.50), (_TER, 0.10)]),
+    (100, 110, [(_PRI, 0.5), (_SEC, 0.40), (_TER, 0.10)]),
 ]
 
 
-def _weighted_choice(choices):
+def _weighted_choice(choices, rng: random.Random):
     items, weights = zip(*choices)
-    return random.choices(items, weights=weights, k=1)[0]
+    return rng.choices(items, weights=weights, k=1)[0]
 
 
-def _sample_age() -> tuple[int, int]:
-    """Return (age, band_index) sampled from NI age pyramid"""
+def _sample_age(rng: random.Random) -> int:
+    """Return an age sampled from the NI Census 2021 age distribution."""
     band_items = [(i, w) for i, (_, _, w) in enumerate(_AGE_BANDS)]
-    band_idx = _weighted_choice([(i, w) for i, w in band_items])
+    band_idx = _weighted_choice([(i, w) for i, w in band_items], rng)
     min_age, max_age, _ = _AGE_BANDS[band_idx]
-    return random.randint(min_age, max_age), band_idx
+    return rng.randint(min_age, max_age)
+
+
+def _education_weights(age: int) -> List[tuple]:
+    return next(
+        weights
+        for min_age, max_age, weights in _EDUCATION_BY_BROAD_AGE
+        if min_age <= age <= max_age
+    )
 
 
 def generate_population(size: int, seed: int = None) -> List[Person]:
@@ -105,20 +132,21 @@ def generate_population(size: int, seed: int = None) -> List[Person]:
     Returns:
         List of unsaved Person instances
     """
-    if seed is not None:
-        random.seed(seed)
+    if size < 0:
+        raise ValueError("size must be non-negative")
 
+    rng = random.Random(seed)
     persons = []
     for _ in range(size):
-        age, band_idx = _sample_age()
+        age = _sample_age(rng)
         persons.append(
             Person(
                 age=age,
-                religious_background=_weighted_choice(_RELIGION_WEIGHTS),
-                gender=_weighted_choice(_GENDER_WEIGHTS),
-                location=_weighted_choice(_LOCATION_WEIGHTS),
-                origin=_weighted_choice(_ORIGIN_WEIGHTS),
-                education_level=_weighted_choice(_EDUCATION_BY_AGE[band_idx]),
+                religious_background=_weighted_choice(_RELIGION_WEIGHTS, rng),
+                gender=_weighted_choice(_GENDER_WEIGHTS, rng),
+                location=_weighted_choice(_LOCATION_WEIGHTS, rng),
+                origin=_weighted_choice(_ORIGIN_WEIGHTS, rng),
+                education_level=_weighted_choice(_education_weights(age), rng),
             )
         )
     return persons

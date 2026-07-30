@@ -58,19 +58,28 @@ class VotingPredictor:
 
     def predict(self) -> Dict[str, Any]:
         """Return predicted vote shares and counts for the current population."""
-        rows = self.db.query(
-            Person.religious_background,
-            Person.origin,
-            Person.age,
-            func.count(Person.id).label("count"),
-        ).group_by(
-            Person.religious_background, Person.origin, Person.age
-        ).all()
+        rows = (
+            self.db.query(
+                Person.religious_background,
+                Person.origin,
+                Person.age,
+                func.count(Person.id).label("count"),
+            )
+            .group_by(Person.religious_background, Person.origin, Person.age)
+            .all()
+        )
 
         total = sum(r.count for r in rows)
         if total == 0:
-            return {"total_population": 0, "unite": 0, "remain": 0, "undecided": 0,
-                    "unite_share": 0.0, "remain_share": 0.0, "undecided_share": 0.0}
+            return {
+                "total_population": 0,
+                "unite": 0,
+                "remain": 0,
+                "undecided": 0,
+                "unite_share": 0.0,
+                "remain_share": 0.0,
+                "undecided_share": 0.0,
+            }
 
         unite_votes = 0.0
         for row in rows:
@@ -79,7 +88,8 @@ class VotingPredictor:
 
         remain_votes = sum(
             (1.0 - self._unite_propensity(r.religious_background, r.origin, r.age))
-            * 0.6 * r.count
+            * 0.6
+            * r.count
             for r in rows
         )
         undecided_votes = total - unite_votes - remain_votes
@@ -104,14 +114,17 @@ class VotingPredictor:
         }
 
     def _predict_for_filter(self, *filters) -> Dict[str, Any]:
-        rows = self.db.query(
-            Person.religious_background,
-            Person.origin,
-            Person.age,
-            func.count(Person.id).label("count"),
-        ).filter(*filters).group_by(
-            Person.religious_background, Person.origin, Person.age
-        ).all()
+        rows = (
+            self.db.query(
+                Person.religious_background,
+                Person.origin,
+                Person.age,
+                func.count(Person.id).label("count"),
+            )
+            .filter(*filters)
+            .group_by(Person.religious_background, Person.origin, Person.age)
+            .all()
+        )
 
         total = sum(r.count for r in rows)
         if total == 0:
@@ -128,7 +141,8 @@ class VotingPredictor:
         )
         remain = sum(
             (1.0 - self._unite_propensity(r.religious_background, r.origin, r.age))
-            * 0.6 * r.count
+            * 0.6
+            * r.count
             for r in rows
         )
         return {

@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 from typing import AsyncGenerator, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,11 +19,44 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+MODELS_DIR = PROJECT_ROOT / "models"
 
 # In-memory store for completed simulation results, keyed by year.
 # Populated by the orchestrator via store_results().
 _year_snapshots: dict[int, SimulationYearSnapshot] = {}
 _year_results: dict[int, SimulationYearResult] = {}
+
+
+def _resolve_model_path(model_path: str) -> Path:
+    """Resolve a model inside MODELS_DIR without allowing filesystem traversal."""
+    requested = Path(model_path)
+    candidate = (
+        requested.resolve()
+        if requested.is_absolute()
+        else (PROJECT_ROOT / requested).resolve()
+    )
+    try:
+        candidate.relative_to(MODELS_DIR.resolve())
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422, detail="model_path must refer to a file in models/"
+        ) from exc
+    if candidate.suffix.lower() not in {".yaml", ".yml"} or not candidate.is_file():
+        raise HTTPException(
+            status_code=422, detail=f"Model file not found: {model_path}"
+        )
+    return candidate
+
+
+def _load_director(db: Session, model_path: str) -> ModelDirector:
+    path = _resolve_model_path(model_path)
+    try:
+        return ModelDirector.from_yaml(db, str(path))
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(
+            status_code=422, detail=f"Invalid model configuration: {exc}"
+        ) from exc
 
 
 def store_results(
@@ -68,10 +101,6 @@ def stream_simulation(
     model_path: str = "models/ni_base_2024.yaml",
     db: Session = Depends(get_db),
 ):
-    if not os.path.exists(model_path):
-        raise HTTPException(
-            status_code=422, detail=f"Model file not found: {model_path}"
-        )
     if not (1900 <= start_year <= 2200) or not (1900 <= end_year <= 2200):
         raise HTTPException(
             status_code=422, detail="year must be between 1900 and 2200"
@@ -79,7 +108,7 @@ def stream_simulation(
     if end_year < start_year:
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
 
-    director = ModelDirector.from_yaml(db, model_path)
+    director = _load_director(db, model_path)
     orchestrator = SimulationOrchestrator(db, director)
 
     async def event_stream() -> AsyncGenerator[str, None]:
@@ -94,16 +123,15 @@ def stream_simulation(
 
 @router.post("/run", response_model=SimulationRunResponse)
 def run_simulation(request: SimulationRunRequest, db: Session = Depends(get_db)):
-    if not os.path.exists(request.model_path):
-        raise HTTPException(
-            status_code=422, detail=f"Model file not found: {request.model_path}"
-        )
-
-    director = ModelDirector.from_yaml(db, request.model_path)
+    director = _load_director(db, request.model_path)
     orchestrator = SimulationOrchestrator(db, director)
 
-    results = orchestrator.run(request.start_year, request.end_year)
-    snapshots = {r["year"]: _capture_snapshot(r["year"], r, db) for r in results}
+    results = []
+    snapshots = {}
+    for result in orchestrator._iter_years(request.start_year, request.end_year):
+        results.append(result)
+        snapshots[result["year"]] = _capture_snapshot(result["year"], result, db)
+    orchestrator.results = results
     store_results(results, db, snapshots)
 
     return SimulationRunResponse(

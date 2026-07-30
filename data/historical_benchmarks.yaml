@@ -1,7 +1,20 @@
 # Northern Ireland Historical Census Benchmarks
 # Sources: NISRA Census 1971, 1981, 1991, 2001, 2011, 2021
-# Religious breakdown uses community background (Catholic / Protestant & Other Christian / Other / None)
+# Community background uses the Census "religion or religion brought up in"
+# measure where available. This is a proxy for community background, not
+# current religious practice or voting intention.
 # Populations in absolute counts
+#
+# Primary source:
+# NISRA Census 2021, MS-B23 and "Guidance note on use of religion question
+# outputs", Table 7:
+# https://www.nisra.gov.uk/publications/census-2021-main-statistics-religion-tables
+# Topic tables are independently disclosure-controlled. Consequently, MS-B23's
+# 2021 categories sum to 1,903,172 while the headline population is 1,903,175.
+#
+# CAUTION: the comparable combined measure was introduced in 2001. Earlier
+# entries below are legacy estimates and must not be treated as a consistent
+# time series until they have been rebuilt from source tables.
 
 benchmarks:
   1971:
@@ -33,23 +46,23 @@ benchmarks:
   2001:
     total_population: 1685267
     religious_breakdown:
-      catholic: 678462      # 40.3%
-      protestant: 752555    # 44.7%
-      other: 50558          # 3.0%
-      none: 203692          # 12.1%
+      catholic: 737400      # 43.8%
+      protestant: 895400    # 53.1%
+      other: 6600           # 0.4%
+      none: 45900           # 2.7%
 
   2011:
     total_population: 1810863
     religious_breakdown:
-      catholic: 817385      # 45.1%
-      protestant: 751634    # 41.5%
-      other: 72434          # 4.0%
-      none: 169410          # 9.4%
+      catholic: 817400      # 45.1%
+      protestant: 875700    # 48.4%
+      other: 16600          # 0.9%
+      none: 101200          # 5.6%
 
   2021:
     total_population: 1903175
     religious_breakdown:
-      catholic: 864249      # 45.4%
-      protestant: 758066    # 39.8%
-      other: 156061         # 8.2%
-      none: 124799          # 6.6%
+      catholic: 869753      # 45.7%
+      protestant: 827545    # 43.5%
+      other: 28514          # 1.5%
+      none: 177360          # 9.3%

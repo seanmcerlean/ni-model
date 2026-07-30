@@ -23,7 +23,13 @@ beforeEach(() => {
     close: vi.fn(),
     url: "",
   };
-  vi.stubGlobal("EventSource", vi.fn((url: string) => { mockEs.url = url; return mockEs; }));
+  vi.stubGlobal(
+    "EventSource",
+    vi.fn(function EventSourceMock(url: string) {
+      mockEs.url = url;
+      return mockEs;
+    }),
+  );
 });
 
 afterEach(() => { vi.unstubAllGlobals(); });

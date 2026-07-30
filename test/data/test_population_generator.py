@@ -41,12 +41,18 @@ def test_persons_have_no_ids(population):
 
 def test_religious_breakdown_catholic_plurality(population):
     shares = _shares(population, "religious_background")
-    assert shares[ReligiousBackground.CATHOLIC] == pytest.approx(0.454, abs=0.03)
+    assert shares[ReligiousBackground.CATHOLIC] == pytest.approx(0.457, abs=0.02)
 
 
 def test_religious_breakdown_protestant(population):
     shares = _shares(population, "religious_background")
-    assert shares[ReligiousBackground.PROTESTANT] == pytest.approx(0.398, abs=0.03)
+    assert shares[ReligiousBackground.PROTESTANT] == pytest.approx(0.435, abs=0.02)
+
+
+def test_community_background_other_and_none(population):
+    shares = _shares(population, "religious_background")
+    assert shares[ReligiousBackground.OTHER] == pytest.approx(0.015, abs=0.01)
+    assert shares[ReligiousBackground.NONE] == pytest.approx(0.093, abs=0.02)
 
 
 def test_all_religious_backgrounds_present(population):
@@ -60,8 +66,8 @@ def test_gender_roughly_equal(population):
     assert shares[Gender.FEMALE] == pytest.approx(0.504, abs=0.03)
 
 
-def test_all_genders_present(population):
-    assert {p.gender for p in population} == set(Gender)
+def test_census_sex_categories_present(population):
+    assert {p.gender for p in population} == {Gender.MALE, Gender.FEMALE}
 
 
 def test_all_locations_present(population):
@@ -81,7 +87,14 @@ def test_belfast_areas_combined_share(population):
 
 def test_origin_ni_dominant(population):
     shares = _shares(population, "origin")
-    assert shares[Origin.NI] == pytest.approx(0.920, abs=0.03)
+    assert shares[Origin.NI] == pytest.approx(0.865, abs=0.02)
+
+
+def test_origin_matches_census_country_of_birth(population):
+    shares = _shares(population, "origin")
+    assert shares[Origin.ROI] == pytest.approx(0.021, abs=0.01)
+    assert shares[Origin.GB] == pytest.approx(0.048, abs=0.015)
+    assert shares[Origin.OTHER] == pytest.approx(0.065, abs=0.015)
 
 
 def test_all_origins_present(population):
@@ -103,7 +116,12 @@ def test_age_pyramid_working_age_bulk(population):
 def test_elderly_share(population):
     elderly = sum(1 for p in population if p.age >= 65)
     share = elderly / len(population)
-    assert share == pytest.approx(0.20, abs=0.03)
+    assert share == pytest.approx(0.17, abs=0.03)
+
+
+def test_centenarian_share_is_realistic(population):
+    centenarians = sum(1 for p in population if p.age >= 100)
+    assert centenarians / len(population) < 0.001
 
 
 def test_all_education_levels_present(population):
@@ -140,3 +158,8 @@ def test_single_person():
 
 def test_zero_size():
     assert generate_population(0) == []
+
+
+def test_negative_size_rejected():
+    with pytest.raises(ValueError, match="non-negative"):
+        generate_population(-1)

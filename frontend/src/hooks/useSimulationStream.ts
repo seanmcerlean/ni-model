@@ -1,8 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import { YearSnapshot } from "../types";
-
-export type StreamStatus = "idle" | "streaming" | "complete" | "error";
+import { StreamStatus, YearSnapshot } from "../types";
 
 export interface UseSimulationStream {
   snapshots: Record<number, YearSnapshot>;

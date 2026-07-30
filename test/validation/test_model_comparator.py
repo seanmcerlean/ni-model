@@ -92,7 +92,11 @@ def test_per_year_rmse_positive_for_different(comparator):
 def test_per_year_max_divergence_key_present(comparator):
     report = comparator.compare(SNAPS_A, SNAPS_C)
     assert report.per_year[2001].max_divergence_key in [
-        "total_population", "catholic", "protestant", "other", "none"
+        "total_population",
+        "catholic",
+        "protestant",
+        "other",
+        "none",
     ]
 
 

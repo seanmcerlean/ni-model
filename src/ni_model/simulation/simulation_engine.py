@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from ..core.models import Person
 from .model_director import ModelDirector
 
 
@@ -13,7 +14,10 @@ class SimulationEngine:
         self.director = director
 
     def run_simulation_year(self, year: int) -> dict:
-        """Execute births, deaths, migration, internal migration without committing"""
+        """Age the population, then apply demographic events without committing."""
+        self.db_session.query(Person).update(
+            {Person.age: Person.age + 1}, synchronize_session=False
+        )
         births = self.director.simulate_births(year)
         deaths = self.director.simulate_deaths(year)
         migration = self.director.simulate_migration(year)

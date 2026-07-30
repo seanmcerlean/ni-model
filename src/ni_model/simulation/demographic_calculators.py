@@ -22,10 +22,12 @@ class DemographicCalculator(ABC):
         db_session: Session,
         rate: float,
         query_filters: Optional[Dict[str, Any]] = None,
+        rng: Optional[random.Random] = None,
     ):
         self.db_session = db_session
         self.rate = rate
         self.query_filters = query_filters or {}
+        self.rng = rng or random.Random()
 
     def _get_cohort(self) -> List[Person]:
         """Get population cohort matching query filters"""
@@ -63,9 +65,18 @@ class BirthCalculator(DemographicCalculator):
         """Calculate births based on rate for cohort"""
         cohort = self._get_cohort()
         num_births = int((self.rate / 1000.0) * len(cohort))
+        potential_mothers = [
+            person
+            for person in cohort
+            if person.gender == Gender.FEMALE and 15 <= person.age <= 49
+        ]
 
-        if num_births > 0:
-            self.db_session.add_all(self._generate_births(num_births, cohort))
+        if num_births > 0 and potential_mothers:
+            self.db_session.add_all(
+                self._generate_births(num_births, potential_mothers)
+            )
+        elif not potential_mothers:
+            num_births = 0
 
         return num_births
 
@@ -78,12 +89,12 @@ class BirthCalculator(DemographicCalculator):
             Person(
                 age=0,
                 religious_background=parent.religious_background,
-                gender=random.choice([Gender.MALE, Gender.FEMALE]),
+                gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
                 education_level=EducationLevel.PRE_PRIMARY,
                 location=parent.location,
                 origin=Origin.NI,
             )
-            for parent in random.choices(parents, k=count)
+            for parent in self.rng.choices(parents, k=count)
         ]
 
 
@@ -96,7 +107,7 @@ class DeathCalculator(DemographicCalculator):
         num_deaths = min(int((self.rate / 1000.0) * len(cohort)), len(cohort))
 
         if num_deaths > 0:
-            for person in random.sample(cohort, num_deaths):
+            for person in self.rng.sample(cohort, num_deaths):
                 self.db_session.delete(person)
 
         return num_deaths
@@ -114,7 +125,7 @@ class MigrationCalculator(DemographicCalculator):
             self.db_session.add_all(self._generate_immigrants(net_migration, cohort))
         elif net_migration < 0:
             num_emigrants = min(abs(net_migration), len(cohort))
-            for person in random.sample(cohort, num_emigrants):
+            for person in self.rng.sample(cohort, num_emigrants):
                 self.db_session.delete(person)
             net_migration = -num_emigrants
 
@@ -122,20 +133,20 @@ class MigrationCalculator(DemographicCalculator):
 
     def _generate_immigrants(self, count: int, cohort: List[Person]) -> List[Person]:
         """Generate immigrants matching cohort characteristics"""
-        template = random.choice(cohort) if cohort else None
+        template = self.rng.choice(cohort) if cohort else None
 
         return [
             Person(
-                age=random.randint(18, 45),
+                age=self.rng.randint(18, 45),
                 religious_background=(
                     template.religious_background
                     if template
-                    else random.choice(list(ReligiousBackground))
+                    else self.rng.choice(list(ReligiousBackground))
                 ),
-                gender=random.choice([Gender.MALE, Gender.FEMALE]),
-                education_level=random.choice(list(EducationLevel)),
+                gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
+                education_level=self.rng.choice(list(EducationLevel)),
                 location=template.location if template else Location.BELFAST_NORTH,
-                origin=template.origin if template else Origin.OTHER,
+                origin=Origin.OTHER,
             )
             for _ in range(count)
         ]
@@ -150,8 +161,9 @@ class InternalMigrationCalculator(DemographicCalculator):
         rate: float,
         destination: Location,
         query_filters: Optional[Dict[str, Any]] = None,
+        rng: Optional[random.Random] = None,
     ):
-        super().__init__(db_session, rate, query_filters)
+        super().__init__(db_session, rate, query_filters, rng)
         self.destination = destination
 
     def calculate(self) -> int:
@@ -160,7 +172,7 @@ class InternalMigrationCalculator(DemographicCalculator):
         num_movers = int((self.rate / 1000.0) * len(cohort))
 
         if num_movers > 0:
-            for person in random.sample(cohort, min(num_movers, len(cohort))):
+            for person in self.rng.sample(cohort, min(num_movers, len(cohort))):
                 person.location = self.destination
 
         return num_movers
