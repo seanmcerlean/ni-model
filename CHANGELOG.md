@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3 - 2026-07-30
+
+### Added
+
+- Expandable model-rule inspection for birth, mortality, and migration rules.
+- Rule details include rates, active years, cohort filters, and destinations.
+
 ## 0.2.2 - 2026-07-30
 
 ### Added

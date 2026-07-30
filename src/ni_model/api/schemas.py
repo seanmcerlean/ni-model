@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -71,6 +71,10 @@ class SimulationModelSummary(BaseModel):
     death_rules: int
     migration_rules: int
     internal_migration_rules: int
+    birth_rate_rules: List[Dict[str, Any]]
+    death_rate_rules: List[Dict[str, Any]]
+    migration_rate_rules: List[Dict[str, Any]]
+    internal_migration_rate_rules: List[Dict[str, Any]]
     year_min: Optional[int]
     year_max: Optional[int]
 

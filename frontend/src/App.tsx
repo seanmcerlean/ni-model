@@ -5,7 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { PlaybackSpeed, SimulationModel, YearSnapshot } from "./types";
+import { ModelRule, PlaybackSpeed, SimulationModel, YearSnapshot } from "./types";
 
 export default function App() {
   const { snapshots, years, status, startStream, abort } = useSimulationStream();
@@ -113,10 +113,18 @@ export default function App() {
               <dl className="model-facts">
                 <div><dt>Seed</dt><dd>{selectedModel.random_seed ?? "Random"}</dd></div>
                 <div><dt>Rate jitter</dt><dd>±{(selectedModel.rate_jitter * 100).toFixed(0)}%</dd></div>
-                <div><dt>Birth rules</dt><dd>{selectedModel.birth_rules}</dd></div>
-                <div><dt>Mortality rules</dt><dd>{selectedModel.death_rules}</dd></div>
-                <div><dt>Migration rules</dt><dd>{selectedModel.migration_rules + selectedModel.internal_migration_rules}</dd></div>
               </dl>
+              <div className="rule-groups">
+                <RuleGroup title="Birth rules" rules={selectedModel.birth_rate_rules} />
+                <RuleGroup title="Mortality rules" rules={selectedModel.death_rate_rules} />
+                <RuleGroup
+                  title="Migration rules"
+                  rules={[
+                    ...selectedModel.migration_rate_rules,
+                    ...selectedModel.internal_migration_rate_rules,
+                  ]}
+                />
+              </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
             </>
           )}
@@ -199,4 +207,44 @@ function signed(value: number) {
 
 function percentage(value: number, total: number) {
   return `${((value / Math.max(total, 1)) * 100).toFixed(1)}%`;
+}
+
+function RuleGroup({ title, rules }: { title: string; rules: ModelRule[] }) {
+  return (
+    <details className="rule-group">
+      <summary><span>{title}</span><b>{rules.length}</b></summary>
+      <div className="rule-list">
+        {rules.length === 0 && <div className="empty-rules">No active rules</div>}
+        {rules.map((rule, index) => (
+          <div className="rule-item" key={`${title}-${index}`}>
+            <div className="rule-heading">
+              <strong>{rule.rate} per 1,000</strong>
+              <span>{yearRange(rule)}</span>
+            </div>
+            <div className="rule-filters">
+              {Object.entries(rule.filters ?? {}).map(([key, value]) => (
+                <span key={key}>{friendly(key)}: <b>{friendly(String(value))}</b></span>
+              ))}
+              {rule.destination && <span>Destination: <b>{friendly(rule.destination)}</b></span>}
+              {Object.keys(rule.filters ?? {}).length === 0 && !rule.destination && <span>Whole population</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function yearRange(rule: ModelRule) {
+  if (rule.year_min && rule.year_max) return `${rule.year_min}–${rule.year_max}`;
+  if (rule.year_min) return `${rule.year_min}+`;
+  if (rule.year_max) return `to ${rule.year_max}`;
+  return "All years";
+}
+
+function friendly(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter: string) => letter.toUpperCase());
 }

@@ -38,8 +38,20 @@ export interface SimulationModel {
   death_rules: number;
   migration_rules: number;
   internal_migration_rules: number;
+  birth_rate_rules: ModelRule[];
+  death_rate_rules: ModelRule[];
+  migration_rate_rules: ModelRule[];
+  internal_migration_rate_rules: ModelRule[];
   year_min: number | null;
   year_max: number | null;
+}
+
+export interface ModelRule {
+  rate: number;
+  year_min?: number;
+  year_max?: number;
+  destination?: string;
+  filters: Record<string, string | number>;
 }
 
 export type PlaybackSpeed = 0.5 | 1 | 2 | 5;

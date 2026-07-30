@@ -66,11 +66,12 @@ Primary references:
 2. Replace transaction savepoints with durable baseline/snapshot semantics.
 3. Ingest exact five-year age/sex, geography, country-of-birth, births, deaths,
    and migration series from NISRA rather than hand-maintained weights.
+3a. Validate and update historic rates to the extent possible
+3b. Validation and update internal migration rates to the extent possible.
 4. Calibrate demographic rates and model uncertainty instead of applying
    undocumented fixed assumptions.
 5. Redesign voting output around eligible voters, turnout, polling evidence,
    uncertainty intervals, and scenario sensitivity.
-6. Define real geography consistently. The present mix of six historic counties
-   and four Belfast areas is not a standard exhaustive statistical geography.
-7. Make the local test path usable without Docker while retaining PostgreSQL
-   integration coverage.
+6. Add a "ni-current" model starting from the last census; the frontend should be able to select between models
+7. Allow model values for a run to be changed in the frontend
+8. Improve UI usability and presentation as much as posisble
