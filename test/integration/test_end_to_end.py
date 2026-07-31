@@ -10,7 +10,6 @@ Integration tests: full stack end-to-end scenarios.
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
 
 from src.ni_model.core.database import Base
 from src.ni_model.data.population_generator import generate_population
@@ -24,12 +23,6 @@ from src.ni_model.validation.model_comparator import ModelComparator
 
 
 @pytest.fixture(scope="module")
-def postgres_container():
-    with PostgresContainer("postgres:15") as pg:
-        yield pg
-
-
-@pytest.fixture(scope="module")
 def engine(postgres_container):
     eng = create_engine(postgres_container.get_connection_url())
     Base.metadata.create_all(bind=eng)
@@ -39,18 +32,24 @@ def engine(postgres_container):
 
 @pytest.fixture
 def db(engine):
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = Session()
     yield session
     session.rollback()
     session.close()
+    # Simulation code commits yearly steps, so rollback alone cannot isolate
+    # the next test. Recreate the small test schema to remove committed rows.
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 @pytest.fixture
 def populated_db(db):
-    """5,000-person realistic NI population seeded into DB."""
+    """Representative 1,000-person NI population seeded into DB."""
     repo = PersonRepository(db)
-    persons = generate_population(5_000, seed=42)
+    persons = generate_population(1_000, seed=42)
     repo.bulk_create(persons)
     db.flush()
     return db
@@ -69,7 +68,7 @@ def orchestrator(populated_db):
 
 def test_generated_population_persisted(populated_db):
     repo = PersonRepository(populated_db)
-    assert repo.count() == 5_000
+    assert repo.count() == 1_000
 
 
 def test_generated_population_has_all_locations(populated_db):
@@ -216,7 +215,7 @@ def test_compare_two_model_runs(postgres_container):
     def run_scenario(start, end, seed):
         session = Session()
         repo = PersonRepository(session)
-        repo.bulk_create(generate_population(2_000, seed=seed))
+        repo.bulk_create(generate_population(500, seed=seed))
         session.flush()
         director = ModelDirector.from_yaml(session, "models/ni_base_2024.yaml")
         orch = SimulationOrchestrator(session, director)

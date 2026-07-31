@@ -1,12 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
 
 from src.ni_model.api.app import create_app
 from src.ni_model.api.routes.population import get_db
-from src.ni_model.core.database import Base
 from src.ni_model.core.models import (
     EducationLevel,
     Gender,
@@ -15,23 +11,6 @@ from src.ni_model.core.models import (
     Person,
     ReligiousBackground,
 )
-
-
-@pytest.fixture(scope="session")
-def postgres_container():
-    with PostgresContainer("postgres:15") as postgres:
-        yield postgres
-
-
-@pytest.fixture
-def db_session(postgres_container):
-    engine = create_engine(postgres_container.get_connection_url())
-    Base.metadata.create_all(bind=engine)
-    Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = Session()
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture

@@ -1,11 +1,7 @@
 from datetime import datetime
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
 
-from src.ni_model.core.database import Base
 from src.ni_model.core.models import (
     EducationLevel,
     Gender,
@@ -16,23 +12,6 @@ from src.ni_model.core.models import (
     SimulationSnapshot,
 )
 from src.ni_model.simulation.population_manager import PopulationManager
-
-
-@pytest.fixture(scope="session")
-def postgres_container():
-    with PostgresContainer("postgres:15") as postgres:
-        yield postgres
-
-
-@pytest.fixture
-def postgres_db_session(postgres_container):
-    engine = create_engine(postgres_container.get_connection_url())
-    Base.metadata.create_all(bind=engine)
-    session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = session_factory()
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
 
 
 def _sample_persons():

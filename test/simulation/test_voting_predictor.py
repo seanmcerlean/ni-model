@@ -1,9 +1,5 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
 
-from src.ni_model.core.database import Base
 from src.ni_model.core.models import (
     EducationLevel,
     Gender,
@@ -13,23 +9,6 @@ from src.ni_model.core.models import (
     ReligiousBackground,
 )
 from src.ni_model.simulation.voting_predictor import VotingPredictor
-
-
-@pytest.fixture(scope="session")
-def postgres_container():
-    with PostgresContainer("postgres:15") as postgres:
-        yield postgres
-
-
-@pytest.fixture
-def db_session(postgres_container):
-    engine = create_engine(postgres_container.get_connection_url())
-    Base.metadata.create_all(bind=engine)
-    Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = Session()
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
 
 
 def _make_person(db, religion, origin, age, location=Location.BELFAST_NORTH):
