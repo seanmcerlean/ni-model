@@ -7,6 +7,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; overflow: hidden; }
 button, input, select { font: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.inline-error { color: #fca5a5; font-size: 10px; line-height: 1.4; }
 
 .app-shell { display: flex; flex-direction: column; height: 100vh; background: #08111f; }
 .app-header {
@@ -57,6 +59,10 @@ button, input, select { font: inherit; }
 .scenario-list b { color: #f8fafc; }
 .voting-source { color: #94a3b8; font-size: 9px; line-height: 1.45; }
 .voting-source a { color: #7dd3fc; }
+.calibration-status { margin-top: 7px; color: #86efac; font-size: 9px; }
+.calibration-status.loading { color: #fcd34d; }
+.voting-headline { transition: opacity .15s; }
+.calibration-status.loading + .voting-headline { opacity: .45; }
 .adjustment-editor { margin: 12px 0; padding: 9px; border: 1px solid #334b68; border-radius: 6px; }
 .adjustment-editor summary { color: #7dd3fc; font-size: 11px; font-weight: 650; cursor: pointer; }
 .adjustment-editor p { color: #94a3b8; font-size: 9px; line-height: 1.4; }
@@ -72,6 +78,23 @@ button, input, select { font: inherit; }
 .community-split span { display: flex; justify-content: space-between; gap: 8px; }
 .community-split b { color: #94a3b8; font-size: 10px; font-weight: 500; }
 .map-frame { min-height: 0; flex: 1; position: relative; }
+.location-panel { position: absolute; z-index: 1000; top: 10px; right: 10px; width: min(330px, calc(100% - 20px)); max-height: calc(100% - 20px); overflow-y: auto; padding: 16px; border: 1px solid #334b68; border-radius: 8px; background: #0d1a2bf2; box-shadow: 0 12px 30px #0008; }
+.location-close { position: absolute; top: 8px; right: 10px; padding: 5px; border: 0; background: transparent; color: #cbd5e1; cursor: pointer; }
+.location-eyebrow { color: #7dd3fc; font-size: 10px; letter-spacing: 1.4px; }
+.location-panel h2 { margin: 5px 24px 8px 0; color: #f8fafc; font-size: 16px; }
+.location-empty, .location-population-label { color: #94a3b8; font-size: 11px; }
+.location-population { color: #f8fafc; font-size: 27px; font-weight: 700; }
+.detail-section { margin-top: 14px; }
+.detail-section h3 { margin: 0 0 7px; color: #94a3b8; font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
+.detail-bar-row { display: grid; grid-template-columns: 86px 1fr 68px; align-items: center; gap: 7px; margin-bottom: 6px; }
+.detail-bar-label { overflow: hidden; color: #cbd5e1; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.detail-bar-track { height: 9px; overflow: hidden; border-radius: 5px; background: #1e334c; }
+.detail-bar-fill { height: 100%; border-radius: 5px; background: #a855f7; }
+.detail-bar-fill.category-catholic { background: #22c55e; }
+.detail-bar-fill.category-protestant { background: #0ea5e9; }
+.detail-bar-fill.category-none { background: #94a3b8; }
+.detail-bar-value { color: #64748b; font-size: 8px; text-align: right; }
+.detail-bar-value b { display: block; color: #f8fafc; font-size: 10px; }
 
 .map-legend {
   position: absolute;
@@ -134,4 +157,18 @@ button, input, select { font: inherit; }
   .model-panel { padding: 12px; }
   .controls { grid-template-columns: 1fr; gap: 7px; }
   .progress-bar { grid-column: 1; }
+}
+
+@media (max-width: 650px) {
+  body { overflow: auto; }
+  .app-shell { min-height: 100vh; height: auto; }
+  .app-header { position: sticky; top: 0; z-index: 1100; }
+  .workspace { display: flex; flex-direction: column; }
+  .model-panel { max-height: 42vh; border-right: 0; border-bottom: 1px solid #23364f; }
+  .map-column { min-height: 68vh; }
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .stat-card { padding: 8px 10px; }
+  .community-card { grid-column: 1 / -1; }
+  .map-frame { min-height: 52vh; }
+  .controls { position: sticky; bottom: 0; z-index: 1100; }
 }

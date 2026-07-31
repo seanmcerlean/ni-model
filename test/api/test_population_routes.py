@@ -144,3 +144,10 @@ def test_voting_prediction_by_location_has_all_locations(client):
     assert "belfast" in data["by_location"]
     assert "derry_strabane" in data["by_location"]
     assert "antrim_and_newtownabbey" in data["by_location"]
+
+
+def test_voting_prediction_can_skip_unused_location_breakdown(client):
+    data = client.get(
+        "/api/population/voting-prediction?include_locations=false"
+    ).json()
+    assert data["by_location"] == {}

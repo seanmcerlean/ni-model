@@ -104,4 +104,6 @@ Primary references:
   to birth, mortality, external-migration, and internal-relocation rules plus a
   reproducibility seed. Adjustments are validated by the API, stored with the
   durable run, and never modify the sourced YAML model.
-- [ ] Improve UI usability and presentation as much as possible.
+- [x] Improve UI usability and presentation: current-model defaults, visible
+  loading and error states, accessible controls and location detail, responsive
+  layout, and per-year polling estimates during playback.

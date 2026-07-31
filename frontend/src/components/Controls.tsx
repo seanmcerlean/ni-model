@@ -8,6 +8,8 @@ interface Props {
   speed: PlaybackSpeed;
   startYear: number;
   endYear: number;
+  error?: string | null;
+  canRun?: boolean;
   onStartStream: () => void;
   onPlayPause: () => void;
   onSpeedChange: (s: PlaybackSpeed) => void;
@@ -26,6 +28,8 @@ export function Controls({
   speed,
   startYear,
   endYear,
+  error = null,
+  canRun = true,
   onStartStream,
   onPlayPause,
   onSpeedChange,
@@ -41,8 +45,9 @@ export function Controls({
   return (
     <div className="controls">
       <div className="control-row">
-        <label className="control-label">Start</label>
+        <label className="control-label" htmlFor="start-year">Start</label>
         <input
+          id="start-year"
           type="number"
           value={startYear}
           min={1900}
@@ -50,8 +55,9 @@ export function Controls({
           className="year-input"
           onChange={(e) => onStartYearChange(Number(e.target.value))}
         />
-        <label className="control-label">End</label>
+        <label className="control-label" htmlFor="end-year">End</label>
         <input
+          id="end-year"
           type="number"
           value={endYear}
           min={1900}
@@ -59,7 +65,7 @@ export function Controls({
           className="year-input"
           onChange={(e) => onEndYearChange(Number(e.target.value))}
         />
-        <button className="primary-button" onClick={onStartStream} disabled={status === "streaming"}>
+        <button className="primary-button" onClick={onStartStream} disabled={status === "streaming" || !canRun}>
           {status === "streaming" ? "Streaming…" : "Run"}
         </button>
       </div>
@@ -80,6 +86,7 @@ export function Controls({
           <button
             key={s}
             className={`control-button ${speed === s ? "active" : ""}`}
+            aria-pressed={speed === s}
             onClick={() => onSpeedChange(s)}
           >
             {s}×
@@ -88,7 +95,9 @@ export function Controls({
       </div>
 
       <div className="scrub-row">
+        <label className="sr-only" htmlFor="simulation-year">Simulation year</label>
         <input
+          id="simulation-year"
           type="range"
           min={scrubMin}
           max={scrubMax}
@@ -104,8 +113,8 @@ export function Controls({
           style={{ width: `${total > 0 ? (buffered / total) * 100 : 0}%` }}
         />
       </div>
-      {status === "error" && (
-        <div className="stream-error">Stream error — check the local API.</div>
+      {(error || status === "error") && (
+        <div className="stream-error" role="alert">{error ?? "Stream error — check the local API."}</div>
       )}
     </div>
   );

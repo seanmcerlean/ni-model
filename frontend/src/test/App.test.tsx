@@ -43,16 +43,16 @@ describe("App", () => {
     expect(screen.getByText("▶ Play")).toBeDisabled();
   });
 
-  it("default start year is 1969", () => {
+  it("defaults to the current model start year", () => {
     render(<App />);
     const inputs = screen.getAllByRole("spinbutton");
-    expect(inputs[0]).toHaveValue(1969);
+    expect(inputs[0]).toHaveValue(2024);
   });
 
-  it("default end year is 2030", () => {
+  it("defaults to a useful current projection horizon", () => {
     render(<App />);
     const inputs = screen.getAllByRole("spinbutton");
-    expect(inputs[1]).toHaveValue(2030);
+    expect(inputs[1]).toHaveValue(2035);
   });
 
   it("speed buttons are rendered", () => {
@@ -154,6 +154,7 @@ describe("App", () => {
 
     render(<App />);
     expect(await screen.findByText("BORDER POLL SCENARIO")).toBeInTheDocument();
+    expect(screen.getByText("Showing LucidTalk")).toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();
     expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "LucidTalk" })).toHaveAttribute(

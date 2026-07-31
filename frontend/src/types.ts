@@ -17,6 +17,7 @@ export interface YearSnapshot {
   gender_breakdown: Record<string, number>;
   location_breakdown: Record<string, number>;
   locations?: Record<string, SimulationLocationSnapshot>;
+  voting_predictions?: Record<string, VotingPrediction>;
   simulation_result?: SimulationYearResult;
 }
 

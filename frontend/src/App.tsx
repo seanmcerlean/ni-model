@@ -8,17 +8,20 @@ import { useSimulationStream } from "./hooks/useSimulationStream";
 import { ModelRule, PlaybackSpeed, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 export default function App() {
-  const { snapshots, years, status, startStream, abort } = useSimulationStream();
+  const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
 
-  const [startYear, setStartYear] = useState(1969);
-  const [endYear, setEndYear] = useState(2030);
+  const [startYear, setStartYear] = useState(2024);
+  const [endYear, setEndYear] = useState(2035);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [models, setModels] = useState<SimulationModel[]>([]);
-  const [modelPath, setModelPath] = useState("models/ni_base_2024.yaml");
+  const [modelPath, setModelPath] = useState("models/ni_current.yaml");
+  const [modelError, setModelError] = useState<string | null>(null);
   const [voting, setVoting] = useState<VotingPrediction | null>(null);
+  const [votingLoading, setVotingLoading] = useState(true);
+  const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>({
     birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
@@ -33,26 +36,54 @@ export default function App() {
 
   useEffect(() => {
     fetch("/api/simulation/models")
-      .then((response) => response.json())
-      .then((availableModels: SimulationModel[]) => setModels(availableModels))
-      .catch(() => setModels([]));
+      .then((response) => {
+        if (!response.ok) throw new Error("Could not load model definitions.");
+        return response.json();
+      })
+      .then((availableModels: SimulationModel[]) => {
+        setModels(availableModels);
+        setModelError(null);
+      })
+      .catch(() => {
+        setModels([]);
+        setModelError("Could not load model definitions from the local API.");
+      });
   }, []);
 
   useEffect(() => {
+    const simulatedPrediction = snapshot?.voting_predictions?.[votingCalibration];
+    if (simulatedPrediction) {
+      setVoting(simulatedPrediction);
+      setVotingLoading(false);
+      setVotingError(null);
+      return;
+    }
+
     const controller = new AbortController();
-    const params = new URLSearchParams({ calibration: votingCalibration });
+    setVotingLoading(true);
+    setVotingError(null);
+    const params = new URLSearchParams({
+      calibration: votingCalibration,
+      include_locations: "false",
+    });
     if (snapshot?.run_id) params.set("run_id", snapshot.run_id);
     fetch(`/api/population/voting-prediction?${params}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Voting scenario unavailable");
         return response.json();
       })
-      .then((prediction: VotingPrediction) => setVoting(prediction))
+      .then((prediction: VotingPrediction) => {
+        setVoting(prediction);
+        setVotingLoading(false);
+      })
       .catch((error: Error) => {
-        if (error.name !== "AbortError") setVoting(null);
+        if (error.name !== "AbortError") {
+          setVotingError("Could not update the voting calibration.");
+          setVotingLoading(false);
+        }
       });
     return () => controller.abort();
-  }, [snapshot?.run_id, votingCalibration]);
+  }, [snapshot, votingCalibration]);
 
   // Auto-advance to first buffered year when stream starts
   useEffect(() => {
@@ -92,6 +123,15 @@ export default function App() {
     setIsPlaying((p) => !p);
   }, []);
 
+  const handleModelChange = useCallback((path: string) => {
+    setModelPath(path);
+    const model = models.find((item) => item.path === path);
+    if (model?.year_min) setStartYear(Math.max(model.year_min, 2024));
+    if (model?.year_max) setEndYear(Math.min(model.year_max, 2035));
+    setCurrentYear(null);
+    setIsPlaying(false);
+  }, [models]);
+
   const handleScrub = useCallback((year: number) => {
     // Snap to nearest buffered year
     const nearest = years.reduce((a, b) =>
@@ -124,11 +164,12 @@ export default function App() {
             id="model-select"
             className="model-select"
             value={modelPath}
-            onChange={(event) => setModelPath(event.target.value)}
+            onChange={(event) => handleModelChange(event.target.value)}
           >
-            {models.length === 0 && <option value={modelPath}>NI Historical Model</option>}
+            {models.length === 0 && <option value={modelPath}>NI Current Model</option>}
             {models.map((model) => <option key={model.id} value={model.path}>{model.name}</option>)}
           </select>
+          {modelError && <p className="inline-error" role="alert">{modelError}</p>}
           {selectedModel && (
             <>
               <p className="model-description">{selectedModel.description}</p>
@@ -154,7 +195,10 @@ export default function App() {
               <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
             </>
           )}
-          <VotingPanel prediction={voting} calibration={votingCalibration} onCalibrationChange={setVotingCalibration} />
+          <VotingPanel prediction={voting} calibration={votingCalibration}
+            loading={votingLoading} error={votingError}
+            projectionYear={snapshot?.year ?? null}
+            onCalibrationChange={setVotingCalibration} />
         </aside>
 
         <main className="map-column">
@@ -179,6 +223,8 @@ export default function App() {
         speed={speed}
         startYear={startYear}
         endYear={endYear}
+        error={streamError}
+        canRun={startYear <= endYear && status !== "streaming"}
         onStartStream={handleStartStream}
         onPlayPause={handlePlayPause}
         onSpeedChange={setSpeed}
@@ -215,9 +261,12 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   </details>;
 }
 
-function VotingPanel({ prediction, calibration, onCalibrationChange }: {
+function VotingPanel({ prediction, calibration, loading, error, projectionYear, onCalibrationChange }: {
   prediction: VotingPrediction | null;
   calibration: string;
+  loading: boolean;
+  error: string | null;
+  projectionYear: number | null;
   onCalibrationChange: (value: string) => void;
 }) {
   if (!prediction) return null;
@@ -231,6 +280,10 @@ function VotingPanel({ prediction, calibration, onCalibrationChange }: {
         <option value="lucidtalk_winter_2025">LucidTalk Winter 2025</option>
         <option value="nilt_2024">NILT 2024</option>
       </select>
+      <div className={`calibration-status ${loading ? "loading" : ""}`} aria-live="polite">
+        {loading ? "Updating calibration…" : `Showing ${prediction.source.name}`}
+      </div>
+      {error && <p className="inline-error" role="alert">{error}</p>}
       <div className="voting-headline">
         <span><b>{percentage(prediction.unite_share, 1)}</b> Unite</span>
         <span><b>{percentage(prediction.remain_share, 1)}</b> Remain</span>
@@ -251,6 +304,7 @@ function VotingPanel({ prediction, calibration, onCalibrationChange }: {
       </details>
       <p className="voting-source">
         <a href={prediction.source.url} target="_blank" rel="noreferrer">{prediction.source.name}</a>, n={prediction.source.sample_size}. Community background is a polling calibration, not a vote.
+        {projectionYear !== null && <> Estimate recalculated from the simulated {projectionYear} adult population.</>}
       </p>
     </section>
   );

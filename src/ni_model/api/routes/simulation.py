@@ -13,6 +13,7 @@ from ...core.models import Location, SimulationRun, SimulationSnapshot
 from ...simulation.model_director import ModelDirector
 from ...simulation.orchestrator import SimulationOrchestrator
 from ...simulation.population_manager import PopulationManager
+from ...simulation.voting_predictor import CALIBRATIONS, VotingPredictor
 from ..queries import (
     age_band_breakdown,
     gender_breakdown,
@@ -134,6 +135,15 @@ def _capture_snapshot(
         )
         for location in Location
     }
+    voting_predictions = {
+        calibration: {
+            **VotingPredictor(
+                db, run_id=run_id, calibration=calibration
+            ).predict(),
+            "by_location": {},
+        }
+        for calibration in CALIBRATIONS
+    }
     return SimulationYearSnapshot(
         run_id=run_id,
         year=year,
@@ -142,6 +152,7 @@ def _capture_snapshot(
         gender_breakdown=gender_breakdown(db, run_id=run_id),
         location_breakdown=loc_breakdown,
         locations=locations,
+        voting_predictions=voting_predictions,
         simulation_result=SimulationYearResult(**result),
     )
 

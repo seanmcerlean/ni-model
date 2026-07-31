@@ -95,6 +95,7 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
 def voting_prediction(
     run_id: Optional[UUID] = None,
     calibration: str = "lucidtalk_winter_2025",
+    include_locations: bool = True,
     db: Session = Depends(get_db),
 ):
     try:
@@ -102,5 +103,5 @@ def voting_prediction(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     result = predictor.predict()
-    by_location = predictor.predict_by_location()
+    by_location = predictor.predict_by_location() if include_locations else {}
     return VotingPrediction(**result, by_location=by_location)

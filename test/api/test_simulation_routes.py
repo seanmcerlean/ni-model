@@ -176,6 +176,11 @@ def test_stream_persists_run_and_emits_run_id(client, populated_db):
     events = _parse_sse(response.text)
     assert len(events) == 3
     assert events[0]["data"]["run_id"] == str(run_id)
+    predictions = events[0]["data"]["voting_predictions"]
+    assert set(predictions) == {"lucidtalk_winter_2025", "nilt_2024"}
+    assert predictions["lucidtalk_winter_2025"]["source"]["id"] == (
+        "lucidtalk_winter_2025"
+    )
     assert events[-1]["event"] == "complete"
     run = populated_db.get(SimulationRun, run_id)
     assert run.status == "complete"

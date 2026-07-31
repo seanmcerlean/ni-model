@@ -59,6 +59,7 @@ class SimulationYearSnapshot(BaseModel):
     gender_breakdown: Dict[str, int]
     location_breakdown: Dict[str, int]
     locations: Dict[str, SimulationLocationSnapshot] = Field(default_factory=dict)
+    voting_predictions: Dict[str, "VotingPrediction"] = Field(default_factory=dict)
     simulation_result: Optional[SimulationYearResult] = None
 
 
