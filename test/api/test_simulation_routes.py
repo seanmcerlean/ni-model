@@ -41,6 +41,16 @@ def test_simulation_models_describes_available_configs(client):
     assert current["internal_migration_rules"] == 110
     assert current["migration_rate_rules"][3]["flow"] == "in"
 
+    community = next(model for model in models if model["id"] == "ni_current_community")
+    assert community["birth_rules"] == current["birth_rules"] * 4
+    assert community["death_rules"] == current["death_rules"] * 4
+    assert community["migration_rules"] == current["migration_rules"] * 4
+    assert "not an official projection" in community["description"]
+    assert {
+        rule["filters"]["religious_background"]
+        for rule in community["birth_rate_rules"]
+    } == {"CATHOLIC", "PROTESTANT", "OTHER", "NONE"}
+
 
 def test_runs_empty_initially(client):
     response = client.get("/api/simulation/runs")
@@ -88,6 +98,20 @@ def test_current_model_can_be_selected_for_a_run(client):
     assert response.status_code == 200
     assert response.json()["model_path"] == "models/ni_current.yaml"
     assert response.json()["status"] == "complete"
+
+
+def test_community_differentiated_model_can_be_selected(client):
+    response = client.post(
+        "/api/simulation/run",
+        json={
+            "model_path": "models/ni_current_community.yaml",
+            "start_year": 2025,
+            "end_year": 2025,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["model_path"] == "models/ni_current_community.yaml"
 
 
 def test_run_adjustments_are_validated_and_persisted(client):

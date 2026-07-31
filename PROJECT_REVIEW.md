@@ -79,7 +79,14 @@ Primary references:
   with the pandemic-period and held-constant assumptions stated. Moves are
   selected from one pre-move population and applied simultaneously, preventing
   cascading or duplicate moves caused by rule order.
-- [ ] Calibrate demographic rates and model uncertainty instead of applying undocumented fixed assumptions.
+- [ ] Calibrate demographic rates and model uncertainty instead of applying
+  undocumented fixed assumptions.
+- [x] **Community-differentiated current sensitivity model.** The flat official
+  principal model remains available. A separate selectable variant splits
+  births, deaths, immigration and emigration by community background using
+  documented conservative multipliers informed by Census 2011–2021 change;
+  each component is normalized to its official starting NI-wide rate and is
+  explicitly labelled as an estimate, not an official community projection.
 - [x] **Evidence-calibrated voting scenarios.** Voting output now excludes
   under-18s, projects turnout separately, calibrates stated preferences from
   the 1,199-adult NILT 2024 REFUNIFY results and published community-background

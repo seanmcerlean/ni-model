@@ -179,6 +179,23 @@ def test_migration_calculator_positive(postgres_db_session, initial_population):
     assert initial_population.count() == initial_count + net_migration
 
 
+def test_immigration_samples_each_arrival_from_the_cohort(
+    postgres_db_session, initial_population
+):
+    calculator = MigrationCalculator(postgres_db_session, rate=10.0)
+
+    immigrants = calculator._generate_immigrants(100, calculator._get_cohort())
+
+    assert {person.religious_background for person in immigrants} == {
+        ReligiousBackground.CATHOLIC,
+        ReligiousBackground.PROTESTANT,
+    }
+    assert {person.location for person in immigrants} == {
+        Location.BELFAST,
+        Location.DERRY_STRABANE,
+    }
+
+
 def test_migration_calculator_with_cohort_filter(
     postgres_db_session, initial_population
 ):

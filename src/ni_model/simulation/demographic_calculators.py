@@ -136,25 +136,26 @@ class MigrationCalculator(DemographicCalculator):
         return net_migration
 
     def _generate_immigrants(self, count: int, cohort: List[Person]) -> List[Person]:
-        """Generate immigrants matching cohort characteristics"""
-        template = self.rng.choice(cohort) if cohort else None
-
-        return [
-            Person(
-                run_id=self.run_id,
-                age=self.rng.randint(18, 45),
-                religious_background=(
-                    template.religious_background
-                    if template
-                    else self.rng.choice(list(ReligiousBackground))
-                ),
-                gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
-                education_level=self.rng.choice(list(EducationLevel)),
-                location=template.location if template else Location.BELFAST,
-                origin=Origin.OTHER,
+        """Generate immigrants sampling cohort characteristics per arrival."""
+        immigrants = []
+        for _ in range(count):
+            template = self.rng.choice(cohort) if cohort else None
+            immigrants.append(
+                Person(
+                    run_id=self.run_id,
+                    age=self.rng.randint(18, 45),
+                    religious_background=(
+                        template.religious_background
+                        if template
+                        else self.rng.choice(list(ReligiousBackground))
+                    ),
+                    gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
+                    education_level=self.rng.choice(list(EducationLevel)),
+                    location=template.location if template else Location.BELFAST,
+                    origin=Origin.OTHER,
+                )
             )
-            for _ in range(count)
-        ]
+        return immigrants
 
 
 class InternalMigrationCalculator(DemographicCalculator):

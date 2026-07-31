@@ -76,6 +76,24 @@ The official publication cautions that projections are scenarios based on
 demographic assumptions, not forecasts. The model carries that limitation in
 its description.
 
+### Community-differentiated sensitivity variant
+
+`ni_current_community.yaml` retains every annual NISRA principal-projection
+component total but splits birth, death, immigration and emigration rates by
+community background. The relative multipliers are conservative scenario
+assumptions calibrated to the direction and scale of Census 2011–2021 change:
+Catholic-background counts increased 6%, Protestant-background counts decreased
+6%, Other increased 72%, and None increased 75%. Those changes combine natural
+change, migration, response change and secularisation; published Census totals
+cannot identify separate component rates. The variant therefore must not be
+described as an observed or official community projection, and it does not
+model people changing background.
+
+For each component, multipliers are normalized against the Census 2021
+community shares so their starting weighted rate equals the corresponding
+official NI-wide rate. As cohort shares diverge later, small differences from
+the aggregate principal total are an intentional scenario outcome.
+
 ## Map boundaries
 
 - **Producer:** Office for National Statistics, using OSNI boundary data.
