@@ -59,19 +59,26 @@ Primary references:
 - Synchronous year snapshots are captured in the year they represent instead of
   all being copied from the final population state.
 
-### Remaining high-priority work
+### High-priority work ledger
 
-1. Replace process-global API result storage with run IDs and durable,
-   user-isolated snapshots.
-2. Replace transaction savepoints with durable baseline/snapshot semantics.
-3. Ingest exact five-year age/sex, geography, country-of-birth, births, deaths,
-   and migration series from NISRA rather than hand-maintained weights.
-3a. Validate and update historic rates to the extent possible
-3b. Validation and update internal migration rates to the extent possible.
-4. Calibrate demographic rates and model uncertainty instead of applying
-   undocumented fixed assumptions.
-5. Redesign voting output around eligible voters, turnout, polling evidence,
-   uncertainty intervals, and scenario sensitivity.
-6. Add a "ni-current" model starting from the last census; the frontend should be able to select between models
-7. Allow model values for a run to be changed in the frontend
-8. Improve UI usability and presentation as much as posisble
+- [x] **Durable, user-isolated runs.** Process-global result dictionaries were
+  replaced by database-backed run IDs, run-scoped population rows, durable
+  status, and persisted yearly snapshots. API and integration tests create two
+  independent runs and reload their snapshots from PostgreSQL.
+- [x] **Durable baseline and snapshot semantics.** Transaction savepoints were
+  removed. Every run clones an immutable baseline, can restore that baseline,
+  and retains aggregate snapshots across sessions. The initial Alembic
+  migration exercises upgrade and downgrade against a clean PostgreSQL
+  database.
+- [ ] Ingest exact five-year age/sex, geography, country-of-birth, births,
+  deaths, and migration series from NISRA rather than hand-maintained weights.
+- [ ] Validate and update historic rates to the extent possible.
+- [ ] Validate and update internal migration rates to the extent possible.
+- [ ] Calibrate demographic rates and model uncertainty instead of applying
+  undocumented fixed assumptions.
+- [ ] Redesign voting output around eligible voters, turnout, polling evidence,
+  uncertainty intervals, and scenario sensitivity.
+- [ ] Add a `ni-current` model starting from the latest census; the frontend
+  must be able to select between models.
+- [ ] Allow model values for a run to be changed in the frontend.
+- [ ] Improve UI usability and presentation as much as possible.

@@ -15,6 +15,7 @@ from src.ni_model.core.models import (
 from src.ni_model.data.repository import PersonRepository
 from src.ni_model.simulation.model_director import ModelDirector
 from src.ni_model.simulation.orchestrator import SimulationOrchestrator
+from src.ni_model.simulation.population_manager import PopulationManager
 
 
 @pytest.fixture(scope="session")
@@ -141,20 +142,28 @@ def test_orchestrator_get_result_missing_year(
 
 
 def test_orchestrator_rollback(postgres_db_session, large_population, orchestrator):
-    """Test rollback restores population to pre-simulation state"""
-    initial_count = large_population.count()
+    """Test durable baseline restoration for an isolated run."""
+    run = PopulationManager.create_run(
+        postgres_db_session, "models/ni_base_2024.yaml", 2024, 2024
+    )
+    director = ModelDirector.from_yaml(
+        postgres_db_session, run.model_path, run_id=run.id
+    )
+    run_orchestrator = SimulationOrchestrator(postgres_db_session, director)
+    run_repo = PersonRepository(postgres_db_session, run_id=run.id)
+    initial_count = run_repo.count()
 
-    orchestrator.run(2024, 2024)
-    count_after_run = large_population.count()
+    run_orchestrator.run(2024, 2024)
+    count_after_run = run_repo.count()
 
     assert (
         count_after_run != initial_count
     ), f"Expected population change with {initial_count} persons"
 
-    rolled_back = orchestrator.rollback_to_year(2024)
+    rolled_back = run_orchestrator.rollback_to_year(2024)
 
     assert rolled_back is True
-    assert large_population.count() == initial_count
+    assert run_repo.count() == initial_count
 
 
 def test_orchestrator_get_population_count(

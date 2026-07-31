@@ -1,4 +1,5 @@
 import random
+import uuid
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
@@ -23,15 +24,17 @@ class DemographicCalculator(ABC):
         rate: float,
         query_filters: Optional[Dict[str, Any]] = None,
         rng: Optional[random.Random] = None,
+        run_id: Optional[uuid.UUID] = None,
     ):
         self.db_session = db_session
         self.rate = rate
         self.query_filters = query_filters or {}
         self.rng = rng or random.Random()
+        self.run_id = run_id
 
     def _get_cohort(self) -> List[Person]:
         """Get population cohort matching query filters"""
-        query = self.db_session.query(Person)
+        query = self.db_session.query(Person).filter(Person.run_id == self.run_id)
 
         filter_map = {
             "religious_background": Person.religious_background,
@@ -87,6 +90,7 @@ class BirthCalculator(DemographicCalculator):
 
         return [
             Person(
+                run_id=self.run_id,
                 age=0,
                 religious_background=parent.religious_background,
                 gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
@@ -137,6 +141,7 @@ class MigrationCalculator(DemographicCalculator):
 
         return [
             Person(
+                run_id=self.run_id,
                 age=self.rng.randint(18, 45),
                 religious_background=(
                     template.religious_background
@@ -162,8 +167,9 @@ class InternalMigrationCalculator(DemographicCalculator):
         destination: Location,
         query_filters: Optional[Dict[str, Any]] = None,
         rng: Optional[random.Random] = None,
+        run_id: Optional[uuid.UUID] = None,
     ):
-        super().__init__(db_session, rate, query_filters, rng)
+        super().__init__(db_session, rate, query_filters, rng, run_id)
         self.destination = destination
 
     def calculate(self) -> int:

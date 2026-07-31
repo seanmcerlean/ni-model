@@ -7,7 +7,8 @@ resulting population state.
 
 ## What it does
 
-- Maintains a full individual-level population in PostgreSQL (~2M person records)
+- Maintains an immutable baseline plus isolated per-run populations in
+  PostgreSQL (~2M person records per active run)
 - Simulates demographic change year-by-year using configurable, era-specific rates
 - Applies different rates to different cohorts (e.g. community-background birth rates and age-specific mortality)
 - Tracks internal migration between NI locations and external migration in/out
@@ -26,13 +27,17 @@ src/ni_model/
 └── validation/     # Historical validator, model comparator
 ```
 
+Each simulation has a durable run ID. Its cloned population is isolated from
+other users, and every completed year is persisted as an aggregate snapshot.
 The simulation follows a sequential DB-update pattern per year:
 
 ```
 age all residents → generate births → remove deaths → apply migration → snapshot
 ```
 
-Model assumptions are defined in YAML and loaded at runtime via `ModelDirector`. Snapshots use PostgreSQL SAVEPOINTs for zero-copy rollback.
+Model assumptions are defined in YAML and loaded at runtime via
+`ModelDirector`. Restoring a run resets it from the immutable baseline;
+snapshots and run status survive API restarts.
 
 ## Quick start
 
@@ -70,8 +75,10 @@ kubectl apply -f k8s/app.yaml
 | GET | `/api/population/by-location` | Population counts per location |
 | GET | `/api/population/location/{location}` | Drill-down: age bands, religion, gender, origin |
 | GET | `/api/population/by-year/{year}` | Demographic snapshot for a simulated year |
-| GET | `/api/simulation/years` | List of completed simulation years |
-| GET | `/api/simulation/stream` | SSE stream — runs simulation and emits year snapshots |
+| GET | `/api/simulation/runs` | List durable simulation runs |
+| GET | `/api/simulation/runs/{run_id}` | Run status and completed years |
+| GET | `/api/simulation/runs/{run_id}/years/{year}` | Durable year snapshot |
+| GET | `/api/simulation/stream` | SSE stream — creates an isolated run and emits year snapshots |
 | POST | `/api/simulation/run` | Run simulation synchronously |
 
 SSE stream example:
@@ -79,7 +86,10 @@ SSE stream example:
 GET /api/simulation/stream?start_year=1971&end_year=2024&model_path=models/ni_base_2024.yaml
 ```
 
-Each event contains a full demographic snapshot for that year. A final `event: complete` signals the end.
+Each event contains the run ID and full demographic snapshot for that year.
+The response also exposes `X-Simulation-Run-ID`; a final `event: complete`
+signals the end. Run populations and snapshots are deleted together when the
+run is explicitly removed (a deletion endpoint is not yet exposed).
 
 ## Model configuration
 

@@ -15,8 +15,10 @@ class SimulationEngine:
 
     def run_simulation_year(self, year: int) -> dict:
         """Age the population, then apply demographic events without committing."""
-        self.db_session.query(Person).update(
-            {Person.age: Person.age + 1}, synchronize_session=False
+        (
+            self.db_session.query(Person)
+            .filter(Person.run_id == self.director.run_id)
+            .update({Person.age: Person.age + 1}, synchronize_session=False)
         )
         births = self.director.simulate_births(year)
         deaths = self.director.simulate_deaths(year)

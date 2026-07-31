@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -51,6 +52,7 @@ class SimulationLocationSnapshot(BaseModel):
 
 
 class SimulationYearSnapshot(BaseModel):
+    run_id: Optional[UUID] = None
     year: int
     total_population: int
     religious_breakdown: Dict[str, int]
@@ -104,11 +106,24 @@ class SimulationRunRequest(BaseModel):
 
 
 class SimulationRunResponse(BaseModel):
+    run_id: UUID
+    status: str
     model_path: str
     start_year: int
     end_year: int
     years_simulated: int
     results: List[SimulationYearResult]
+
+
+class SimulationRunSummary(BaseModel):
+    run_id: UUID
+    model_path: str
+    start_year: int
+    end_year: int
+    status: str
+    base_population_count: int
+    completed_years: List[int]
+    error: Optional[str] = None
 
 
 class LocationVotePrediction(BaseModel):

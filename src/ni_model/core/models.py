@@ -1,8 +1,20 @@
 import enum
 import uuid
+from datetime import UTC, datetime
 
-from sqlalchemy import Column, Enum, Index, Integer
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from ..core.database import Base
 
@@ -52,6 +64,12 @@ class Person(Base):
     __tablename__ = "persons"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("simulation_runs.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     age = Column(Integer, nullable=False)
     religious_background = Column(Enum(ReligiousBackground), nullable=False)
     gender = Column(Enum(Gender), nullable=False)
@@ -67,4 +85,52 @@ class Person(Base):
         Index("idx_origin", "origin"),
         Index("idx_age_location", "age", "location"),
         Index("idx_religious_gender", "religious_background", "gender"),
+        Index("idx_run_location", "run_id", "location"),
+        Index("idx_run_age", "run_id", "age"),
     )
+
+
+class SimulationRun(Base):
+    __tablename__ = "simulation_runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    model_path = Column(String(255), nullable=False)
+    start_year = Column(Integer, nullable=False)
+    end_year = Column(Integer, nullable=False)
+    status = Column(String(32), nullable=False, default="pending", index=True)
+    base_population_count = Column(Integer, nullable=False, default=0)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    error = Column(String(1000), nullable=True)
+
+    persons = relationship("Person", cascade="all, delete-orphan")
+    snapshots = relationship(
+        "SimulationSnapshot",
+        cascade="all, delete-orphan",
+        order_by="SimulationSnapshot.year",
+    )
+
+
+class SimulationSnapshot(Base):
+    __tablename__ = "simulation_snapshots"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("simulation_runs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    year = Column(Integer, nullable=False)
+    data = Column(JSON, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (UniqueConstraint("run_id", "year", name="uq_run_snapshot_year"),)

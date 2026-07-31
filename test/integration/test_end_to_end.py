@@ -17,6 +17,7 @@ from src.ni_model.data.population_generator import generate_population
 from src.ni_model.data.repository import PersonRepository
 from src.ni_model.simulation.model_director import ModelDirector
 from src.ni_model.simulation.orchestrator import SimulationOrchestrator
+from src.ni_model.simulation.population_manager import PopulationManager
 from src.ni_model.simulation.voting_predictor import VotingPredictor
 from src.ni_model.validation.historical_validator import HistoricalValidator
 from src.ni_model.validation.model_comparator import ModelComparator
@@ -134,10 +135,15 @@ def test_simulation_births_and_deaths_non_negative(populated_db, orchestrator):
 
 
 def test_simulation_rollback_restores_population(populated_db, orchestrator):
-    repo = PersonRepository(populated_db)
+    run = PopulationManager.create_run(
+        populated_db, "models/ni_base_2024.yaml", 2010, 2010
+    )
+    director = ModelDirector.from_yaml(populated_db, run.model_path, run_id=run.id)
+    run_orchestrator = SimulationOrchestrator(populated_db, director)
+    repo = PersonRepository(populated_db, run_id=run.id)
     initial = repo.count()
-    orchestrator.run(2010, 2010)
-    orchestrator.rollback_to_year(2010)
+    run_orchestrator.run(2010, 2010)
+    run_orchestrator.rollback_to_year(2010)
     assert repo.count() == initial
 
 

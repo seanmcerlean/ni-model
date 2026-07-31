@@ -1,15 +1,18 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import AsyncGenerator, List
+from typing import AsyncGenerator
+from uuid import UUID
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ...core.models import Location
+from ...core.models import Location, SimulationRun, SimulationSnapshot
 from ...simulation.model_director import ModelDirector
 from ...simulation.orchestrator import SimulationOrchestrator
+from ...simulation.population_manager import PopulationManager
 from ..queries import (
     age_band_breakdown,
     gender_breakdown,
@@ -23,6 +26,7 @@ from ..schemas import (
     SimulationModelSummary,
     SimulationRunRequest,
     SimulationRunResponse,
+    SimulationRunSummary,
     SimulationYearResult,
     SimulationYearsList,
     SimulationYearSnapshot,
@@ -31,11 +35,6 @@ from ..schemas import (
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 MODELS_DIR = PROJECT_ROOT / "models"
-
-# In-memory store for completed simulation results, keyed by year.
-# Populated by the orchestrator via store_results().
-_year_snapshots: dict[int, SimulationYearSnapshot] = {}
-_year_results: dict[int, SimulationYearResult] = {}
 
 
 def _resolve_model_path(model_path: str) -> Path:
@@ -59,10 +58,10 @@ def _resolve_model_path(model_path: str) -> Path:
     return candidate
 
 
-def _load_director(db: Session, model_path: str) -> ModelDirector:
+def _load_director(db: Session, model_path: str, run_id: UUID = None) -> ModelDirector:
     path = _resolve_model_path(model_path)
     try:
-        return ModelDirector.from_yaml(db, str(path))
+        return ModelDirector.from_yaml(db, str(path), run_id=run_id)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise HTTPException(
             status_code=422, detail=f"Invalid model configuration: {exc}"
@@ -111,50 +110,85 @@ def simulation_models():
     return models
 
 
-def store_results(
-    results: List[dict], db, snapshots: dict[int, SimulationYearSnapshot]
-):
-    """Store simulation results and snapshots — called by orchestrator after run()"""
-    _year_results.clear()
-    _year_snapshots.clear()
-    _year_results.update({r["year"]: SimulationYearResult(**r) for r in results})
-    _year_snapshots.update(snapshots)
-
-
-def _capture_snapshot(year: int, result: dict, db: Session) -> SimulationYearSnapshot:
-    loc_breakdown = {loc.value: count for loc, count in location_totals(db)}
+def _capture_snapshot(
+    run_id: UUID, year: int, result: dict, db: Session
+) -> SimulationYearSnapshot:
+    loc_breakdown = {
+        loc.value: count for loc, count in location_totals(db, run_id=run_id)
+    }
     locations = {
         location.value: SimulationLocationSnapshot(
             total=loc_breakdown.get(location.value, 0),
-            religious_breakdown=religious_breakdown(db, location),
-            gender_breakdown=gender_breakdown(db, location),
-            origin_breakdown=origin_breakdown(db, location),
-            age_bands=age_band_breakdown(db, location),
+            religious_breakdown=religious_breakdown(db, location, run_id),
+            gender_breakdown=gender_breakdown(db, location, run_id),
+            origin_breakdown=origin_breakdown(db, location, run_id),
+            age_bands=age_band_breakdown(db, location, run_id),
         )
         for location in Location
     }
     return SimulationYearSnapshot(
+        run_id=run_id,
         year=year,
         total_population=sum(loc_breakdown.values()),
-        religious_breakdown=religious_breakdown(db),
-        gender_breakdown=gender_breakdown(db),
+        religious_breakdown=religious_breakdown(db, run_id=run_id),
+        gender_breakdown=gender_breakdown(db, run_id=run_id),
         location_breakdown=loc_breakdown,
         locations=locations,
         simulation_result=SimulationYearResult(**result),
     )
 
 
-@router.get("/years", response_model=SimulationYearsList)
-def simulation_years():
-    return SimulationYearsList(years=sorted(_year_snapshots.keys()))
+def _get_run(db: Session, run_id: UUID) -> SimulationRun:
+    run = db.get(SimulationRun, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    return run
 
 
-@router.get("/years/{year}", response_model=SimulationYearSnapshot)
-def simulation_year_snapshot(year: int):
-    snapshot = _year_snapshots.get(year)
+@router.get("/runs", response_model=list[SimulationRunSummary])
+def simulation_runs(db: Session = Depends(get_db)):
+    runs = db.query(SimulationRun).order_by(SimulationRun.created_at.desc()).all()
+    return [_run_summary(run) for run in runs]
+
+
+def _run_summary(run: SimulationRun) -> SimulationRunSummary:
+    return SimulationRunSummary(
+        run_id=run.id,
+        model_path=run.model_path,
+        start_year=run.start_year,
+        end_year=run.end_year,
+        status=run.status,
+        base_population_count=run.base_population_count,
+        completed_years=[snapshot.year for snapshot in run.snapshots],
+        error=run.error,
+    )
+
+
+@router.get("/runs/{run_id}", response_model=SimulationRunSummary)
+def simulation_run(run_id: UUID, db: Session = Depends(get_db)):
+    return _run_summary(_get_run(db, run_id))
+
+
+@router.get("/runs/{run_id}/years", response_model=SimulationYearsList)
+def simulation_years(run_id: UUID, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id)
+    return SimulationYearsList(years=[snapshot.year for snapshot in run.snapshots])
+
+
+@router.get("/runs/{run_id}/years/{year}", response_model=SimulationYearSnapshot)
+def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_db)):
+    _get_run(db, run_id)
+    snapshot = (
+        db.query(SimulationSnapshot)
+        .filter(
+            SimulationSnapshot.run_id == run_id,
+            SimulationSnapshot.year == year,
+        )
+        .one_or_none()
+    )
     if not snapshot:
         raise HTTPException(status_code=404, detail=f"No snapshot for year {year}")
-    return snapshot
+    return SimulationYearSnapshot.model_validate(snapshot.data)
 
 
 @router.get("/stream")
@@ -171,33 +205,77 @@ def stream_simulation(
     if end_year < start_year:
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
 
-    director = _load_director(db, model_path)
+    _resolve_model_path(model_path)
+    run = PopulationManager.create_run(db, model_path, start_year, end_year)
+    director = _load_director(db, model_path, run.id)
     orchestrator = SimulationOrchestrator(db, director)
 
     async def event_stream() -> AsyncGenerator[str, None]:
-        for result in orchestrator._iter_years(start_year, end_year):
-            snapshot = _capture_snapshot(result["year"], result, db)
-            payload = snapshot.model_dump()
-            yield f"data: {json.dumps(payload)}\n\n"
-        yield "event: complete\ndata: {}\n\n"
+        try:
+            run.status = "running"
+            db.commit()
+            for result in orchestrator._iter_years(start_year, end_year):
+                snapshot = _capture_snapshot(run.id, result["year"], result, db)
+                PopulationManager(db, run.id).create_snapshot(
+                    f"year_{result['year']}",
+                    result["year"],
+                    snapshot.model_dump(mode="json"),
+                )
+                db.commit()
+                yield f"data: {snapshot.model_dump_json()}\n\n"
+            run.status = "complete"
+            run.completed_at = datetime.now(UTC)
+            db.commit()
+            yield f"event: complete\ndata: {json.dumps({'run_id': str(run.id)})}\n\n"
+        except Exception as exc:
+            db.rollback()
+            run.status = "failed"
+            run.error = str(exc)
+            db.commit()
+            raise
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"X-Simulation-Run-ID": str(run.id)},
+    )
 
 
 @router.post("/run", response_model=SimulationRunResponse)
 def run_simulation(request: SimulationRunRequest, db: Session = Depends(get_db)):
-    director = _load_director(db, request.model_path)
+    _resolve_model_path(request.model_path)
+    run = PopulationManager.create_run(
+        db, request.model_path, request.start_year, request.end_year
+    )
+    director = _load_director(db, request.model_path, run.id)
     orchestrator = SimulationOrchestrator(db, director)
 
     results = []
-    snapshots = {}
-    for result in orchestrator._iter_years(request.start_year, request.end_year):
-        results.append(result)
-        snapshots[result["year"]] = _capture_snapshot(result["year"], result, db)
+    try:
+        run.status = "running"
+        for result in orchestrator._iter_years(request.start_year, request.end_year):
+            results.append(result)
+            snapshot = _capture_snapshot(run.id, result["year"], result, db)
+            PopulationManager(db, run.id).create_snapshot(
+                f"year_{result['year']}",
+                result["year"],
+                snapshot.model_dump(mode="json"),
+            )
+            db.commit()
+        run.status = "complete"
+        run.completed_at = datetime.now(UTC)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        run.status = "failed"
+        run.error = str(exc)
+        db.commit()
+        raise
     orchestrator.results = results
-    store_results(results, db, snapshots)
 
     return SimulationRunResponse(
+        run_id=run.id,
+        status=run.status,
         model_path=request.model_path,
         start_year=request.start_year,
         end_year=request.end_year,

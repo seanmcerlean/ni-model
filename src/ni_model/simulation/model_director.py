@@ -1,4 +1,5 @@
 import random
+import uuid
 from math import isfinite
 from typing import Any, Dict, List
 
@@ -30,7 +31,12 @@ class ModelDirector:
         "internal_migration_rates",
     )
 
-    def __init__(self, db_session: Session, config: Dict[str, Any]):
+    def __init__(
+        self,
+        db_session: Session,
+        config: Dict[str, Any],
+        run_id: uuid.UUID = None,
+    ):
         if not isinstance(config, dict):
             raise ValueError("model configuration must be a mapping")
         self.db_session = db_session
@@ -38,6 +44,7 @@ class ModelDirector:
         self.jitter = config.get("rate_jitter", 0.05)
         self.seed = config.get("random_seed", 42)
         self.rng = random.Random(self.seed)
+        self.run_id = run_id
         self._validate_config()
 
     def _jittered_rate(self, rate: float) -> float:
@@ -134,6 +141,7 @@ class ModelDirector:
                 rate=self._jittered_rate(config["rate"]),
                 query_filters=filters,
                 rng=self.rng,
+                run_id=self.run_id,
             )
             calculators.append(calc)
         return calculators
@@ -154,6 +162,7 @@ class ModelDirector:
                 destination=destination,
                 query_filters=filters,
                 rng=self.rng,
+                run_id=self.run_id,
             )
             calculators.append(calc)
         return calculators
@@ -217,11 +226,13 @@ class ModelDirector:
         return sum(c.calculate() for c in calcs)
 
     @classmethod
-    def from_yaml(cls, db_session: Session, yaml_path: str) -> "ModelDirector":
+    def from_yaml(
+        cls, db_session: Session, yaml_path: str, run_id: uuid.UUID = None
+    ) -> "ModelDirector":
         """Create ModelDirector from YAML configuration file"""
         with open(yaml_path, "r", encoding="utf-8") as f:
             try:
                 config = yaml.safe_load(f)
             except yaml.YAMLError as exc:
                 raise ValueError(f"invalid YAML: {exc}") from exc
-        return cls(db_session, config)
+        return cls(db_session, config, run_id=run_id)

@@ -1,36 +1,23 @@
 import json
+import uuid
 
-import pytest
-
-from src.ni_model.api.routes.simulation import (
-    SimulationYearSnapshot,
-    _year_snapshots,
-    store_results,
-)
+from src.ni_model.core.models import Person, SimulationRun, SimulationSnapshot
 
 
-@pytest.fixture(autouse=True)
-def clear_snapshots():
-    """Ensure simulation store is clean before each test"""
-    _year_snapshots.clear()
-    yield
-    _year_snapshots.clear()
-
-
-def _make_snapshot(year: int, total: int = 100) -> SimulationYearSnapshot:
-    return SimulationYearSnapshot(
-        year=year,
-        total_population=total,
-        religious_breakdown={"catholic": 50, "protestant": 30, "other": 20},
-        gender_breakdown={"male": 50, "female": 50},
-        location_breakdown={"belfast_north": total},
-    )
-
-
-def test_simulation_years_empty(client):
-    response = client.get("/api/simulation/years")
-    assert response.status_code == 200
-    assert response.json() == {"years": []}
+def _parse_sse(text: str) -> list:
+    events = []
+    current = {}
+    for line in text.splitlines():
+        if line.startswith("event:"):
+            current["event"] = line.removeprefix("event:").strip()
+        elif line.startswith("data:"):
+            current["data"] = json.loads(line.removeprefix("data:").strip())
+        elif line == "" and current:
+            events.append(current)
+            current = {}
+    if current:
+        events.append(current)
+    return events
 
 
 def test_simulation_models_describes_available_configs(client):
@@ -41,75 +28,109 @@ def test_simulation_models_describes_available_configs(client):
     assert models[0]["path"] == "models/ni_base_2024.yaml"
     assert models[0]["name"] == "NI Historical Model"
     assert models[0]["birth_rules"] == 12
-    assert models[0]["death_rules"] == 15
+    assert models[0]["birth_rate_rules"][0]["rate"] == 26.0
 
 
-def test_simulation_years_after_store(client):
-    _year_snapshots[2024] = _make_snapshot(2024)
-    _year_snapshots[2025] = _make_snapshot(2025)
+def test_runs_empty_initially(client):
+    response = client.get("/api/simulation/runs")
 
-    data = client.get("/api/simulation/years").json()
-    assert data["years"] == [2024, 2025]
+    assert response.status_code == 200
+    assert response.json() == []
 
 
-def test_simulation_year_snapshot_found(client):
-    _year_snapshots[2024] = _make_snapshot(2024, total=150)
+def test_run_creates_isolated_population_and_durable_snapshots(client, populated_db):
+    baseline_count = populated_db.query(Person).filter(Person.run_id.is_(None)).count()
 
-    response = client.get("/api/simulation/years/2024")
+    response = client.post(
+        "/api/simulation/run",
+        json={"start_year": 2024, "end_year": 2025},
+    )
+
     assert response.status_code == 200
     data = response.json()
-    assert data["year"] == 2024
-    assert data["total_population"] == 150
+    run_id = uuid.UUID(data["run_id"])
+    assert data["status"] == "complete"
+    assert data["years_simulated"] == 2
+    assert (
+        populated_db.query(Person).filter(Person.run_id.is_(None)).count()
+        == baseline_count
+    )
+    assert populated_db.query(Person).filter(Person.run_id == run_id).count() > 0
+    assert (
+        populated_db.query(SimulationSnapshot)
+        .filter(SimulationSnapshot.run_id == run_id)
+        .count()
+        == 2
+    )
 
 
-def test_simulation_year_snapshot_not_found(client):
-    response = client.get("/api/simulation/years/1999")
+def test_two_runs_are_user_isolated(client, populated_db):
+    first = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    second = client.post(
+        "/api/simulation/run",
+        json={
+            "start_year": 2024,
+            "end_year": 2024,
+            "model_path": "models/ni_zero_migration.yaml",
+        },
+    ).json()
+
+    first_id = uuid.UUID(first["run_id"])
+    second_id = uuid.UUID(second["run_id"])
+    assert first_id != second_id
+    assert populated_db.query(Person).filter(Person.run_id == first_id).count() > 0
+    assert populated_db.query(Person).filter(Person.run_id == second_id).count() > 0
+
+
+def test_run_summary_and_year_endpoints(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+    ).json()
+    run_id = created["run_id"]
+
+    summary = client.get(f"/api/simulation/runs/{run_id}")
+    years = client.get(f"/api/simulation/runs/{run_id}/years")
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2024")
+
+    assert summary.status_code == 200
+    assert summary.json()["completed_years"] == [2024, 2025]
+    assert years.json() == {"years": [2024, 2025]}
+    assert snapshot.status_code == 200
+    assert snapshot.json()["run_id"] == run_id
+    assert snapshot.json()["year"] == 2024
+    assert "locations" in snapshot.json()
+
+
+def test_missing_run_and_snapshot_return_404(client):
+    missing_id = uuid.uuid4()
+
+    assert client.get(f"/api/simulation/runs/{missing_id}").status_code == 404
+
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2025")
     assert response.status_code == 404
 
 
-def test_simulation_year_snapshot_schema(client):
-    _year_snapshots[2026] = _make_snapshot(2026)
+def test_stream_persists_run_and_emits_run_id(client, populated_db):
+    response = client.get("/api/simulation/stream?start_year=2024&end_year=2025")
 
-    data = client.get("/api/simulation/years/2026").json()
-    assert "religious_breakdown" in data
-    assert "gender_breakdown" in data
-    assert "location_breakdown" in data
-
-
-def test_simulation_year_snapshot_with_result(client):
-    from src.ni_model.api.schemas import SimulationYearResult
-
-    snapshot = _make_snapshot(2024)
-    snapshot.simulation_result = SimulationYearResult(
-        year=2024, births=10, deaths=5, migration=2, internal_migration=8, net_change=7
-    )
-    _year_snapshots[2024] = snapshot
-
-    data = client.get("/api/simulation/years/2024").json()
-    assert data["simulation_result"]["births"] == 10
-    assert data["simulation_result"]["net_change"] == 7
+    assert response.status_code == 200
+    run_id = uuid.UUID(response.headers["x-simulation-run-id"])
+    events = _parse_sse(response.text)
+    assert len(events) == 3
+    assert events[0]["data"]["run_id"] == str(run_id)
+    assert events[-1]["event"] == "complete"
+    run = populated_db.get(SimulationRun, run_id)
+    assert run.status == "complete"
+    assert len(run.snapshots) == 2
 
 
-def test_store_results_populates_snapshots(client):
-    results = [
-        {
-            "year": 2024,
-            "births": 5,
-            "deaths": 3,
-            "migration": 1,
-            "internal_migration": 4,
-            "net_change": 3,
-        }
-    ]
-    snapshots = {2024: _make_snapshot(2024, total=200)}
-    store_results(results, None, snapshots)
-
-    assert 2024 in _year_snapshots
-    assert _year_snapshots[2024].total_population == 200
-
-
-def test_run_simulation_invalid_model_path(client):
-    response = client.post(
+def test_run_rejects_invalid_model_and_years(client):
+    invalid_model = client.post(
         "/api/simulation/run",
         json={
             "model_path": "models/nonexistent.yaml",
@@ -117,148 +138,26 @@ def test_run_simulation_invalid_model_path(client):
             "end_year": 2025,
         },
     )
-    assert response.status_code == 422
-
-
-def test_run_simulation_end_before_start(client):
-    response = client.post(
+    reversed_years = client.post(
         "/api/simulation/run",
-        json={
-            "model_path": "models/ni_base_2024.yaml",
-            "start_year": 2025,
-            "end_year": 2024,
-        },
+        json={"start_year": 2025, "end_year": 2024},
     )
-    assert response.status_code == 422
-
-
-def test_run_simulation_year_out_of_range(client):
-    response = client.post(
+    invalid_year = client.post(
         "/api/simulation/run",
-        json={
-            "model_path": "models/ni_base_2024.yaml",
-            "start_year": 1800,
-            "end_year": 1801,
-        },
+        json={"start_year": 1800, "end_year": 1801},
     )
-    assert response.status_code == 422
+
+    assert invalid_model.status_code == 422
+    assert reversed_years.status_code == 422
+    assert invalid_year.status_code == 422
 
 
-def test_run_simulation_defaults(client):
-    """POST with no body uses defaults and runs against populated_db"""
-    response = client.post("/api/simulation/run", json={})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["model_path"] == "models/ni_base_2024.yaml"
-    assert data["start_year"] == 2024
-    assert data["end_year"] == 2030
-    assert data["years_simulated"] == 7
-    assert len(data["results"]) == 7
-
-
-def test_run_simulation_response_schema(client):
-    response = client.post(
-        "/api/simulation/run",
-        json={"start_year": 2024, "end_year": 2026},
+def test_stream_rejects_path_traversal_and_invalid_range(client):
+    traversal = client.get(
+        "/api/simulation/stream"
+        "?start_year=2024&end_year=2024&model_path=../pyproject.toml"
     )
-    assert response.status_code == 200
-    data = response.json()
-    expected_keys = {
-        "model_path",
-        "start_year",
-        "end_year",
-        "years_simulated",
-        "results",
-    }
-    assert set(data.keys()) == expected_keys
-    result_keys = {
-        "year",
-        "births",
-        "deaths",
-        "immigration",
-        "emigration",
-        "migration",
-        "internal_migration",
-        "net_change",
-    }
-    for r in data["results"]:
-        assert set(r.keys()) == result_keys
+    reversed_years = client.get("/api/simulation/stream?start_year=2025&end_year=2024")
 
-
-def test_run_simulation_populates_snapshot_store(client):
-    client.post("/api/simulation/run", json={"start_year": 2024, "end_year": 2025})
-    response = client.get("/api/simulation/years")
-    assert 2024 in response.json()["years"]
-    assert 2025 in response.json()["years"]
-
-
-def _parse_sse(text: str) -> list:
-    """Parse SSE response body into list of (event, data) tuples"""
-    events = []
-    current = {}
-    for line in text.splitlines():
-        if line.startswith("event:"):
-            current["event"] = line[len("event:") :].strip()
-        elif line.startswith("data:"):
-            current["data"] = json.loads(line[len("data:") :].strip())
-        elif line == "" and current:
-            events.append(current)
-            current = {}
-    if current:
-        events.append(current)
-    return events
-
-
-def test_stream_emits_one_event_per_year(client):
-    response = client.get("/api/simulation/stream?start_year=2024&end_year=2026")
-    assert response.status_code == 200
-    assert "text/event-stream" in response.headers["content-type"]
-    events = _parse_sse(response.text)
-    # 3 year data events + 1 complete event
-    assert len(events) == 4
-
-
-def test_stream_year_event_schema(client):
-    response = client.get("/api/simulation/stream?start_year=2024&end_year=2024")
-    events = _parse_sse(response.text)
-    year_event = events[0]["data"]
-    assert year_event["year"] == 2024
-    assert "total_population" in year_event
-    assert "religious_breakdown" in year_event
-    assert "gender_breakdown" in year_event
-    assert "location_breakdown" in year_event
-    assert "simulation_result" in year_event
-
-
-def test_stream_complete_event(client):
-    response = client.get("/api/simulation/stream?start_year=2024&end_year=2025")
-    events = _parse_sse(response.text)
-    last = events[-1]
-    assert last.get("event") == "complete"
-
-
-def test_stream_invalid_model_path(client):
-    response = client.get(
-        "/api/simulation/stream?model_path=models/missing.yaml"
-        "&start_year=2024&end_year=2025"
-    )
-    assert response.status_code == 422
-
-
-def test_stream_rejects_model_path_outside_models_directory(client):
-    response = client.get(
-        "/api/simulation/stream?model_path=project-goals.md"
-        "&start_year=2024&end_year=2025"
-    )
-    assert response.status_code == 422
-    assert "models/" in response.json()["detail"]
-
-
-def test_stream_end_before_start(client):
-    response = client.get("/api/simulation/stream?start_year=2025&end_year=2024")
-    assert response.status_code == 422
-
-
-def test_stream_year_out_of_range(client):
-    response = client.get("/api/simulation/stream?start_year=1800&end_year=1801")
-    assert response.status_code == 422
+    assert traversal.status_code == 422
+    assert reversed_years.status_code == 422

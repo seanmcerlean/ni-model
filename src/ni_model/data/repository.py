@@ -9,11 +9,16 @@ from ..core.models import Person
 
 
 class PersonRepository:
-    def __init__(self, db: Session = None):
+    def __init__(self, db: Session = None, run_id: uuid.UUID = None):
         self.db = db or SessionLocal()
+        self.run_id = run_id
+
+    def _query(self):
+        return self.db.query(Person).filter(Person.run_id == self.run_id)
 
     def create(self, person: Person) -> Person:
         """Create a new person record"""
+        person.run_id = self.run_id
         self.db.add(person)
         self.db.commit()
         self.db.refresh(person)
@@ -21,11 +26,11 @@ class PersonRepository:
 
     def get_by_id(self, person_id: uuid.UUID) -> Optional[Person]:
         """Get person by ID"""
-        return self.db.query(Person).filter(Person.id == person_id).first()
+        return self._query().filter(Person.id == person_id).first()
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Person]:
         """Get all persons with pagination"""
-        return self.db.query(Person).offset(skip).limit(limit).all()
+        return self._query().offset(skip).limit(limit).all()
 
     def update(self, person_id: uuid.UUID, **kwargs) -> Optional[Person]:
         """Update person record"""
@@ -49,38 +54,41 @@ class PersonRepository:
 
     def bulk_create(self, persons: List[Person]) -> List[Person]:
         """Bulk create person records"""
+        for person in persons:
+            person.run_id = self.run_id
         self.db.add_all(persons)
         self.db.commit()
         return persons
 
     def count(self) -> int:
         """Get total count of persons"""
-        return self.db.query(Person).count()
+        return self._query().count()
 
     def get_by_location(self, location: str) -> List[Person]:
         """Get persons by location"""
-        return self.db.query(Person).filter(Person.location == location).all()
+        return self._query().filter(Person.location == location).all()
 
     def get_by_age_range(self, min_age: int, max_age: int) -> List[Person]:
         """Get persons by age range"""
-        return (
-            self.db.query(Person)
-            .filter(Person.age >= min_age, Person.age <= max_age)
-            .all()
-        )
+        return self._query().filter(Person.age >= min_age, Person.age <= max_age).all()
 
     def get_demographics_summary(self) -> dict:
         """Get demographic summary statistics"""
         total = self.count()
 
-        age_stats = self.db.query(
-            func.avg(Person.age).label("avg_age"),
-            func.min(Person.age).label("min_age"),
-            func.max(Person.age).label("max_age"),
-        ).first()
+        age_stats = (
+            self._query()
+            .with_entities(
+                func.avg(Person.age).label("avg_age"),
+                func.min(Person.age).label("min_age"),
+                func.max(Person.age).label("max_age"),
+            )
+            .first()
+        )
 
         religious_breakdown = (
-            self.db.query(
+            self._query()
+            .with_entities(
                 Person.religious_background, func.count(Person.id).label("count")
             )
             .group_by(Person.religious_background)
@@ -88,7 +96,8 @@ class PersonRepository:
         )
 
         gender_breakdown = (
-            self.db.query(Person.gender, func.count(Person.id).label("count"))
+            self._query()
+            .with_entities(Person.gender, func.count(Person.id).label("count"))
             .group_by(Person.gender)
             .all()
         )

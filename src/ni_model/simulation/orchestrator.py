@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from ..core.models import SimulationRun
 from .model_director import ModelDirector
 from .population_manager import PopulationManager
 from .simulation_engine import SimulationEngine
@@ -13,7 +14,7 @@ class SimulationOrchestrator:
     def __init__(self, db_session: Session, director: ModelDirector):
         self.db_session = db_session
         self.engine = SimulationEngine(db_session, director)
-        self.population_manager = PopulationManager(db_session)
+        self.population_manager = PopulationManager(db_session, director.run_id)
         self.results: List[Dict] = []
 
     def run(self, start_year: int, end_year: int) -> List[Dict]:
@@ -24,14 +25,18 @@ class SimulationOrchestrator:
     def _iter_years(self, start_year: int, end_year: int):
         """Yield result dict per year, flushing after each"""
         for year in range(start_year, end_year + 1):
-            self.population_manager.create_snapshot(f"year_{year}_start", year)
             result = self.engine.run_simulation_year(year)
             self.db_session.flush()
             yield result
 
     def rollback_to_year(self, year: int) -> bool:
-        """Rollback population state to start of given year"""
-        return self.population_manager.restore_snapshot(f"year_{year}_start")
+        """Restore the durable baseline; callers can deterministically replay."""
+        run_id = self.engine.director.run_id
+        run = self.db_session.get(SimulationRun, run_id) if run_id else None
+        if not run or year != run.start_year:
+            return False
+        self.population_manager.reset_to_baseline()
+        return True
 
     def get_result(self, year: int) -> Optional[Dict]:
         """Get simulation result for a specific year"""
