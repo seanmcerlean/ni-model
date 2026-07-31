@@ -27,6 +27,11 @@ the large geographic differences needed by area scenarios. Age, sex and origin
 remain independent marginals, so the generated population is not synthetic
 Census microdata.
 
+The historical profile has no equivalent joint table on current LGD boundaries.
+It uses iterative proportional fitting to preserve its documented estimated
+1971 NI-wide community-background totals while borrowing the 2021 relative LGD
+pattern. This is a best-effort spatial estimate, not observed 1971 LGD data.
+
 ## Population components, 2002–2024
 
 `ni_population_components_2002_2024.csv` is a normalized copy of Figure 4 from

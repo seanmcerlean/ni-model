@@ -33,8 +33,8 @@ PROFILES = {
         ],
         "status": (
             "Best-effort 1971-scale representative estimate: community background "
-            "is a legacy estimate; age, LGD, origin and education use current "
-            "distributions"
+            "matches the legacy NI-wide estimate and borrows the 2021 LGD spatial "
+            "pattern; age, LGD, origin and education use current distributions"
         ),
     },
 }

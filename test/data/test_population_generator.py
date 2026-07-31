@@ -98,6 +98,29 @@ def test_community_background_preserves_lgd_joint_distribution(population):
     assert mea_protestant == pytest.approx(93_477 / 138_994, abs=0.04)
 
 
+def test_historical_targets_retain_geographic_pattern():
+    targets = [
+        (ReligiousBackground.CATHOLIC, 0.311),
+        (ReligiousBackground.PROTESTANT, 0.649),
+        (ReligiousBackground.OTHER, 0.020),
+        (ReligiousBackground.NONE, 0.020),
+    ]
+    historical = list(iter_population(20_000, seed=42, religion_weights=targets))
+    shares = _shares(historical, "religious_background")
+    derry = [p for p in historical if p.location == Location.DERRY_STRABANE]
+    mid_east_antrim = [p for p in historical if p.location == Location.MID_EAST_ANTRIM]
+
+    assert shares[ReligiousBackground.CATHOLIC] == pytest.approx(0.311, abs=0.02)
+    assert shares[ReligiousBackground.PROTESTANT] == pytest.approx(0.649, abs=0.02)
+    assert sum(
+        p.religious_background == ReligiousBackground.CATHOLIC for p in derry
+    ) / len(derry) > sum(
+        p.religious_background == ReligiousBackground.CATHOLIC for p in mid_east_antrim
+    ) / len(
+        mid_east_antrim
+    )
+
+
 def test_origin_ni_dominant(population):
     shares = _shares(population, "origin")
     assert shares[Origin.NI] == pytest.approx(0.865, abs=0.02)

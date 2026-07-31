@@ -66,6 +66,48 @@ def _load_location_background_weights():
 
 _BACKGROUND_WEIGHTS_BY_LOCATION = _load_location_background_weights()
 
+
+def _regional_background_weights(target_weights=None):
+    """Return LGD conditionals, optionally calibrated to NI-wide targets.
+
+    Iterative proportional fitting preserves the Census 2021 LGD pattern while
+    matching a supplied historical NI-wide community-background distribution.
+    """
+    if target_weights is None:
+        return _BACKGROUND_WEIGHTS_BY_LOCATION
+
+    backgrounds = list(ReligiousBackground)
+    targets = dict(target_weights)
+    matrix = {
+        location: {
+            background: location_share
+            * dict(_BACKGROUND_WEIGHTS_BY_LOCATION[location])[background]
+            for background in backgrounds
+        }
+        for location, location_share in _LOCATION_WEIGHTS
+    }
+    location_targets = dict(_LOCATION_WEIGHTS)
+
+    for _ in range(50):
+        for background in backgrounds:
+            current = sum(row[background] for row in matrix.values())
+            factor = targets[background] / current
+            for row in matrix.values():
+                row[background] *= factor
+        for location, row in matrix.items():
+            factor = location_targets[location] / sum(row.values())
+            for background in backgrounds:
+                row[background] *= factor
+
+    return {
+        location: [
+            (background, row[background] / location_targets[location])
+            for background in backgrounds
+        ]
+        for location, row in matrix.items()
+    }
+
+
 # Census 2021 country of birth, MS-A16. `GB` combines England, Scotland and
 # Wales; `OTHER` combines all remaining published categories.
 _ORIGIN_WEIGHTS = [
@@ -157,12 +199,11 @@ def iter_population(
         raise ValueError("size must be non-negative")
 
     rng = random.Random(seed)
-    background_weights = religion_weights or _RELIGION_WEIGHTS
+    regional_background_weights = _regional_background_weights(religion_weights)
     for _ in range(size):
         age = _sample_age(rng)
         location = _weighted_choice(_LOCATION_WEIGHTS, rng)
-        if religion_weights is None:
-            background_weights = _BACKGROUND_WEIGHTS_BY_LOCATION[location]
+        background_weights = regional_background_weights[location]
         yield Person(
             age=age,
             religious_background=_weighted_choice(background_weights, rng),
