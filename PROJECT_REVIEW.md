@@ -61,58 +61,10 @@ Primary references:
 
 ### High-priority work ledger
 
-- [x] **Durable, user-isolated runs.** Process-global result dictionaries were
-  replaced by database-backed run IDs, run-scoped population rows, durable
-  status, and persisted yearly snapshots. API and integration tests create two
-  independent runs and reload their snapshots from PostgreSQL.
-- [x] **Durable baseline and snapshot semantics.** Transaction savepoints were
-  removed. Every run clones an immutable baseline, can restore that baseline,
-  and retains aggregate snapshots across sessions. The initial Alembic
-  migration exercises upgrade and downgrade against a clean PostgreSQL
-  database.
 - [ ] Ingest exact five-year age/sex, geography, country-of-birth, births,
   deaths, and migration series from NISRA rather than hand-maintained weights.
 - [ ] Validate and update historic rates to the extent possible.
-- [x] **Evidence-based internal relocation.** The model geography is now the 11
-  current LGDs. All 110 directed LGD-to-LGD rates are derived from the public
-  Census 2021 ODMG01 origin–destination table and exact source populations,
-  with the pandemic-period and held-constant assumptions stated. Moves are
-  selected from one pre-move population and applied simultaneously, preventing
-  cascading or duplicate moves caused by rule order.
 - [ ] Calibrate demographic rates and model uncertainty instead of applying
   undocumented fixed assumptions.
-- [x] **Community-differentiated current sensitivity model.** The flat official
-  principal model remains available. A separate selectable variant splits
-  births, deaths, immigration and emigration by community background using
-  documented conservative multipliers informed by Census 2011–2021 change;
-  each component is normalized to its official starting NI-wide rate and is
-  explicitly labelled as an estimate, not an official community projection.
-- [x] **Evidence-calibrated voting scenarios.** Voting output now excludes
-  under-18s, projects turnout separately, calibrates stated preferences from
-  the 1,199-adult NILT 2024 REFUNIFY results and published community-background
-  and age cross-tabs, reports 95% survey intervals, and shows sensitivity to
-  three allocations of undecided likely voters. It explicitly documents that
-  resident adulthood is only an eligibility proxy and community background is
-  not a vote.
-- [x] **Current sourced model and frontend selection.** `ni_current.yaml` starts
-  from the Census 2021 marginal baseline, uses observed NISRA components for
-  2022–2024, and then the latest official 2024-based principal projection for
-  2025–2074. Its normalized source series and reproducible extraction script
-  are checked in. The models endpoint exposes the baseline, observation cutoff,
-  projection version, and all derived rules; the frontend selector displays the
-  model and those details.
-- [x] **Full-scale database workflow.** Docker Compose now seeds and retains an
-  exact-size 1,903,175-record Census 2021 PostgreSQL baseline and a separate
-  1,536,065-record best-effort historical estimate in bounded batches. The
-  historical profile is explicitly labelled as estimated: its total and legacy
-  community-background assumptions are historical, while age, current-LGD,
-  origin and education distributions reuse the current generator.
-- [x] **Isolated run adjustments.** The frontend can apply bounded multipliers
-  to birth, mortality, external-migration, and internal-relocation rules plus a
-  reproducibility seed, globally and separately for Catholic, Protestant,
-  Other, and None backgrounds. Unfiltered rules are split into cohorts only for
-  that run. Adjustments are validated by the API, stored with the durable run,
-  and never modify the sourced YAML model.
-- [x] Improve UI usability and presentation: current-model defaults, visible
-  loading and error states, accessible controls and location detail, responsive
-  layout, and per-year polling estimates during playback.
+
+Performance work is tracked separately in `performance.md`.
