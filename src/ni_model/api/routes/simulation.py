@@ -1,11 +1,11 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from uuid import UUID
 
 import yaml
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,7 @@ from ..queries import (
 )
 from ..routes.population import get_db
 from ..schemas import (
+    SimulationAdjustments,
     SimulationLocationSnapshot,
     SimulationModelSummary,
     SimulationRunRequest,
@@ -58,10 +59,14 @@ def _resolve_model_path(model_path: str) -> Path:
     return candidate
 
 
-def _load_director(db: Session, model_path: str, run_id: UUID = None) -> ModelDirector:
+def _load_director(
+    db: Session, model_path: str, run_id: UUID = None, adjustments: dict = None
+) -> ModelDirector:
     path = _resolve_model_path(model_path)
     try:
-        return ModelDirector.from_yaml(db, str(path), run_id=run_id)
+        return ModelDirector.from_yaml(
+            db, str(path), run_id=run_id, adjustments=adjustments
+        )
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise HTTPException(
             status_code=422, detail=f"Invalid model configuration: {exc}"
@@ -164,6 +169,7 @@ def _run_summary(run: SimulationRun) -> SimulationRunSummary:
         base_population_count=run.base_population_count,
         completed_years=[snapshot.year for snapshot in run.snapshots],
         error=run.error,
+        adjustments=run.adjustments or {},
     )
 
 
@@ -199,6 +205,11 @@ def stream_simulation(
     start_year: int = 2024,
     end_year: int = 2030,
     model_path: str = "models/ni_base_2024.yaml",
+    birth_multiplier: float = Query(1.0, ge=0.0, le=3.0),
+    death_multiplier: float = Query(1.0, ge=0.0, le=3.0),
+    migration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
+    relocation_multiplier: float = Query(1.0, ge=0.0, le=3.0),
+    random_seed: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
     if not (1900 <= start_year <= 2200) or not (1900 <= end_year <= 2200):
@@ -209,8 +220,17 @@ def stream_simulation(
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
 
     _resolve_model_path(model_path)
-    run = PopulationManager.create_run(db, model_path, start_year, end_year)
-    director = _load_director(db, model_path, run.id)
+    adjustments = SimulationAdjustments(
+        birth_multiplier=birth_multiplier,
+        death_multiplier=death_multiplier,
+        migration_multiplier=migration_multiplier,
+        relocation_multiplier=relocation_multiplier,
+        random_seed=random_seed,
+    ).model_dump()
+    run = PopulationManager.create_run(
+        db, model_path, start_year, end_year, adjustments
+    )
+    director = _load_director(db, model_path, run.id, adjustments)
     orchestrator = SimulationOrchestrator(db, director)
 
     async def event_stream() -> AsyncGenerator[str, None]:
@@ -248,9 +268,15 @@ def stream_simulation(
 def run_simulation(request: SimulationRunRequest, db: Session = Depends(get_db)):
     _resolve_model_path(request.model_path)
     run = PopulationManager.create_run(
-        db, request.model_path, request.start_year, request.end_year
+        db,
+        request.model_path,
+        request.start_year,
+        request.end_year,
+        request.adjustments.model_dump(),
     )
-    director = _load_director(db, request.model_path, run.id)
+    director = _load_director(
+        db, request.model_path, run.id, request.adjustments.model_dump()
+    )
     orchestrator = SimulationOrchestrator(db, director)
 
     results = []

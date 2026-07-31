@@ -90,6 +90,33 @@ def test_current_model_can_be_selected_for_a_run(client):
     assert response.json()["status"] == "complete"
 
 
+def test_run_adjustments_are_validated_and_persisted(client):
+    adjustments = {
+        "birth_multiplier": 1.2,
+        "death_multiplier": 0.8,
+        "migration_multiplier": 0.5,
+        "relocation_multiplier": 1.1,
+        "random_seed": 99,
+    }
+    created = client.post(
+        "/api/simulation/run",
+        json={"start_year": 2024, "end_year": 2024, "adjustments": adjustments},
+    )
+    assert created.status_code == 200
+    summary = client.get(f"/api/simulation/runs/{created.json()['run_id']}").json()
+    assert summary["adjustments"] == adjustments
+
+    invalid = client.post(
+        "/api/simulation/run",
+        json={
+            "start_year": 2024,
+            "end_year": 2024,
+            "adjustments": {"birth_multiplier": 3.1},
+        },
+    )
+    assert invalid.status_code == 422
+
+
 def test_two_runs_are_user_isolated(client, populated_db):
     first = client.post(
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}

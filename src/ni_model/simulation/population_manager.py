@@ -35,6 +35,7 @@ class PopulationManager:
         model_path: str,
         start_year: int,
         end_year: int,
+        adjustments: Optional[Dict] = None,
     ) -> SimulationRun:
         """Create a durable run and clone the immutable baseline into it."""
         baseline_count = (
@@ -46,6 +47,7 @@ class PopulationManager:
             end_year=end_year,
             status="pending",
             base_population_count=baseline_count,
+            adjustments=adjustments or {},
         )
         db_session.add(run)
         db_session.flush()

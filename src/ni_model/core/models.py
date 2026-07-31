@@ -107,6 +107,7 @@ class SimulationRun(Base):
     )
     completed_at = Column(DateTime(timezone=True), nullable=True)
     error = Column(String(1000), nullable=True)
+    adjustments = Column(JSON, nullable=False, default=dict)
 
     persons = relationship("Person", cascade="all, delete-orphan")
     snapshots = relationship(

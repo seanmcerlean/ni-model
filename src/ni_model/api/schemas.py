@@ -88,10 +88,19 @@ class SimulationYearsList(BaseModel):
     years: List[int]
 
 
+class SimulationAdjustments(BaseModel):
+    birth_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    death_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    random_seed: Optional[int] = None
+
+
 class SimulationRunRequest(BaseModel):
     model_path: str = "models/ni_base_2024.yaml"
     start_year: int = 2024
     end_year: int = 2030
+    adjustments: SimulationAdjustments = Field(default_factory=SimulationAdjustments)
 
     @field_validator("end_year")
     @classmethod
@@ -127,6 +136,7 @@ class SimulationRunSummary(BaseModel):
     base_population_count: int
     completed_years: List[int]
     error: Optional[str] = None
+    adjustments: Dict[str, Any] = Field(default_factory=dict)
 
 
 class LocationVotePrediction(BaseModel):

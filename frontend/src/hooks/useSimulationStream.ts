@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 
-import { StreamStatus, YearSnapshot } from "../types";
+import { SimulationAdjustments, StreamStatus, YearSnapshot } from "../types";
 
 export interface UseSimulationStream {
   snapshots: Record<number, YearSnapshot>;
   years: number[];
   status: StreamStatus;
   error: string | null;
-  startStream: (startYear: number, endYear: number, modelPath?: string) => void;
+  startStream: (startYear: number, endYear: number, modelPath?: string, adjustments?: SimulationAdjustments) => void;
   abort: () => void;
 }
 
@@ -28,7 +28,8 @@ export function useSimulationStream(): UseSimulationStream {
     (
       startYear: number,
       endYear: number,
-      modelPath = "models/ni_base_2024.yaml"
+      modelPath = "models/ni_base_2024.yaml",
+      adjustments?: SimulationAdjustments,
     ) => {
       esRef.current?.close();
       setSnapshots({});
@@ -41,6 +42,13 @@ export function useSimulationStream(): UseSimulationStream {
         end_year: String(endYear),
         model_path: modelPath,
       });
+      if (adjustments) {
+        params.set("birth_multiplier", String(adjustments.birth_multiplier));
+        params.set("death_multiplier", String(adjustments.death_multiplier));
+        params.set("migration_multiplier", String(adjustments.migration_multiplier));
+        params.set("relocation_multiplier", String(adjustments.relocation_multiplier));
+        if (adjustments.random_seed !== null) params.set("random_seed", String(adjustments.random_seed));
+      }
       const es = new EventSource(`/api/simulation/stream?${params}`);
       esRef.current = es;
 

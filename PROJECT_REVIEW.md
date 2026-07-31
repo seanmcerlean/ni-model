@@ -79,10 +79,14 @@ Primary references:
   with the pandemic-period and held-constant assumptions stated. Moves are
   selected from one pre-move population and applied simultaneously, preventing
   cascading or duplicate moves caused by rule order.
-- [ ] Calibrate demographic rates and model uncertainty instead of applying
-  undocumented fixed assumptions.
-- [ ] Redesign voting output around eligible voters, turnout, polling evidence,
-  uncertainty intervals, and scenario sensitivity.
+- [ ] Calibrate demographic rates and model uncertainty instead of applying undocumented fixed assumptions.
+- [x] **Evidence-calibrated voting scenarios.** Voting output now excludes
+  under-18s, projects turnout separately, calibrates stated preferences from
+  the 1,199-adult NILT 2024 REFUNIFY results and published community-background
+  and age cross-tabs, reports 95% survey intervals, and shows sensitivity to
+  three allocations of undecided likely voters. It explicitly documents that
+  resident adulthood is only an eligibility proxy and community background is
+  not a vote.
 - [x] **Current sourced model and frontend selection.** `ni_current.yaml` starts
   from the Census 2021 marginal baseline, uses observed NISRA components for
   2022–2024, and then the latest official 2024-based principal projection for
@@ -90,5 +94,9 @@ Primary references:
   are checked in. The models endpoint exposes the baseline, observation cutoff,
   projection version, and all derived rules; the frontend selector displays the
   model and those details.
-- [ ] Allow model values for a run to be changed in the frontend.
+- [ ] Create a representative full size (millions of records) base database (or container) for the historic and current scenarios that.
+- [x] **Isolated run adjustments.** The frontend can apply bounded multipliers
+  to birth, mortality, external-migration, and internal-relocation rules plus a
+  reproducibility seed. Adjustments are validated by the API, stored with the
+  durable run, and never modify the sourced YAML model.
 - [ ] Improve UI usability and presentation as much as possible.

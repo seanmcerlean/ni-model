@@ -77,6 +77,14 @@ export interface ModelRule {
 export type PlaybackSpeed = 0.5 | 1 | 2 | 5;
 export type StreamStatus = "idle" | "streaming" | "complete" | "error";
 
+export interface SimulationAdjustments {
+  birth_multiplier: number;
+  death_multiplier: number;
+  migration_multiplier: number;
+  relocation_multiplier: number;
+  random_seed: number | null;
+}
+
 export const LOCATION_KEYS: Record<string, string> = {
   antrim_and_newtownabbey: "Antrim and Newtownabbey",
   armagh_banbridge_craigavon: "Armagh City, Banbridge and Craigavon",

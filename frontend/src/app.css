@@ -57,6 +57,11 @@ button, input, select { font: inherit; }
 .scenario-list b { color: #f8fafc; }
 .voting-source { color: #94a3b8; font-size: 9px; line-height: 1.45; }
 .voting-source a { color: #7dd3fc; }
+.adjustment-editor { margin: 12px 0; padding: 9px; border: 1px solid #334b68; border-radius: 6px; }
+.adjustment-editor summary { color: #7dd3fc; font-size: 11px; font-weight: 650; cursor: pointer; }
+.adjustment-editor p { color: #94a3b8; font-size: 9px; line-height: 1.4; }
+.adjustment-editor label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; color: #cbd5e1; font-size: 10px; }
+.adjustment-editor input { width: 76px; padding: 5px; border: 1px solid #334b68; border-radius: 4px; background: #13263e; color: #f8fafc; }
 
 .map-column { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .stats-strip { display: grid; grid-template-columns: repeat(4, minmax(125px, .8fr)) minmax(260px, 1.5fr); gap: 1px; background: #23364f; border-bottom: 1px solid #23364f; }

@@ -240,7 +240,11 @@ class ModelDirector:
 
     @classmethod
     def from_yaml(
-        cls, db_session: Session, yaml_path: str, run_id: uuid.UUID = None
+        cls,
+        db_session: Session,
+        yaml_path: str,
+        run_id: uuid.UUID = None,
+        adjustments: Dict[str, Any] = None,
     ) -> "ModelDirector":
         """Create ModelDirector from YAML configuration file"""
         with open(yaml_path, "r", encoding="utf-8") as f:
@@ -248,4 +252,16 @@ class ModelDirector:
                 config = yaml.safe_load(f)
             except yaml.YAMLError as exc:
                 raise ValueError(f"invalid YAML: {exc}") from exc
+        adjustments = adjustments or {}
+        section_multipliers = {
+            "birth_rates": adjustments.get("birth_multiplier", 1.0),
+            "death_rates": adjustments.get("death_multiplier", 1.0),
+            "migration_rates": adjustments.get("migration_multiplier", 1.0),
+            "internal_migration_rates": adjustments.get("relocation_multiplier", 1.0),
+        }
+        for section, multiplier in section_multipliers.items():
+            for rule in config.get(section, []):
+                rule["rate"] *= multiplier
+        if adjustments.get("random_seed") is not None:
+            config["random_seed"] = adjustments["random_seed"]
         return cls(db_session, config, run_id=run_id)

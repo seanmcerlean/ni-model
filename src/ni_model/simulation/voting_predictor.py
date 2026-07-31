@@ -23,7 +23,9 @@ _NILT_SOURCE = {
     "fieldwork": "6 September to 19 November 2024",
     "sample_size": 1199,
     "url": "https://www.ark.ac.uk/nilt/2024/Political_Attitudes/REFUNIFY.html",
-    "question": "REFUNIFY: referendum tomorrow on unifying with the Republic of Ireland",
+    "question": (
+        "REFUNIFY: referendum tomorrow on unifying with the Republic of Ireland"
+    ),
 }
 
 # Published percentages. Other religions are not separately tabulated by ARK,
@@ -55,7 +57,9 @@ _LUCIDTALK_SOURCE = {
     "base_responses": 3001,
     "margin_of_error": 0.023,
     "url": "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",
-    "question": "Border poll within the week: remain in the UK or join a united Ireland",
+    "question": (
+        "Border poll within the week: remain in the UK or join a united Ireland"
+    ),
 }
 
 # Official Q4 weighted cross-breaks: unity, UK, unsure-but-would-vote,
@@ -238,7 +242,10 @@ class VotingPredictor:
             "total_population": total_query.scalar() or 0,
             **result,
             "source": self.source,
-            "limitations": "Adult resident eligibility proxy; community-background and age marginals are not causal predictors or a joint poll model.",
+            "limitations": (
+                "Adult resident eligibility proxy; community-background and age "
+                "marginals are not causal predictors or a joint poll model."
+            ),
         }
 
     def predict_by_location(self) -> Dict[str, Dict[str, Any]]:

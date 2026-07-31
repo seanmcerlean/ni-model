@@ -5,7 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { ModelRule, PlaybackSpeed, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+import { ModelRule, PlaybackSpeed, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 export default function App() {
   const { snapshots, years, status, startStream, abort } = useSimulationStream();
@@ -20,6 +20,10 @@ export default function App() {
   const [modelPath, setModelPath] = useState("models/ni_base_2024.yaml");
   const [voting, setVoting] = useState<VotingPrediction | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
+  const [adjustments, setAdjustments] = useState<SimulationAdjustments>({
+    birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
+    relocation_multiplier: 1, random_seed: null,
+  });
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -81,8 +85,8 @@ export default function App() {
   const handleStartStream = useCallback(() => {
     setCurrentYear(null);
     setIsPlaying(false);
-    startStream(startYear, endYear, modelPath);
-  }, [startYear, endYear, modelPath, startStream]);
+    startStream(startYear, endYear, modelPath, adjustments);
+  }, [startYear, endYear, modelPath, adjustments, startStream]);
 
   const handlePlayPause = useCallback(() => {
     setIsPlaying((p) => !p);
@@ -147,6 +151,7 @@ export default function App() {
                 />
               </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
+              <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
             </>
           )}
           <VotingPanel prediction={voting} calibration={votingCalibration} onCalibrationChange={setVotingCalibration} />
@@ -183,6 +188,31 @@ export default function App() {
       />
     </div>
   );
+}
+
+function AdjustmentEditor({ value, onChange, disabled }: {
+  value: SimulationAdjustments;
+  onChange: (value: SimulationAdjustments) => void;
+  disabled: boolean;
+}) {
+  const fields: Array<[keyof SimulationAdjustments, string]> = [
+    ["birth_multiplier", "Birth rates"], ["death_multiplier", "Mortality rates"],
+    ["migration_multiplier", "External migration"], ["relocation_multiplier", "Internal relocation"],
+  ];
+  return <details className="adjustment-editor">
+    <summary>Adjust this run</summary>
+    <p>Multipliers apply to every matching source-model rule. 1.00 keeps the published value.</p>
+    {fields.map(([key, label]) => <label key={key}>{label}
+      <input type="number" min="0" max="3" step="0.05" disabled={disabled}
+        value={value[key] ?? ""}
+        onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} />
+    </label>)}
+    <label>Random seed<input type="number" disabled={disabled} placeholder="Model default"
+      value={value.random_seed ?? ""}
+      onChange={(event) => onChange({ ...value, random_seed: event.target.value === "" ? null : Number(event.target.value) })} /></label>
+    <button type="button" className="control-button" disabled={disabled}
+      onClick={() => onChange({ birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1, relocation_multiplier: 1, random_seed: null })}>Reset</button>
+  </details>;
 }
 
 function VotingPanel({ prediction, calibration, onCalibrationChange }: {
