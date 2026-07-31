@@ -10,6 +10,7 @@ export interface SimulationYearResult {
 }
 
 export interface YearSnapshot {
+  run_id?: string;
   year: number;
   total_population: number;
   religious_breakdown: Record<string, number>;
@@ -17,6 +18,20 @@ export interface YearSnapshot {
   location_breakdown: Record<string, number>;
   locations?: Record<string, SimulationLocationSnapshot>;
   simulation_result?: SimulationYearResult;
+}
+
+export interface VotingPrediction {
+  eligible_population: number;
+  projected_turnout: number;
+  turnout_rate: number;
+  unite_share: number;
+  remain_share: number;
+  undecided_share: number;
+  decided_unite_share: number;
+  intervals: Record<string, { low: number; estimate: number; high: number }>;
+  scenarios: Array<{ id: string; label: string; unite_share: number }>;
+  source: { name: string; sample_size: number; fieldwork: string; url: string };
+  limitations: string;
 }
 
 export interface SimulationLocationSnapshot {

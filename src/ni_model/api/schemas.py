@@ -130,18 +130,34 @@ class SimulationRunSummary(BaseModel):
 
 
 class LocationVotePrediction(BaseModel):
-    total: int
-    unite_share: float
-    remain_share: float
-    undecided_share: float
-
-
-class VotingPrediction(BaseModel):
-    total_population: int
+    eligible_population: int
+    projected_turnout: int
+    turnout_rate: float
     unite: int
     remain: int
     undecided: int
     unite_share: float
     remain_share: float
     undecided_share: float
+    decided_unite_share: float
+    intervals: Dict[str, Dict[str, float]]
+    scenarios: List[Dict[str, Any]]
+
+
+class VotingPrediction(BaseModel):
+    total_population: int
+    eligible_population: int
+    projected_turnout: int
+    turnout_rate: float
+    unite: int
+    remain: int
+    undecided: int
+    unite_share: float
+    remain_share: float
+    undecided_share: float
+    decided_unite_share: float
+    intervals: Dict[str, Dict[str, float]]
+    scenarios: List[Dict[str, Any]]
+    source: Dict[str, Any]
+    limitations: str
     by_location: Dict[str, LocationVotePrediction]

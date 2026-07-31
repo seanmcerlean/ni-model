@@ -1,3 +1,6 @@
+from typing import Optional
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -89,8 +92,8 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
 
 
 @router.get("/voting-prediction", response_model=VotingPrediction)
-def voting_prediction(db: Session = Depends(get_db)):
-    predictor = VotingPredictor(db)
+def voting_prediction(run_id: Optional[UUID] = None, db: Session = Depends(get_db)):
+    predictor = VotingPredictor(db, run_id=run_id)
     result = predictor.predict()
     by_location = predictor.predict_by_location()
     return VotingPrediction(**result, by_location=by_location)

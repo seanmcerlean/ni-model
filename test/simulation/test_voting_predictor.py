@@ -31,6 +31,7 @@ def test_empty_population_returns_zeros(db_session):
     assert result["total_population"] == 0
     assert result["unite"] == 0
     assert result["unite_share"] == 0.0
+    assert result["eligible_population"] == 0
 
 
 def test_all_catholic_ni_origin_high_unite(db_session):
@@ -58,31 +59,29 @@ def test_vote_shares_sum_to_one(db_session):
     assert total == pytest.approx(1.0, abs=0.01)
 
 
-def test_vote_counts_sum_to_population(db_session):
+def test_vote_counts_sum_to_projected_turnout(db_session):
     for _ in range(50):
         _make_person(db_session, ReligiousBackground.OTHER, Origin.NI, 35)
     predictor = VotingPredictor(db_session)
     result = predictor.predict()
     assert result["unite"] + result["remain"] + result["undecided"] == pytest.approx(
-        result["total_population"], abs=2
+        result["projected_turnout"], abs=2
     )
 
 
-def test_young_voters_higher_unite_than_old(db_session):
-    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 25)
-    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 70)
+def test_age_affects_turnout_not_preference(db_session):
     predictor = VotingPredictor(db_session)
-    # Young Catholic should have higher propensity than old Catholic
-    young = predictor._unite_propensity(ReligiousBackground.CATHOLIC, Origin.NI, 25)
-    old = predictor._unite_propensity(ReligiousBackground.CATHOLIC, Origin.NI, 70)
-    assert young > old
+    young = predictor._turnout(20, ReligiousBackground.CATHOLIC)
+    middle = predictor._turnout(40, ReligiousBackground.CATHOLIC)
+    assert middle > young
 
 
-def test_roi_origin_highest_unite_propensity(db_session):
-    predictor = VotingPredictor(db_session)
-    roi = predictor._unite_propensity(ReligiousBackground.OTHER, Origin.ROI, 40)
-    gb = predictor._unite_propensity(ReligiousBackground.OTHER, Origin.GB, 40)
-    assert roi > gb
+def test_children_are_not_counted_as_eligible(db_session):
+    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 17)
+    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 18)
+    result = VotingPredictor(db_session).predict()
+    assert result["total_population"] == 2
+    assert result["eligible_population"] == 1
 
 
 def test_predict_by_location_returns_all_locations(db_session):
@@ -107,25 +106,14 @@ def test_predict_by_location_empty_location_returns_zeros(db_session):
     predictor = VotingPredictor(db_session)
     by_loc = predictor.predict_by_location()
     fermanagh = by_loc["fermanagh_omagh"]
-    assert fermanagh["total"] == 0
+    assert fermanagh["eligible_population"] == 0
     assert fermanagh["unite_share"] == 0.0
 
 
-def test_custom_rates_applied(db_session):
-    _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 30)
-    custom_rates = {
-        "by_religion": {ReligiousBackground.CATHOLIC: 0.99},
-        "by_origin": {Origin.NI: 0.99},
-        "age_modifiers": {(0, 200): 0.0},
-        "religion_weight": 1.0,
-        "origin_weight": 0.0,
-    }
-    predictor = VotingPredictor(db_session, rates=custom_rates)
-    result = predictor.predict()
-    assert result["unite_share"] > 0.95
-
-
-def test_propensity_clamped_between_zero_and_one(db_session):
-    predictor = VotingPredictor(db_session)
-    p = predictor._unite_propensity(ReligiousBackground.CATHOLIC, Origin.ROI, 20)
-    assert 0.0 <= p <= 1.0
+def test_uncertainty_and_scenarios_are_ordered(db_session):
+    _make_person(db_session, ReligiousBackground.NONE, Origin.NI, 40)
+    result = VotingPredictor(db_session).predict()
+    interval = result["intervals"]["unite_share"]
+    assert interval["low"] < interval["estimate"] < interval["high"]
+    shares = [scenario["unite_share"] for scenario in result["scenarios"]]
+    assert shares == sorted(shares)

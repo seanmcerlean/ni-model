@@ -103,6 +103,11 @@ def test_voting_prediction_schema(client):
     assert "remain_share" in data
     assert "undecided_share" in data
     assert "by_location" in data
+    assert "eligible_population" in data
+    assert "projected_turnout" in data
+    assert "intervals" in data
+    assert len(data["scenarios"]) == 3
+    assert data["source"]["sample_size"] == 1199
 
 
 def test_voting_prediction_total_matches_population(client):

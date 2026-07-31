@@ -125,4 +125,40 @@ describe("App", () => {
     expect(screen.getByText("2021 Census")).toBeInTheDocument();
     expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
   });
+
+  it("shows the evidence-calibrated voting scenario", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => [] } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          eligible_population: 80,
+          projected_turnout: 76,
+          turnout_rate: 0.95,
+          unite_share: 0.36,
+          remain_share: 0.42,
+          undecided_share: 0.22,
+          decided_unite_share: 0.4615,
+          intervals: {
+            unite_share: { low: 0.333, estimate: 0.36, high: 0.388 },
+          },
+          scenarios: [
+            { id: "remain", label: "All undecided vote remain", unite_share: 0.36 },
+            { id: "proportional", label: "Undecided split like decided voters", unite_share: 0.4615 },
+            { id: "unite", label: "All undecided vote unite", unite_share: 0.58 },
+          ],
+          source: { name: "NILT 2024", sample_size: 1199, fieldwork: "2024", url: "https://www.ark.ac.uk/nilt/2024/Political_Attitudes/REFUNIFY.html" },
+          limitations: "Adult proxy",
+        }),
+      } as Response);
+
+    render(<App />);
+    expect(await screen.findByText("BORDER POLL SCENARIO")).toBeInTheDocument();
+    expect(screen.getByText("95.0%")).toBeInTheDocument();
+    expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "NILT 2024" })).toHaveAttribute(
+      "href",
+      "https://www.ark.ac.uk/nilt/2024/Political_Attitudes/REFUNIFY.html",
+    );
+  });
 });
