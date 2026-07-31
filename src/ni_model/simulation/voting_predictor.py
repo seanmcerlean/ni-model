@@ -8,7 +8,7 @@ the model.
 """
 
 import math
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 from uuid import UUID
 
 from sqlalchemy import func
@@ -116,12 +116,16 @@ class VotingPredictor:
         db_session: Session,
         run_id: Optional[UUID] = None,
         calibration: str = "lucidtalk_winter_2025",
+        aggregate_rows: Optional[Sequence[Any]] = None,
+        total_population: Optional[int] = None,
     ):
         if calibration not in CALIBRATIONS:
             raise ValueError(f"unknown voting calibration: {calibration}")
         self.db = db_session
         self.run_id = run_id
         self.calibration = calibration
+        self.aggregate_rows = aggregate_rows
+        self.total_population = total_population
         self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
 
     def _turnout(self, age: int, background: ReligiousBackground) -> float:
@@ -134,6 +138,11 @@ class VotingPredictor:
         return 1.0 - ((age_non_vote + background_non_vote) / 2)
 
     def _rows(self, *filters):
+        if self.aggregate_rows is not None:
+            if not filters:
+                return self.aggregate_rows
+            location = filters[0].right.value
+            return [row for row in self.aggregate_rows if row.location == location]
         query = self.db.query(
             Person.religious_background,
             Person.age,
@@ -144,6 +153,22 @@ class VotingPredictor:
         else:
             query = query.filter(Person.run_id == self.run_id)
         return query.group_by(Person.religious_background, Person.age).all()
+
+    @staticmethod
+    def aggregate_population(db: Session, run_id: Optional[UUID] = None):
+        """Load the shared inputs required by every polling calibration."""
+        query = db.query(
+            Person.location,
+            Person.religious_background,
+            Person.age,
+            func.count(Person.id).label("count"),
+        ).filter(Person.age >= 18)
+        query = query.filter(
+            Person.run_id.is_(None) if run_id is None else Person.run_id == run_id
+        )
+        return query.group_by(
+            Person.location, Person.religious_background, Person.age
+        ).all()
 
     def _predict(self, *filters) -> Dict[str, Any]:
         rows = self._rows(*filters)
@@ -232,14 +257,20 @@ class VotingPredictor:
 
     def predict(self) -> Dict[str, Any]:
         result = self._predict()
-        total_query = self.db.query(func.count(Person.id))
-        total_query = total_query.filter(
-            Person.run_id.is_(None)
-            if self.run_id is None
-            else Person.run_id == self.run_id
-        )
+        if self.total_population is not None:
+            total_population = self.total_population
+        elif self.aggregate_rows is None:
+            total_query = self.db.query(func.count(Person.id))
+            total_query = total_query.filter(
+                Person.run_id.is_(None)
+                if self.run_id is None
+                else Person.run_id == self.run_id
+            )
+            total_population = total_query.scalar() or 0
+        else:
+            total_population = sum(row.count for row in self.aggregate_rows)
         return {
-            "total_population": total_query.scalar() or 0,
+            "total_population": total_population,
             **result,
             "source": self.source,
             "limitations": (

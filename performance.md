@@ -33,6 +33,33 @@ Performance work is not complete if it meets timing targets by omitting
 individual history, area detail, either polling calibration, or durable yearly
 snapshots.
 
+## Public delivery and stream boundary
+
+The browser stream must remain aggregate-only even though each simulation runs
+against the complete individual population. The current SSE boundary already
+has the correct shape: it emits yearly NI and LGD demographic totals, political
+predictions, and event counts, without serialising individual residents.
+
+Optimisation must therefore focus on server-side execution and storage rather
+than reducing model fidelity or moving individual records through the stream:
+
+- Do not clone the complete baseline population into PostgreSQL rows for every
+  run. Reference one versioned immutable baseline and store run-specific state
+  as lifecycle and location events, plus checkpoints.
+- Keep annual aggregate snapshots small and immediately available for playback.
+- Measure snapshot query time and SSE payload size separately from simulation
+  time so network efficiency does not conceal database costs.
+- Calculate both polling calibrations from one shared aggregate dataset. If
+  profiling still shows material cost, stream the selected calibration and
+  obtain alternatives on demand without repeating population aggregation.
+- Never send person-level state in normal SSE messages. Expose individual
+  history separately through filtered, paginated APIs and downloadable
+  checkpoints.
+- For public hosting, execute simulations as bounded background jobs rather than
+  holding an HTTP request and database transaction open for the run lifetime.
+- Apply per-user concurrency, horizon, cancellation, timeout, retention, and
+  storage limits while keeping model version and seed metadata reproducible.
+
 ## Milestone 1: measurement and correctness harness
 
 - Add a benchmark command for 25K, 250K, and full-scale baselines.
@@ -40,7 +67,8 @@ snapshots.
   relocation, political calculation, snapshot aggregation, persistence, and
   serialization separately.
 - Count SQL statements and rows transferred for every stage.
-- Record CPU time, wall time, peak resident memory, and output size.
+- Record CPU time, wall time, peak resident memory, stored bytes per run, and
+  per-year SSE payload size.
 - Create deterministic reference runs for the flat current, differentiated
   current, and historical models.
 - Add statistical parity assertions for totals, cohort distributions, LGDs,
@@ -56,9 +84,12 @@ fails CI when the 25K benchmark regresses materially.
 - Derive NI totals from the same grouped result.
 - Calculate LucidTalk and NILT, including all LGDs, from one shared
   location/background/age dataset.
+- Avoid independently recomputing and serialising both complete polling
+  calibrations when an on-demand alternative is measurably cheaper.
 - Cache immutable model configuration and compiled active rules by year.
 - Avoid recounting the run population while creating the same yearly snapshot.
-- Keep the SSE response schema unchanged.
+- Keep the SSE response aggregate-only and preserve the frontend data needed for
+  playback, maps, area statistics, overall statistics, and political estimates.
 
 Exit criteria: yearly snapshot and political output require no more than five
 aggregate queries and exactly match the reference output.

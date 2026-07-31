@@ -11,9 +11,9 @@ from .simulation_engine import SimulationEngine
 class SimulationOrchestrator:
     """Coordinates multi-year simulations with snapshot and rollback support"""
 
-    def __init__(self, db_session: Session, director: ModelDirector):
+    def __init__(self, db_session: Session, director: ModelDirector, recorder=None):
         self.db_session = db_session
-        self.engine = SimulationEngine(db_session, director)
+        self.engine = SimulationEngine(db_session, director, recorder=recorder)
         self.population_manager = PopulationManager(db_session, director.run_id)
         self.results: List[Dict] = []
 

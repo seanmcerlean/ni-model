@@ -9,18 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ...core.models import Location, SimulationRun, SimulationSnapshot
+from ...core.models import SimulationRun, SimulationSnapshot
 from ...simulation.model_director import ModelDirector
 from ...simulation.orchestrator import SimulationOrchestrator
 from ...simulation.population_manager import PopulationManager
 from ...simulation.voting_predictor import CALIBRATIONS, VotingPredictor
-from ..queries import (
-    age_band_breakdown,
-    gender_breakdown,
-    location_totals,
-    origin_breakdown,
-    religious_breakdown,
-)
+from ..queries import snapshot_aggregates
 from ..routes.population import get_db
 from ..schemas import (
     SimulationAdjustments,
@@ -124,38 +118,55 @@ def simulation_models():
 def _capture_snapshot(
     run_id: UUID, year: int, result: dict, db: Session
 ) -> SimulationYearSnapshot:
-    loc_breakdown = {
-        loc.value: count for loc, count in location_totals(db, run_id=run_id)
-    }
+    aggregates = snapshot_aggregates(db, run_id=run_id)
     locations = {
-        location.value: SimulationLocationSnapshot(
-            total=loc_breakdown.get(location.value, 0),
-            religious_breakdown=religious_breakdown(db, location, run_id),
-            gender_breakdown=gender_breakdown(db, location, run_id),
-            origin_breakdown=origin_breakdown(db, location, run_id),
-            age_bands=age_band_breakdown(db, location, run_id),
+        location_id: SimulationLocationSnapshot(
+            total=detail.total,
+            religious_breakdown=detail.religious_breakdown,
+            gender_breakdown=detail.gender_breakdown,
+            origin_breakdown=detail.origin_breakdown,
+            age_bands=detail.age_bands,
         )
-        for location in Location
+        for location_id, detail in aggregates.locations.items()
     }
+    voting_rows = VotingPredictor.aggregate_population(db, run_id)
     voting_predictions = {
-        calibration: _snapshot_voting_prediction(db, run_id, calibration)
+        calibration: _snapshot_voting_prediction(
+            db, run_id, calibration, voting_rows, aggregates.total
+        )
         for calibration in CALIBRATIONS
     }
     return SimulationYearSnapshot(
         run_id=run_id,
         year=year,
-        total_population=sum(loc_breakdown.values()),
-        religious_breakdown=religious_breakdown(db, run_id=run_id),
-        gender_breakdown=gender_breakdown(db, run_id=run_id),
-        location_breakdown=loc_breakdown,
+        total_population=aggregates.total,
+        religious_breakdown=aggregates.religious_breakdown,
+        gender_breakdown=aggregates.gender_breakdown,
+        location_breakdown={
+            key: detail.total
+            for key, detail in aggregates.locations.items()
+            if detail.total
+        },
         locations=locations,
         voting_predictions=voting_predictions,
         simulation_result=SimulationYearResult(**result),
     )
 
 
-def _snapshot_voting_prediction(db: Session, run_id: UUID, calibration: str) -> dict:
-    predictor = VotingPredictor(db, run_id=run_id, calibration=calibration)
+def _snapshot_voting_prediction(
+    db: Session,
+    run_id: UUID,
+    calibration: str,
+    aggregate_rows=None,
+    total_population=None,
+) -> dict:
+    predictor = VotingPredictor(
+        db,
+        run_id=run_id,
+        calibration=calibration,
+        aggregate_rows=aggregate_rows,
+        total_population=total_population,
+    )
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
 

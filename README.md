@@ -174,6 +174,27 @@ npm run build    # production build → frontend/dist/
 
 Features: play/pause, speed control (0.5×–5×), scrub slider, per-location drill-down panel with population trend, religious breakdown, age pyramid, and origin breakdown.
 
+## Performance benchmarks
+
+Benchmarks run against an already seeded PostgreSQL database and use a fixed
+random seed. They report wall and CPU time, SQL statements, affected rows, peak
+resident memory, stored population totals, and aggregate SSE payload size for
+each simulation stage.
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ni_model \
+  venv/bin/python scripts/benchmark_simulation.py \
+  --expected-size 25000 \
+  --start-year 2025 \
+  --end-year 2025 \
+  --output benchmark-25k.json
+```
+
+Use separately seeded 25,000, 250,000, and 1,903,175-person databases for the
+three standard workloads. `--expected-size` prevents accidentally recording a
+result against the wrong baseline. Benchmark JSON includes the model, seed,
+years, platform, and Python version so results can be compared reproducibly.
+
 ## Testing
 
 ```bash
