@@ -1,0 +1,62 @@
+services:
+  current-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ni_current
+      POSTGRES_USER: ni_user
+      POSTGRES_PASSWORD: ni_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ni_user -d ni_current"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - current-data:/var/lib/postgresql/data
+
+  current-seed:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
+    command: ["python", "scripts/seed_population.py", "current"]
+    depends_on:
+      current-db:
+        condition: service_healthy
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
+    ports:
+      - "8000:8000"
+    depends_on:
+      current-seed:
+        condition: service_completed_successfully
+
+  historical-db:
+    image: postgres:15
+    profiles: ["historical"]
+    environment:
+      POSTGRES_DB: ni_historical
+      POSTGRES_USER: ni_user
+      POSTGRES_PASSWORD: ni_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ni_user -d ni_historical"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - historical-data:/var/lib/postgresql/data
+
+  historical-seed:
+    build: .
+    profiles: ["historical"]
+    environment:
+      DATABASE_URL: postgresql://ni_user:ni_password@historical-db:5432/ni_historical
+    command: ["python", "scripts/seed_population.py", "historical"]
+    depends_on:
+      historical-db:
+        condition: service_healthy
+
+volumes:
+  current-data:
+  historical-data:

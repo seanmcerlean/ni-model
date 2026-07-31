@@ -1,0 +1,11 @@
+.git
+.coverage
+.pytest_cache
+__pycache__
+*.db
+*.pyc
+frontend/dist
+frontend/node_modules
+htmlcov
+test
+venv

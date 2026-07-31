@@ -94,7 +94,12 @@ Primary references:
   are checked in. The models endpoint exposes the baseline, observation cutoff,
   projection version, and all derived rules; the frontend selector displays the
   model and those details.
-- [ ] Create a representative full size (millions of records) base database (or container) for the historic and current scenarios that.
+- [x] **Full-scale database workflow.** Docker Compose now seeds and retains an
+  exact-size 1,903,175-record Census 2021 PostgreSQL baseline and a separate
+  1,536,065-record best-effort historical estimate in bounded batches. The
+  historical profile is explicitly labelled as estimated: its total and legacy
+  community-background assumptions are historical, while age, current-LGD,
+  origin and education distributions reuse the current generator.
 - [x] **Isolated run adjustments.** The frontend can apply bounded multipliers
   to birth, mortality, external-migration, and internal-relocation rules plus a
   reproducibility seed. Adjustments are validated by the API, stored with the

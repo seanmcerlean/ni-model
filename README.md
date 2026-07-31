@@ -58,6 +58,32 @@ uvicorn src.ni_model.api.app:app --reload
 
 API available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
 
+### Full-scale PostgreSQL baseline
+
+The Compose workflow builds the application and reproducibly seeds an exact-size
+Census 2021 baseline of 1,903,175 resident records. The named volume is retained,
+and the idempotent seed job skips a database that already has a baseline.
+
+```bash
+docker compose up --build
+```
+
+The API and built frontend are then available at `http://localhost:8000`.
+Seeding uses batches of 25,000 so memory use does not grow with the population.
+
+A separate, opt-in 1,536,065-record 1971-scale database is available for
+engineering and performance testing:
+
+```bash
+docker compose --profile historical up historical-seed
+```
+
+That historical baseline is a **best-effort representative estimate**, not a
+perfect reconstruction: only its total and legacy community-background
+assumptions are historical; age, current-LGD, country-of-birth and education
+distributions use the current generator. Treat those fields as estimates and do
+not present them as observed 1971 data.
+
 ## Kubernetes deployment
 
 ```bash

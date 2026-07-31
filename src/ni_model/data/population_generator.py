@@ -1,7 +1,8 @@
 import csv
 import random
+from collections.abc import Iterator
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from ..core.models import (
     EducationLevel,
@@ -124,6 +125,29 @@ def _education_weights(age: int) -> List[tuple]:
     )
 
 
+def iter_population(
+    size: int,
+    seed: Optional[int] = None,
+    religion_weights=None,
+) -> Iterator[Person]:
+    """Yield residents without retaining a full-scale population in memory."""
+    if size < 0:
+        raise ValueError("size must be non-negative")
+
+    rng = random.Random(seed)
+    background_weights = religion_weights or _RELIGION_WEIGHTS
+    for _ in range(size):
+        age = _sample_age(rng)
+        yield Person(
+            age=age,
+            religious_background=_weighted_choice(background_weights, rng),
+            gender=_weighted_choice(_GENDER_WEIGHTS, rng),
+            location=_weighted_choice(_LOCATION_WEIGHTS, rng),
+            origin=_weighted_choice(_ORIGIN_WEIGHTS, rng),
+            education_level=_weighted_choice(_education_weights(age), rng),
+        )
+
+
 def generate_population(size: int, seed: int = None) -> List[Person]:
     """Generate a list of Person objects with realistic NI demographic distributions.
 
@@ -134,21 +158,4 @@ def generate_population(size: int, seed: int = None) -> List[Person]:
     Returns:
         List of unsaved Person instances
     """
-    if size < 0:
-        raise ValueError("size must be non-negative")
-
-    rng = random.Random(seed)
-    persons = []
-    for _ in range(size):
-        age = _sample_age(rng)
-        persons.append(
-            Person(
-                age=age,
-                religious_background=_weighted_choice(_RELIGION_WEIGHTS, rng),
-                gender=_weighted_choice(_GENDER_WEIGHTS, rng),
-                location=_weighted_choice(_LOCATION_WEIGHTS, rng),
-                origin=_weighted_choice(_ORIGIN_WEIGHTS, rng),
-                education_level=_weighted_choice(_education_weights(age), rng),
-            )
-        )
-    return persons
+    return list(iter_population(size, seed=seed))

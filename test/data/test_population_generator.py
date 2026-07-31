@@ -10,7 +10,7 @@ from src.ni_model.core.models import (
     Person,
     ReligiousBackground,
 )
-from src.ni_model.data.population_generator import generate_population
+from src.ni_model.data.population_generator import generate_population, iter_population
 
 SIZE = 10_000
 
@@ -139,6 +139,19 @@ def test_reproducible_with_seed():
     assert [(p.age, p.religious_background, p.location) for p in pop1] == [
         (p.age, p.religious_background, p.location) for p in pop2
     ]
+
+
+def test_iterator_is_reproducible_without_materialising_population():
+    first = iter_population(3, seed=7)
+    assert iter(first) is first
+    rows = list(first)
+    comparison = list(iter_population(3, seed=7))
+    assert [person.age for person in rows] == [person.age for person in comparison]
+
+
+def test_iterator_rejects_negative_size():
+    with pytest.raises(ValueError, match="non-negative"):
+        next(iter_population(-1))
 
 
 def test_different_seeds_differ():
