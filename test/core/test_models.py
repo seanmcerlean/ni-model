@@ -36,7 +36,7 @@ def test_person_model_creation(in_memory_db):
         religious_background=ReligiousBackground.CATHOLIC,
         gender=Gender.FEMALE,
         education_level=EducationLevel.TERTIARY,
-        location=Location.BELFAST_NORTH,
+        location=Location.BELFAST,
         origin=Origin.NI,
     )
 
@@ -54,7 +54,7 @@ def test_person_model_constraints(in_memory_db):
         religious_background=ReligiousBackground.PROTESTANT,
         gender=Gender.MALE,
         education_level=EducationLevel.SECONDARY,
-        location=Location.DERRY,
+        location=Location.DERRY_STRABANE,
         origin=Origin.NI,
     )
 
@@ -65,7 +65,7 @@ def test_person_model_constraints(in_memory_db):
     assert retrieved.religious_background == ReligiousBackground.PROTESTANT
     assert retrieved.gender == Gender.MALE
     assert retrieved.education_level == EducationLevel.SECONDARY
-    assert retrieved.location == Location.DERRY
+    assert retrieved.location == Location.DERRY_STRABANE
     assert retrieved.origin == Origin.NI
 
 
@@ -74,7 +74,7 @@ def test_person_model_enums():
     assert ReligiousBackground.CATHOLIC.value == "catholic"
     assert Gender.FEMALE.value == "female"
     assert EducationLevel.TERTIARY.value == "tertiary"
-    assert Location.BELFAST_NORTH.value == "belfast_north"
+    assert Location.BELFAST.value == "belfast"
     assert Origin.NI.value == "ni"
 
 
@@ -90,7 +90,7 @@ def test_bulk_person_creation(in_memory_db):
             ),
             gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.SECONDARY,
-            location=Location.BELFAST_NORTH if i % 2 == 0 else Location.DERRY,
+            location=Location.BELFAST if i % 2 == 0 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         for i in range(1000)

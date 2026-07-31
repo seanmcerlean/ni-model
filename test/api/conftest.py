@@ -23,7 +23,7 @@ def populated_db(db_session):
                 religious_background=ReligiousBackground.CATHOLIC,
                 gender=Gender.FEMALE,
                 education_level=EducationLevel.TERTIARY,
-                location=Location.BELFAST_NORTH,
+                location=Location.BELFAST,
                 origin=Origin.NI,
             )
             for i in range(50)
@@ -34,7 +34,7 @@ def populated_db(db_session):
                 religious_background=ReligiousBackground.PROTESTANT,
                 gender=Gender.MALE,
                 education_level=EducationLevel.SECONDARY,
-                location=Location.DERRY,
+                location=Location.DERRY_STRABANE,
                 origin=Origin.NI,
             )
             for i in range(30)
@@ -45,7 +45,7 @@ def populated_db(db_session):
                 religious_background=ReligiousBackground.OTHER,
                 gender=Gender.MALE,
                 education_level=EducationLevel.PRIMARY,
-                location=Location.ANTRIM,
+                location=Location.ANTRIM_AND_NEWTOWNABBEY,
                 origin=Origin.GB,
             )
             for i in range(20)

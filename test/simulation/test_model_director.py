@@ -33,7 +33,7 @@ def initial_population(postgres_db_session):
             ),
             gender=Gender.MALE if (i // 2) % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
+            location=Location.BELFAST if i < 50 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         persons.append(person)
@@ -118,6 +118,48 @@ def test_model_director_dict_config(postgres_db_session, initial_population):
     )
 
 
+def test_internal_migration_rules_are_applied_simultaneously(postgres_db_session):
+    repo = PersonRepository(postgres_db_session)
+    repo.bulk_create(
+        [
+            Person(
+                age=30,
+                religious_background=ReligiousBackground.CATHOLIC,
+                gender=Gender.FEMALE,
+                education_level=EducationLevel.TERTIARY,
+                location=Location.BELFAST,
+                origin=Origin.NI,
+            )
+            for _ in range(100)
+        ]
+    )
+    director = ModelDirector(
+        postgres_db_session,
+        {
+            "rate_jitter": 0,
+            "random_seed": 7,
+            "internal_migration_rates": [
+                {
+                    "rate": 100,
+                    "destination": "ARDS_NORTH_DOWN",
+                    "filters": {"location": "BELFAST"},
+                },
+                {
+                    "rate": 100,
+                    "destination": "LISBURN_CASTLEREAGH",
+                    "filters": {"location": "BELFAST"},
+                },
+            ],
+        },
+    )
+
+    assert director.simulate_internal_migration(2024) == 20
+    postgres_db_session.flush()
+    assert len(repo.get_by_location(Location.BELFAST)) == 80
+    assert len(repo.get_by_location(Location.ARDS_NORTH_DOWN)) == 10
+    assert len(repo.get_by_location(Location.LISBURN_CASTLEREAGH)) == 10
+
+
 def test_year_min_excludes_earlier_years(postgres_db_session, initial_population):
     """Test rate with year_min is not applied before that year"""
     config = {
@@ -183,7 +225,7 @@ def test_no_year_bounds_applies_to_all_years(postgres_db_session):
                 religious_background=ReligiousBackground.CATHOLIC,
                 gender=Gender.FEMALE,
                 education_level=EducationLevel.TERTIARY,
-                location=Location.BELFAST_NORTH,
+                location=Location.BELFAST,
                 origin=Origin.NI,
             )
             for _ in range(1_000)
@@ -227,7 +269,7 @@ def test_troubles_era_net_emigration(postgres_db_session, initial_population):
                 religious_background=ReligiousBackground.CATHOLIC,
                 gender=Gender.MALE,
                 education_level=EducationLevel.TERTIARY,
-                location=Location.BELFAST_NORTH,
+                location=Location.BELFAST,
                 origin=Origin.NI,
             )
             for _ in range(900)  # 900 extra: -8/1000 * 1000 = -8
@@ -254,7 +296,7 @@ def test_jitter_varies_births_across_years(postgres_db_session):
                 religious_background=ReligiousBackground.CATHOLIC,
                 gender=Gender.FEMALE,
                 education_level=EducationLevel.TERTIARY,
-                location=Location.BELFAST_NORTH,
+                location=Location.BELFAST,
                 origin=Origin.NI,
             )
             for _ in range(10_000)
@@ -286,7 +328,7 @@ def test_zero_jitter_produces_deterministic_rate(postgres_db_session):
                 religious_background=ReligiousBackground.CATHOLIC,
                 gender=Gender.FEMALE,
                 education_level=EducationLevel.TERTIARY,
-                location=Location.BELFAST_NORTH,
+                location=Location.BELFAST,
                 origin=Origin.NI,
             )
             for _ in range(1_000)

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock react-leaflet to avoid DOM/canvas issues in jsdom
@@ -66,5 +66,63 @@ describe("App", () => {
     const inputs = screen.getAllByRole("spinbutton");
     fireEvent.change(inputs[0], { target: { value: "2000" } });
     expect(inputs[0]).toHaveValue(2000);
+  });
+
+  it("lists and describes the sourced current model", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [
+        {
+          id: "ni_base_2024",
+          path: "models/ni_base_2024.yaml",
+          name: "NI Historical Model",
+          description: "Historical scenario",
+          rate_jitter: 0.05,
+          random_seed: 42,
+          baseline_year: null,
+          data_through: null,
+          projection_version: null,
+          birth_rules: 0,
+          death_rules: 0,
+          migration_rules: 0,
+          internal_migration_rules: 0,
+          birth_rate_rules: [],
+          death_rate_rules: [],
+          migration_rate_rules: [],
+          internal_migration_rate_rules: [],
+          year_min: 1969,
+          year_max: null,
+        },
+        {
+          id: "ni_current",
+          path: "models/ni_current.yaml",
+          name: "NI Current – NISRA 2024 principal projection",
+          description: "Observed components followed by the principal projection.",
+          rate_jitter: 0,
+          random_seed: 42,
+          baseline_year: 2021,
+          data_through: 2024,
+          projection_version: "NISRA/ONS 2024-based principal projection",
+          birth_rules: 53,
+          death_rules: 53,
+          migration_rules: 103,
+          internal_migration_rules: 0,
+          birth_rate_rules: [],
+          death_rate_rules: [],
+          migration_rate_rules: [],
+          internal_migration_rate_rules: [],
+          year_min: 2022,
+          year_max: 2074,
+        },
+      ],
+    } as Response);
+
+    render(<App />);
+    const select = await screen.findByLabelText("Scenario definition");
+    await waitFor(() => expect(select).toHaveTextContent("NI Current"));
+    fireEvent.change(select, { target: { value: "models/ni_current.yaml" } });
+
+    expect(screen.getByText("2021 Census")).toBeInTheDocument();
+    expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
   });
 });

@@ -33,7 +33,7 @@ def initial_population(postgres_db_session):
             ),
             gender=Gender.MALE if (i // 2) % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
+            location=Location.BELFAST if i < 50 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         persons.append(person)
@@ -283,8 +283,8 @@ def test_internal_migration_moves_persons(postgres_db_session, initial_populatio
     calculator = InternalMigrationCalculator(
         postgres_db_session,
         rate=100.0,
-        destination=Location.BELFAST_SOUTH,
-        query_filters={"location": Location.BELFAST_NORTH},
+        destination=Location.LISBURN_CASTLEREAGH,
+        query_filters={"location": Location.BELFAST},
     )
     moved = calculator.calculate()
     postgres_db_session.commit()
@@ -294,7 +294,7 @@ def test_internal_migration_moves_persons(postgres_db_session, initial_populatio
 
     relocated = (
         postgres_db_session.query(Person)
-        .filter(Person.location == Location.BELFAST_SOUTH)
+        .filter(Person.location == Location.LISBURN_CASTLEREAGH)
         .count()
     )
     assert relocated == moved
@@ -309,7 +309,7 @@ def test_internal_migration_no_population_change(
     calculator = InternalMigrationCalculator(
         postgres_db_session,
         rate=500.0,
-        destination=Location.TYRONE,
+        destination=Location.MID_ULSTER,
         query_filters={"age_min": 20, "age_max": 40},
     )
     calculator.calculate()
@@ -323,8 +323,8 @@ def test_internal_migration_empty_cohort(postgres_db_session, initial_population
     calculator = InternalMigrationCalculator(
         postgres_db_session,
         rate=100.0,
-        destination=Location.FERMANAGH,
-        query_filters={"location": Location.FERMANAGH},
+        destination=Location.FERMANAGH_OMAGH,
+        query_filters={"location": Location.FERMANAGH_OMAGH},
     )
     moved = calculator.calculate()
 
@@ -336,8 +336,12 @@ def test_internal_migration_age_filter(postgres_db_session, initial_population):
     calculator = InternalMigrationCalculator(
         postgres_db_session,
         rate=200.0,
-        destination=Location.BELFAST_WEST,
-        query_filters={"location": Location.DERRY, "age_min": 18, "age_max": 35},
+        destination=Location.ANTRIM_AND_NEWTOWNABBEY,
+        query_filters={
+            "location": Location.DERRY_STRABANE,
+            "age_min": 18,
+            "age_max": 35,
+        },
     )
     moved = calculator.calculate()
     postgres_db_session.commit()

@@ -44,7 +44,7 @@ def sample_person():
         religious_background=ReligiousBackground.CATHOLIC,
         gender=Gender.MALE,
         education_level=EducationLevel.TERTIARY,
-        location=Location.BELFAST_NORTH,
+        location=Location.BELFAST,
         origin=Origin.NI,
     )
 
@@ -55,7 +55,7 @@ def test_create_person(person_repo, sample_person):
 
     assert created_person.id is not None
     assert created_person.age == 30
-    assert created_person.location == Location.BELFAST_NORTH
+    assert created_person.location == Location.BELFAST
 
 
 def test_get_person_by_id(person_repo, sample_person):
@@ -105,7 +105,7 @@ def test_bulk_create_persons(person_repo):
             religious_background=ReligiousBackground.PROTESTANT,
             gender=Gender.FEMALE,
             education_level=EducationLevel.SECONDARY,
-            location=Location.DERRY,
+            location=Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         for i in range(100)
@@ -125,13 +125,13 @@ def test_get_by_location(person_repo):
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH if i < 5 else Location.DERRY,
+            location=Location.BELFAST if i < 5 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         person_repo.create(person)
 
-    belfast_persons = person_repo.get_by_location(Location.BELFAST_NORTH)
-    derry_persons = person_repo.get_by_location(Location.DERRY)
+    belfast_persons = person_repo.get_by_location(Location.BELFAST)
+    derry_persons = person_repo.get_by_location(Location.DERRY_STRABANE)
 
     assert len(belfast_persons) == 5
     assert len(derry_persons) == 5
@@ -145,7 +145,7 @@ def test_get_by_age_range(person_repo):
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH,
+            location=Location.BELFAST,
             origin=Origin.NI,
         )
         person_repo.create(person)
@@ -165,7 +165,7 @@ def test_demographics_summary(person_repo):
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH,
+            location=Location.BELFAST,
             origin=Origin.NI,
         ),
         Person(
@@ -173,7 +173,7 @@ def test_demographics_summary(person_repo):
             religious_background=ReligiousBackground.PROTESTANT,
             gender=Gender.FEMALE,
             education_level=EducationLevel.SECONDARY,
-            location=Location.DERRY,
+            location=Location.DERRY_STRABANE,
             origin=Origin.NI,
         ),
         Person(
@@ -181,7 +181,7 @@ def test_demographics_summary(person_repo):
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.PRIMARY,
-            location=Location.BELFAST_NORTH,
+            location=Location.BELFAST,
             origin=Origin.ROI,
         ),
     ]

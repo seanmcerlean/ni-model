@@ -29,33 +29,33 @@ def test_population_by_location_returns_list(client):
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 3  # belfast_north, derry, antrim
+    assert len(data) == 3
 
 
 def test_population_by_location_totals(client):
     data = client.get("/api/population/by-location").json()
     totals = {item["location"]: item["total"] for item in data}
-    assert totals["belfast_north"] == 50
-    assert totals["derry"] == 30
-    assert totals["antrim"] == 20
+    assert totals["belfast"] == 50
+    assert totals["derry_strabane"] == 30
+    assert totals["antrim_and_newtownabbey"] == 20
 
 
 def test_population_by_location_religious_breakdown(client):
     data = client.get("/api/population/by-location").json()
-    belfast = next(d for d in data if d["location"] == "belfast_north")
+    belfast = next(d for d in data if d["location"] == "belfast")
     assert belfast["religious_breakdown"]["catholic"] == 50
 
 
 def test_location_detail_valid(client):
-    response = client.get("/api/population/location/belfast_north")
+    response = client.get("/api/population/location/belfast")
     assert response.status_code == 200
     data = response.json()
-    assert data["location"] == "belfast_north"
+    assert data["location"] == "belfast"
     assert data["total"] == 50
 
 
 def test_location_detail_schema(client):
-    data = client.get("/api/population/location/derry").json()
+    data = client.get("/api/population/location/derry_strabane").json()
     assert "religious_breakdown" in data
     assert "gender_breakdown" in data
     assert "origin_breakdown" in data
@@ -63,7 +63,7 @@ def test_location_detail_schema(client):
 
 
 def test_location_detail_age_bands(client):
-    data = client.get("/api/population/location/belfast_north").json()
+    data = client.get("/api/population/location/belfast").json()
     bands = data["age_bands"]
     assert "18-35" in bands
     assert "36-50" in bands
@@ -71,7 +71,7 @@ def test_location_detail_age_bands(client):
 
 
 def test_location_detail_origin_breakdown(client):
-    data = client.get("/api/population/location/antrim").json()
+    data = client.get("/api/population/location/antrim_and_newtownabbey").json()
     assert data["origin_breakdown"]["gb"] == 20
 
 
@@ -81,8 +81,8 @@ def test_location_detail_invalid(client):
 
 
 def test_location_detail_case_insensitive(client):
-    upper = client.get("/api/population/location/DERRY")
-    lower = client.get("/api/population/location/derry")
+    upper = client.get("/api/population/location/DERRY_STRABANE")
+    lower = client.get("/api/population/location/derry_strabane")
     assert upper.status_code == 200
     assert lower.status_code == 200
     assert upper.json()["total"] == lower.json()["total"]
@@ -124,6 +124,6 @@ def test_voting_prediction_catholic_majority_favours_unite(client):
 
 def test_voting_prediction_by_location_has_all_locations(client):
     data = client.get("/api/population/voting-prediction").json()
-    assert "belfast_north" in data["by_location"]
-    assert "derry" in data["by_location"]
-    assert "antrim" in data["by_location"]
+    assert "belfast" in data["by_location"]
+    assert "derry_strabane" in data["by_location"]
+    assert "antrim_and_newtownabbey" in data["by_location"]

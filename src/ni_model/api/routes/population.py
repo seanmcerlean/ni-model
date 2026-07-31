@@ -68,6 +68,10 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
     try:
         location = Location[location_name.upper()]
     except KeyError:
+        location = next(
+            (item for item in Location if item.value == location_name.lower()), None
+        )
+    if location is None:
         raise HTTPException(
             status_code=404, detail=f"Location '{location_name}' not found"
         )

@@ -27,7 +27,7 @@ def initial_population(postgres_db_session):
             ),
             gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH if i < 50 else Location.DERRY,
+            location=Location.BELFAST if i < 50 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         for i in range(100)
@@ -50,7 +50,7 @@ def large_population(postgres_db_session):
             ),
             gender=Gender.MALE if i % 2 == 0 else Gender.FEMALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH if i < 5000 else Location.DERRY,
+            location=Location.BELFAST if i < 5000 else Location.DERRY_STRABANE,
             origin=Origin.NI,
         )
         for i in range(10_000)

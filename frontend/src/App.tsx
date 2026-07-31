@@ -113,6 +113,9 @@ export default function App() {
               <dl className="model-facts">
                 <div><dt>Seed</dt><dd>{selectedModel.random_seed ?? "Random"}</dd></div>
                 <div><dt>Rate jitter</dt><dd>±{(selectedModel.rate_jitter * 100).toFixed(0)}%</dd></div>
+                {selectedModel.baseline_year && <div><dt>Baseline</dt><dd>{selectedModel.baseline_year} Census</dd></div>}
+                {selectedModel.data_through && <div><dt>Observed through</dt><dd>{selectedModel.data_through}</dd></div>}
+                {selectedModel.projection_version && <div><dt>Projection</dt><dd>{selectedModel.projection_version}</dd></div>}
               </dl>
               <div className="rule-groups">
                 <RuleGroup title="Birth rules" rules={selectedModel.birth_rate_rules} />
@@ -226,6 +229,8 @@ function RuleGroup({ title, rules }: { title: string; rules: ModelRule[] }) {
                 <span key={key}>{friendly(key)}: <b>{friendly(String(value))}</b></span>
               ))}
               {rule.destination && <span>Destination: <b>{friendly(rule.destination)}</b></span>}
+              {rule.flow && <span>Flow: <b>{friendly(rule.flow)}</b></span>}
+              {rule.evidence && <span>Evidence: <b>{friendly(rule.evidence)}</b></span>}
               {Object.keys(rule.filters ?? {}).length === 0 && !rule.destination && <span>Whole population</span>}
             </div>
           </div>

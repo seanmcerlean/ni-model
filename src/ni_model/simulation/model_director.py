@@ -219,11 +219,24 @@ class ModelDirector:
         return immigration, emigration
 
     def simulate_internal_migration(self, year: int) -> int:
-        """Execute internal migration calculators active for year"""
+        """Execute simultaneous internal flows without moving anyone twice."""
         calcs = self._build_internal_migration_calculators(
             self.config.get("internal_migration_rates", []), year
         )
-        return sum(c.calculate() for c in calcs)
+        selected_ids = set()
+        plans = []
+        cohorts = {}
+        for calculator in calcs:
+            cohort_key = tuple(sorted(calculator.query_filters.items()))
+            if cohort_key not in cohorts:
+                cohorts[cohort_key] = calculator._get_cohort()
+            cohort = cohorts[cohort_key]
+            movers = calculator.select_movers(selected_ids, cohort=cohort)
+            selected_ids.update(person.id for person in movers)
+            plans.append((calculator, movers))
+        for calculator, movers in plans:
+            calculator.apply_movers(movers)
+        return len(selected_ids)
 
     @classmethod
     def from_yaml(

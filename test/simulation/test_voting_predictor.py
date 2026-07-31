@@ -11,7 +11,7 @@ from src.ni_model.core.models import (
 from src.ni_model.simulation.voting_predictor import VotingPredictor
 
 
-def _make_person(db, religion, origin, age, location=Location.BELFAST_NORTH):
+def _make_person(db, religion, origin, age, location=Location.BELFAST):
     p = Person(
         age=age,
         religious_background=religion,
@@ -87,10 +87,14 @@ def test_roi_origin_highest_unite_propensity(db_session):
 
 def test_predict_by_location_returns_all_locations(db_session):
     _make_person(
-        db_session, ReligiousBackground.CATHOLIC, Origin.NI, 30, Location.BELFAST_NORTH
+        db_session, ReligiousBackground.CATHOLIC, Origin.NI, 30, Location.BELFAST
     )
     _make_person(
-        db_session, ReligiousBackground.PROTESTANT, Origin.NI, 40, Location.DERRY
+        db_session,
+        ReligiousBackground.PROTESTANT,
+        Origin.NI,
+        40,
+        Location.DERRY_STRABANE,
     )
     predictor = VotingPredictor(db_session)
     by_loc = predictor.predict_by_location()
@@ -102,7 +106,7 @@ def test_predict_by_location_returns_all_locations(db_session):
 def test_predict_by_location_empty_location_returns_zeros(db_session):
     predictor = VotingPredictor(db_session)
     by_loc = predictor.predict_by_location()
-    fermanagh = by_loc["fermanagh"]
+    fermanagh = by_loc["fermanagh_omagh"]
     assert fermanagh["total"] == 0
     assert fermanagh["unite_share"] == 0.0
 

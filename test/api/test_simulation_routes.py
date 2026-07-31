@@ -30,6 +30,17 @@ def test_simulation_models_describes_available_configs(client):
     assert models[0]["birth_rules"] == 12
     assert models[0]["birth_rate_rules"][0]["rate"] == 26.0
 
+    current = next(model for model in models if model["id"] == "ni_current")
+    assert current["baseline_year"] == 2021
+    assert current["data_through"] == 2024
+    assert current["projection_version"] == "NISRA/ONS 2024-based principal projection"
+    assert current["year_min"] == 2022
+    assert current["year_max"] == 2074
+    assert current["birth_rules"] == 53
+    assert current["migration_rules"] == 103
+    assert current["internal_migration_rules"] == 110
+    assert current["migration_rate_rules"][3]["flow"] == "in"
+
 
 def test_runs_empty_initially(client):
     response = client.get("/api/simulation/runs")
@@ -62,6 +73,21 @@ def test_run_creates_isolated_population_and_durable_snapshots(client, populated
         .count()
         == 2
     )
+
+
+def test_current_model_can_be_selected_for_a_run(client):
+    response = client.post(
+        "/api/simulation/run",
+        json={
+            "model_path": "models/ni_current.yaml",
+            "start_year": 2025,
+            "end_year": 2025,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["model_path"] == "models/ni_current.yaml"
+    assert response.json()["status"] == "complete"
 
 
 def test_two_runs_are_user_isolated(client, populated_db):

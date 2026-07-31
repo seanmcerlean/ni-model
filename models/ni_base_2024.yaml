@@ -194,52 +194,52 @@ migration_rates:
 internal_migration_rates:
   # Young adults (18-35) from rural counties move to Belfast for work
   - rate: 15.0
-    destination: "BELFAST_WEST"
+    destination: "BELFAST"
     filters:
       age_min: 18
       age_max: 35
-      location: "DERRY"
+      location: "DERRY_STRABANE"
   - rate: 15.0
-    destination: "BELFAST_NORTH"
+    destination: "BELFAST"
     filters:
       age_min: 18
       age_max: 35
-      location: "ANTRIM"
+      location: "ANTRIM_AND_NEWTOWNABBEY"
   - rate: 15.0
-    destination: "BELFAST_EAST"
+    destination: "BELFAST"
     filters:
       age_min: 18
       age_max: 35
-      location: "DOWN"
+      location: "NEWRY_MOURNE_DOWN"
   - rate: 10.0
-    destination: "BELFAST_SOUTH"
+    destination: "BELFAST"
     filters:
       age_min: 18
       age_max: 35
-      location: "ARMAGH"
+      location: "ARMAGH_BANBRIDGE_CRAIGAVON"
 
   # Families (35-55) move out of Belfast to rural areas
   - rate: 8.0
-    destination: "ANTRIM"
+    destination: "ANTRIM_AND_NEWTOWNABBEY"
     filters:
       age_min: 35
       age_max: 55
-      location: "BELFAST_NORTH"
+      location: "BELFAST"
   - rate: 8.0
-    destination: "DOWN"
+    destination: "ARDS_NORTH_DOWN"
     filters:
       age_min: 35
       age_max: 55
-      location: "BELFAST_EAST"
+      location: "BELFAST"
   - rate: 8.0
-    destination: "ARMAGH"
+    destination: "ARMAGH_BANBRIDGE_CRAIGAVON"
     filters:
       age_min: 35
       age_max: 55
-      location: "BELFAST_SOUTH"
+      location: "BELFAST"
   - rate: 8.0
-    destination: "DERRY"
+    destination: "DERRY_STRABANE"
     filters:
       age_min: 35
       age_max: 55
-      location: "BELFAST_WEST"
+      location: "BELFAST"

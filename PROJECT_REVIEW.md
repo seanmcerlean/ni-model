@@ -73,12 +73,22 @@ Primary references:
 - [ ] Ingest exact five-year age/sex, geography, country-of-birth, births,
   deaths, and migration series from NISRA rather than hand-maintained weights.
 - [ ] Validate and update historic rates to the extent possible.
-- [ ] Validate and update internal migration rates to the extent possible.
+- [x] **Evidence-based internal relocation.** The model geography is now the 11
+  current LGDs. All 110 directed LGD-to-LGD rates are derived from the public
+  Census 2021 ODMG01 origin–destination table and exact source populations,
+  with the pandemic-period and held-constant assumptions stated. Moves are
+  selected from one pre-move population and applied simultaneously, preventing
+  cascading or duplicate moves caused by rule order.
 - [ ] Calibrate demographic rates and model uncertainty instead of applying
   undocumented fixed assumptions.
 - [ ] Redesign voting output around eligible voters, turnout, polling evidence,
   uncertainty intervals, and scenario sensitivity.
-- [ ] Add a `ni-current` model starting from the latest census; the frontend
-  must be able to select between models.
+- [x] **Current sourced model and frontend selection.** `ni_current.yaml` starts
+  from the Census 2021 marginal baseline, uses observed NISRA components for
+  2022–2024, and then the latest official 2024-based principal projection for
+  2025–2074. Its normalized source series and reproducible extraction script
+  are checked in. The models endpoint exposes the baseline, observation cutoff,
+  projection version, and all derived rules; the frontend selector displays the
+  model and those details.
 - [ ] Allow model values for a run to be changed in the frontend.
 - [ ] Improve UI usability and presentation as much as possible.

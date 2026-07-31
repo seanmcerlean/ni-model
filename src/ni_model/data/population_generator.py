@@ -1,4 +1,6 @@
+import csv
 import random
+from pathlib import Path
 from typing import List
 
 from ..core.models import (
@@ -27,19 +29,19 @@ _GENDER_WEIGHTS = [
     (Gender.FEMALE, 967_202 / 1_903_175),
 ]
 
-# Population-weighted location shares (Belfast areas split ~30% of total)
-_LOCATION_WEIGHTS = [
-    (Location.BELFAST_NORTH, 0.085),
-    (Location.BELFAST_SOUTH, 0.080),
-    (Location.BELFAST_EAST, 0.075),
-    (Location.BELFAST_WEST, 0.070),
-    (Location.ANTRIM, 0.130),
-    (Location.DOWN, 0.125),
-    (Location.DERRY, 0.115),
-    (Location.ARMAGH, 0.095),
-    (Location.TYRONE, 0.090),
-    (Location.FERMANAGH, 0.055),
-]
+_DATA_DIR = Path(__file__).resolve().parents[3] / "data"
+
+
+def _load_location_weights():
+    """Load exact Census 2021 LGD marginals from the checked-in source table."""
+    path = _DATA_DIR / "ni_census_2021_lgd_population.csv"
+    with path.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    total = sum(int(row["count"]) for row in rows)
+    return [(Location(row["location"]), int(row["count"]) / total) for row in rows]
+
+
+_LOCATION_WEIGHTS = _load_location_weights()
 
 # Census 2021 country of birth, MS-A16. `GB` combines England, Scotland and
 # Wales; `OTHER` combines all remaining published categories.

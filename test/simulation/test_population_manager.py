@@ -21,7 +21,7 @@ def _sample_persons():
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.TERTIARY,
-            location=Location.BELFAST_NORTH,
+            location=Location.BELFAST,
             origin=Origin.NI,
         ),
         Person(
@@ -29,7 +29,7 @@ def _sample_persons():
             religious_background=ReligiousBackground.PROTESTANT,
             gender=Gender.FEMALE,
             education_level=EducationLevel.SECONDARY,
-            location=Location.DERRY,
+            location=Location.DERRY_STRABANE,
             origin=Origin.NI,
         ),
         Person(
@@ -37,7 +37,7 @@ def _sample_persons():
             religious_background=ReligiousBackground.CATHOLIC,
             gender=Gender.MALE,
             education_level=EducationLevel.PRIMARY,
-            location=Location.BELFAST_NORTH,
+            location=Location.BELFAST,
             origin=Origin.NI,
         ),
     ]

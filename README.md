@@ -122,11 +122,11 @@ migration_rates:
 
 internal_migration_rates:
   - rate: 15.0
-    destination: "BELFAST_WEST"
+    destination: "BELFAST"
     filters:
       age_min: 18
       age_max: 35
-      location: "DERRY"
+      location: "DERRY_STRABANE"
 ```
 
 Rates are per 1,000 of the matching cohort. Filters can combine `religious_background`, `age_min`, `age_max`, `location`, and `gender`.

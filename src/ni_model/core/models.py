@@ -41,16 +41,17 @@ class EducationLevel(enum.Enum):
 
 
 class Location(enum.Enum):
-    ANTRIM = "antrim"
-    ARMAGH = "armagh"
-    DOWN = "down"
-    FERMANAGH = "fermanagh"
-    DERRY = "derry"
-    TYRONE = "tyrone"
-    BELFAST_NORTH = "belfast_north"
-    BELFAST_SOUTH = "belfast_south"
-    BELFAST_EAST = "belfast_east"
-    BELFAST_WEST = "belfast_west"
+    ANTRIM_AND_NEWTOWNABBEY = "antrim_and_newtownabbey"
+    ARMAGH_BANBRIDGE_CRAIGAVON = "armagh_banbridge_craigavon"
+    BELFAST = "belfast"
+    CAUSEWAY_COAST_GLENS = "causeway_coast_glens"
+    DERRY_STRABANE = "derry_strabane"
+    FERMANAGH_OMAGH = "fermanagh_omagh"
+    LISBURN_CASTLEREAGH = "lisburn_castlereagh"
+    MID_EAST_ANTRIM = "mid_east_antrim"
+    MID_ULSTER = "mid_ulster"
+    NEWRY_MOURNE_DOWN = "newry_mourne_down"
+    ARDS_NORTH_DOWN = "ards_north_down"
 
 
 class Origin(enum.Enum):

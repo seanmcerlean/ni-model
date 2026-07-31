@@ -150,7 +150,7 @@ class MigrationCalculator(DemographicCalculator):
                 ),
                 gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
                 education_level=self.rng.choice(list(EducationLevel)),
-                location=template.location if template else Location.BELFAST_NORTH,
+                location=template.location if template else Location.BELFAST,
                 origin=Origin.OTHER,
             )
             for _ in range(count)
@@ -174,11 +174,18 @@ class InternalMigrationCalculator(DemographicCalculator):
 
     def calculate(self) -> int:
         """Move cohort members to destination location, return count moved"""
-        cohort = self._get_cohort()
-        num_movers = int((self.rate / 1000.0) * len(cohort))
+        movers = self.select_movers()
+        self.apply_movers(movers)
+        return len(movers)
 
-        if num_movers > 0:
-            for person in self.rng.sample(cohort, min(num_movers, len(cohort))):
-                person.location = self.destination
+    def select_movers(self, excluded_ids=None, cohort=None) -> List[Person]:
+        """Select movers without mutating them, enabling simultaneous flows."""
+        excluded_ids = excluded_ids or set()
+        full_cohort = self._get_cohort() if cohort is None else cohort
+        available = [person for person in full_cohort if person.id not in excluded_ids]
+        num_movers = min(int((self.rate / 1000.0) * len(full_cohort)), len(available))
+        return self.rng.sample(available, num_movers) if num_movers > 0 else []
 
-        return num_movers
+    def apply_movers(self, movers: List[Person]) -> None:
+        for person in movers:
+            person.location = self.destination

@@ -2,9 +2,13 @@ import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
 import { Layer, PathOptions } from "leaflet";
 
 import niGeoJsonRaw from "../geo/ni.geojson?raw";
-import { YearSnapshot } from "../types";
+import { LOCATION_CODES, YearSnapshot } from "../types";
 
 const niGeoJson = JSON.parse(niGeoJsonRaw) as GeoJSON.FeatureCollection;
+
+function featureId(feature: GeoJSON.Feature): string {
+  return LOCATION_CODES[feature.properties?.LAD24CD ?? ""] ?? "";
+}
 
 interface Props {
   snapshot: YearSnapshot | null;
@@ -28,21 +32,21 @@ function choroColor(balance: number): string {
 export function NiMap({ snapshot, onLocationClick }: Props) {
   function style(feature: GeoJSON.Feature | undefined): PathOptions {
     if (!feature || !snapshot) return { fillColor: "#334155", fillOpacity: 0.65, weight: 1.2, color: "#cbd5e1" };
-    const balance = communityBalance(snapshot, feature.properties?.id ?? "");
+    const balance = communityBalance(snapshot, featureId(feature));
     return {
       fillColor: choroColor(balance),
       fillOpacity: 0.82,
-      weight: feature.properties?.id?.startsWith("belfast_") ? 2.5 : 1.2,
+      weight: 1.2,
       color: "#f8fafc",
     };
   }
 
   function onEachFeature(feature: GeoJSON.Feature, layer: Layer) {
-    const id = feature.properties?.id ?? "";
+    const id = featureId(feature);
     layer.on("click", () => onLocationClick(id));
     const total = snapshot?.location_breakdown[id];
     layer.bindTooltip(
-      `<strong>${feature.properties?.name ?? ""}</strong>${total === undefined ? "" : `<br>${total.toLocaleString()} residents`}`,
+      `<strong>${feature.properties?.LAD24NM ?? ""}</strong>${total === undefined ? "" : `<br>${total.toLocaleString()} residents`}`,
       { sticky: true },
     );
   }

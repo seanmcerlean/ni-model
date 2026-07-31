@@ -69,6 +69,9 @@ class SimulationModelSummary(BaseModel):
     description: str
     rate_jitter: float
     random_seed: Optional[int]
+    baseline_year: Optional[int] = None
+    data_through: Optional[int] = None
+    projection_version: Optional[str] = None
     birth_rules: int
     death_rules: int
     migration_rules: int

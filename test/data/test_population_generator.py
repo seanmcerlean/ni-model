@@ -74,15 +74,12 @@ def test_all_locations_present(population):
     assert {p.location for p in population} == set(Location)
 
 
-def test_belfast_areas_combined_share(population):
-    belfast = {
-        Location.BELFAST_NORTH,
-        Location.BELFAST_SOUTH,
-        Location.BELFAST_EAST,
-        Location.BELFAST_WEST,
-    }
-    share = sum(1 for p in population if p.location in belfast) / len(population)
-    assert share == pytest.approx(0.31, abs=0.04)
+def test_lgd_shares_match_census_marginals(population):
+    shares = _shares(population, "location")
+    assert shares[Location.BELFAST] == pytest.approx(345_418 / 1_903_175, abs=0.02)
+    assert shares[Location.FERMANAGH_OMAGH] == pytest.approx(
+        116_812 / 1_903_175, abs=0.02
+    )
 
 
 def test_origin_ni_dominant(population):
