@@ -33,7 +33,13 @@ export interface VotingPrediction {
   scenarios: Array<{ id: string; label: string; unite_share: number }>;
   source: { id: string; name: string; sample_size: number; fieldwork: string; url: string };
   limitations: string;
+  by_location?: Record<string, LocationVotingPrediction>;
 }
+
+export type LocationVotingPrediction = Omit<
+  VotingPrediction,
+  "source" | "limitations" | "by_location"
+>;
 
 export interface SimulationLocationSnapshot {
   total: number;

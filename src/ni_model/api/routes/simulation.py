@@ -136,12 +136,7 @@ def _capture_snapshot(
         for location in Location
     }
     voting_predictions = {
-        calibration: {
-            **VotingPredictor(
-                db, run_id=run_id, calibration=calibration
-            ).predict(),
-            "by_location": {},
-        }
+        calibration: _snapshot_voting_prediction(db, run_id, calibration)
         for calibration in CALIBRATIONS
     }
     return SimulationYearSnapshot(
@@ -155,6 +150,13 @@ def _capture_snapshot(
         voting_predictions=voting_predictions,
         simulation_result=SimulationYearResult(**result),
     )
+
+
+def _snapshot_voting_prediction(
+    db: Session, run_id: UUID, calibration: str
+) -> dict:
+    predictor = VotingPredictor(db, run_id=run_id, calibration=calibration)
+    return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
 
 def _get_run(db: Session, run_id: UUID) -> SimulationRun:

@@ -1,13 +1,15 @@
-import { LOCATION_KEYS, SimulationLocationSnapshot } from "../types";
+import { LOCATION_KEYS, LocationVotingPrediction, SimulationLocationSnapshot } from "../types";
 
 interface Props {
   locationId: string | null;
   year: number | null;
   detail: SimulationLocationSnapshot | null;
+  voting: LocationVotingPrediction | null;
+  pollingSource: string | null;
   onClose: () => void;
 }
 
-export function LocationDetail({ locationId, year, detail, onClose }: Props) {
+export function LocationDetail({ locationId, year, detail, voting, pollingSource, onClose }: Props) {
   if (!locationId) return null;
   return (
     <aside className="location-panel" aria-labelledby="location-title">
@@ -18,6 +20,7 @@ export function LocationDetail({ locationId, year, detail, onClose }: Props) {
       {detail && <>
         <div className="location-population">{detail.total.toLocaleString()}</div>
         <div className="location-population-label">simulated residents</div>
+        {voting && <AreaVoting prediction={voting} source={pollingSource} />}
         <Section title="Community background" data={detail.religious_breakdown} />
         <Section title="Gender" data={detail.gender_breakdown} />
         <Section title="Origin" data={detail.origin_breakdown} />
@@ -25,6 +28,25 @@ export function LocationDetail({ locationId, year, detail, onClose }: Props) {
       </>}
     </aside>
   );
+}
+
+function AreaVoting({ prediction, source }: {
+  prediction: LocationVotingPrediction;
+  source: string | null;
+}) {
+  return <section className="area-voting" aria-labelledby="area-voting-title">
+    <h3 id="area-voting-title">Estimated border-poll response</h3>
+    <div className="area-voting-results">
+      <span><b>{percent(prediction.unite_share)}</b> Unite</span>
+      <span><b>{percent(prediction.remain_share)}</b> Remain</span>
+      <span><b>{percent(prediction.undecided_share)}</b> Undecided</span>
+    </div>
+    <p>Estimated from this area's simulated adult age and community-background mix using {source ?? "the selected poll"} cross-tabs. Not area-level polling.</p>
+  </section>;
+}
+
+function percent(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 function Section({ title, data }: { title: string; data: Record<string, number> }) {

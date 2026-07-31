@@ -84,6 +84,12 @@ button, input, select { font: inherit; }
 .location-panel h2 { margin: 5px 24px 8px 0; color: #f8fafc; font-size: 16px; }
 .location-empty, .location-population-label { color: #94a3b8; font-size: 11px; }
 .location-population { color: #f8fafc; font-size: 27px; font-weight: 700; }
+.area-voting { margin-top: 13px; padding: 10px; border: 1px solid #334b68; border-radius: 6px; background: #13263e; }
+.area-voting h3 { margin: 0 0 8px; color: #7dd3fc; font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
+.area-voting-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.area-voting-results span { color: #94a3b8; font-size: 8px; text-align: center; text-transform: uppercase; }
+.area-voting-results b { display: block; color: #f8fafc; font-size: 13px; }
+.area-voting p { margin: 8px 0 0; color: #94a3b8; font-size: 9px; line-height: 1.4; }
 .detail-section { margin-top: 14px; }
 .detail-section h3 { margin: 0 0 7px; color: #94a3b8; font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
 .detail-bar-row { display: grid; grid-template-columns: 86px 1fr 68px; align-items: center; gap: 7px; margin-bottom: 6px; }

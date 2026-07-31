@@ -209,6 +209,8 @@ export default function App() {
               locationId={selectedLocation}
               year={currentYear}
               detail={selectedLocation && snapshot ? snapshot.locations?.[selectedLocation] ?? null : null}
+              voting={selectedLocation ? voting?.by_location?.[selectedLocation] ?? null : null}
+              pollingSource={voting?.source.name ?? null}
               onClose={() => setSelectedLocation(null)}
             />
           </div>

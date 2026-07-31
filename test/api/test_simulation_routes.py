@@ -181,6 +181,19 @@ def test_stream_persists_run_and_emits_run_id(client, populated_db):
     assert predictions["lucidtalk_winter_2025"]["source"]["id"] == (
         "lucidtalk_winter_2025"
     )
+    assert set(predictions["lucidtalk_winter_2025"]["by_location"]) == {
+        "antrim_and_newtownabbey",
+        "armagh_banbridge_craigavon",
+        "belfast",
+        "causeway_coast_glens",
+        "derry_strabane",
+        "fermanagh_omagh",
+        "lisburn_castlereagh",
+        "mid_east_antrim",
+        "mid_ulster",
+        "newry_mourne_down",
+        "ards_north_down",
+    }
     assert events[-1]["event"] == "complete"
     run = populated_db.get(SimulationRun, run_id)
     assert run.status == "complete"
