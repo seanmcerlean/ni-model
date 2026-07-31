@@ -147,7 +147,7 @@ describe("App", () => {
             { id: "proportional", label: "Undecided split like decided voters", unite_share: 0.4615 },
             { id: "unite", label: "All undecided vote unite", unite_share: 0.58 },
           ],
-          source: { name: "NILT 2024", sample_size: 1199, fieldwork: "2024", url: "https://www.ark.ac.uk/nilt/2024/Political_Attitudes/REFUNIFY.html" },
+          source: { id: "lucidtalk_winter_2025", name: "LucidTalk", sample_size: 1051, fieldwork: "2025", url: "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/" },
           limitations: "Adult proxy",
         }),
       } as Response);
@@ -156,9 +156,9 @@ describe("App", () => {
     expect(await screen.findByText("BORDER POLL SCENARIO")).toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();
     expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "NILT 2024" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "LucidTalk" })).toHaveAttribute(
       "href",
-      "https://www.ark.ac.uk/nilt/2024/Political_Attitudes/REFUNIFY.html",
+      "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",
     );
   });
 });

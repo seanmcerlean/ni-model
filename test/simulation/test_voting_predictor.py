@@ -73,7 +73,7 @@ def test_age_affects_turnout_not_preference(db_session):
     predictor = VotingPredictor(db_session)
     young = predictor._turnout(20, ReligiousBackground.CATHOLIC)
     middle = predictor._turnout(40, ReligiousBackground.CATHOLIC)
-    assert middle > young
+    assert young > middle
 
 
 def test_children_are_not_counted_as_eligible(db_session):

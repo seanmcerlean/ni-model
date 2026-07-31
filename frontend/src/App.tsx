@@ -19,6 +19,7 @@ export default function App() {
   const [models, setModels] = useState<SimulationModel[]>([]);
   const [modelPath, setModelPath] = useState("models/ni_base_2024.yaml");
   const [voting, setVoting] = useState<VotingPrediction | null>(null);
+  const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -35,8 +36,9 @@ export default function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const runQuery = snapshot?.run_id ? `?run_id=${snapshot.run_id}` : "";
-    fetch(`/api/population/voting-prediction${runQuery}`, { signal: controller.signal })
+    const params = new URLSearchParams({ calibration: votingCalibration });
+    if (snapshot?.run_id) params.set("run_id", snapshot.run_id);
+    fetch(`/api/population/voting-prediction?${params}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Voting scenario unavailable");
         return response.json();
@@ -46,7 +48,7 @@ export default function App() {
         if (error.name !== "AbortError") setVoting(null);
       });
     return () => controller.abort();
-  }, [snapshot?.run_id]);
+  }, [snapshot?.run_id, votingCalibration]);
 
   // Auto-advance to first buffered year when stream starts
   useEffect(() => {
@@ -147,7 +149,7 @@ export default function App() {
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
             </>
           )}
-          <VotingPanel prediction={voting} />
+          <VotingPanel prediction={voting} calibration={votingCalibration} onCalibrationChange={setVotingCalibration} />
         </aside>
 
         <main className="map-column">
@@ -183,12 +185,22 @@ export default function App() {
   );
 }
 
-function VotingPanel({ prediction }: { prediction: VotingPrediction | null }) {
+function VotingPanel({ prediction, calibration, onCalibrationChange }: {
+  prediction: VotingPrediction | null;
+  calibration: string;
+  onCalibrationChange: (value: string) => void;
+}) {
   if (!prediction) return null;
   const interval = prediction.intervals.unite_share;
   return (
     <section className="voting-panel" aria-labelledby="voting-heading">
       <div className="panel-kicker" id="voting-heading">BORDER POLL SCENARIO</div>
+      <label className="field-label" htmlFor="voting-calibration">Polling calibration</label>
+      <select id="voting-calibration" className="model-select" value={calibration}
+        onChange={(event) => onCalibrationChange(event.target.value)}>
+        <option value="lucidtalk_winter_2025">LucidTalk Winter 2025</option>
+        <option value="nilt_2024">NILT 2024</option>
+      </select>
       <div className="voting-headline">
         <span><b>{percentage(prediction.unite_share, 1)}</b> Unite</span>
         <span><b>{percentage(prediction.remain_share, 1)}</b> Remain</span>
@@ -208,7 +220,7 @@ function VotingPanel({ prediction }: { prediction: VotingPrediction | null }) {
         </div>
       </details>
       <p className="voting-source">
-        <a href={prediction.source.url} target="_blank" rel="noreferrer">NILT 2024</a>, n={prediction.source.sample_size}. Community background is a polling calibration, not a vote.
+        <a href={prediction.source.url} target="_blank" rel="noreferrer">{prediction.source.name}</a>, n={prediction.source.sample_size}. Community background is a polling calibration, not a vote.
       </p>
     </section>
   );

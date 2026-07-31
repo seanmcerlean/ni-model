@@ -1,7 +1,7 @@
 """Evidence-calibrated border-poll scenario projections.
 
 This is a polling scenario, not a prediction of constitutional identity from
-religion.  NILT's published religion cross-tabs are used as the closest
+religion. Published poll community cross-tabs are used as the closest
 available proxy for the model's Census community-background field; age affects
 turnout only.  Other unobserved factors and future opinion change remain outside
 the model.
@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session
 
 from ..core.models import Person, ReligiousBackground
 
-SOURCE = {
+_NILT_SOURCE = {
+    "id": "nilt_2024",
     "name": "Northern Ireland Life and Times Survey 2024",
     "publisher": "ARK",
     "fieldwork": "6 September to 19 November 2024",
@@ -27,7 +28,7 @@ SOURCE = {
 
 # Published percentages. Other religions are not separately tabulated by ARK,
 # so the all-adult result is used transparently for that small Census group.
-_RESPONSES = {
+_NILT_RESPONSES = {
     ReligiousBackground.CATHOLIC: (0.68, 0.10, 0.17, 0.05),
     ReligiousBackground.PROTESTANT: (0.10, 0.74, 0.12, 0.04),
     ReligiousBackground.NONE: (0.35, 0.41, 0.16, 0.06),
@@ -36,7 +37,7 @@ _RESPONSES = {
 
 # NILT would-not-vote percentage by age. The 1% overall ineligible response is
 # excluded because the resident model cannot observe citizenship/registration.
-_NON_VOTE_BY_AGE = (
+_NILT_NON_VOTE_BY_AGE = (
     (18, 24, 0.10),
     (25, 34, 0.03),
     (35, 44, 0.04),
@@ -44,6 +45,43 @@ _NON_VOTE_BY_AGE = (
     (55, 64, 0.05),
     (65, 200, 0.06),
 )
+
+_LUCIDTALK_SOURCE = {
+    "id": "lucidtalk_winter_2025",
+    "name": "LucidTalk / Belfast Telegraph NI Tracker Winter 2025",
+    "publisher": "LucidTalk",
+    "fieldwork": "14 to 17 February 2025",
+    "sample_size": 1051,
+    "base_responses": 3001,
+    "margin_of_error": 0.023,
+    "url": "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",
+    "question": "Border poll within the week: remain in the UK or join a united Ireland",
+}
+
+# Official Q4 weighted cross-breaks: unity, UK, unsure-but-would-vote,
+# would-not-vote/spoil. Percentages are published rounded and normalised below.
+_LUCIDTALK_RESPONSES = {
+    ReligiousBackground.CATHOLIC: (0.86, 0.06, 0.06, 0.02),
+    ReligiousBackground.PROTESTANT: (0.04, 0.88, 0.07, 0.01),
+    ReligiousBackground.NONE: (0.40, 0.34, 0.26, 0.00),
+    ReligiousBackground.OTHER: (0.53, 0.41, 0.06, 0.00),
+}
+_LUCIDTALK_NON_VOTE_BY_AGE = (
+    (18, 34, 0.00),
+    (35, 44, 0.01),
+    (45, 54, 0.00),
+    (55, 64, 0.00),
+    (65, 200, 0.03),
+)
+
+CALIBRATIONS = {
+    "lucidtalk_winter_2025": (
+        _LUCIDTALK_SOURCE,
+        _LUCIDTALK_RESPONSES,
+        _LUCIDTALK_NON_VOTE_BY_AGE,
+    ),
+    "nilt_2024": (_NILT_SOURCE, _NILT_RESPONSES, _NILT_NON_VOTE_BY_AGE),
+}
 
 
 def _wilson_interval(
@@ -69,16 +107,24 @@ def _wilson_interval(
 class VotingPredictor:
     """Project stated border-poll responses for eligible-adult proxies."""
 
-    def __init__(self, db_session: Session, run_id: Optional[UUID] = None):
+    def __init__(
+        self,
+        db_session: Session,
+        run_id: Optional[UUID] = None,
+        calibration: str = "lucidtalk_winter_2025",
+    ):
+        if calibration not in CALIBRATIONS:
+            raise ValueError(f"unknown voting calibration: {calibration}")
         self.db = db_session
         self.run_id = run_id
+        self.calibration = calibration
+        self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
 
-    @staticmethod
-    def _turnout(age: int, background: ReligiousBackground) -> float:
+    def _turnout(self, age: int, background: ReligiousBackground) -> float:
         age_non_vote = next(
-            rate for low, high, rate in _NON_VOTE_BY_AGE if low <= age <= high
+            rate for low, high, rate in self.non_vote_by_age if low <= age <= high
         )
-        background_non_vote = _RESPONSES[background][3]
+        background_non_vote = self.responses[background][3]
         # Average the two published marginal signals; joint microdata is not
         # inferred from separate cross-tabs.
         return 1.0 - ((age_non_vote + background_non_vote) / 2)
@@ -103,7 +149,7 @@ class VotingPredictor:
 
         unite = remain = undecided = 0.0
         for row in rows:
-            yes, no, uncertain, _ = _RESPONSES[row.religious_background]
+            yes, no, uncertain, _ = self.responses[row.religious_background]
             response_total = yes + no + uncertain
             turnout = self._turnout(row.age, row.religious_background)
             likely_voters = row.count * turnout
@@ -129,10 +175,14 @@ class VotingPredictor:
             "undecided_share": round(undecided_share, 4),
             "decided_unite_share": round(proportional_unite, 4),
             "intervals": {
-                "unite_share": _wilson_interval(unite_share, SOURCE["sample_size"]),
-                "remain_share": _wilson_interval(remain_share, SOURCE["sample_size"]),
+                "unite_share": _wilson_interval(
+                    unite_share, self.source["sample_size"]
+                ),
+                "remain_share": _wilson_interval(
+                    remain_share, self.source["sample_size"]
+                ),
                 "turnout_rate": _wilson_interval(
-                    projected_turnout / eligible, SOURCE["sample_size"]
+                    projected_turnout / eligible, self.source["sample_size"]
                 ),
             },
             "scenarios": [
@@ -187,7 +237,7 @@ class VotingPredictor:
         return {
             "total_population": total_query.scalar() or 0,
             **result,
-            "source": SOURCE,
+            "source": self.source,
             "limitations": "Adult resident eligibility proxy; community-background and age marginals are not causal predictors or a joint poll model.",
         }
 

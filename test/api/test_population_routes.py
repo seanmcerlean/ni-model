@@ -107,7 +107,19 @@ def test_voting_prediction_schema(client):
     assert "projected_turnout" in data
     assert "intervals" in data
     assert len(data["scenarios"]) == 3
+    assert data["source"]["id"] == "lucidtalk_winter_2025"
+    assert data["source"]["sample_size"] == 1051
+
+
+def test_voting_prediction_supports_nilt_alternative(client):
+    data = client.get("/api/population/voting-prediction?calibration=nilt_2024").json()
+    assert data["source"]["id"] == "nilt_2024"
     assert data["source"]["sample_size"] == 1199
+
+
+def test_voting_prediction_rejects_unknown_calibration(client):
+    response = client.get("/api/population/voting-prediction?calibration=unknown")
+    assert response.status_code == 422
 
 
 def test_voting_prediction_total_matches_population(client):

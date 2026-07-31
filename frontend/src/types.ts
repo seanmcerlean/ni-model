@@ -30,7 +30,7 @@ export interface VotingPrediction {
   decided_unite_share: number;
   intervals: Record<string, { low: number; estimate: number; high: number }>;
   scenarios: Array<{ id: string; label: string; unite_share: number }>;
-  source: { name: string; sample_size: number; fieldwork: string; url: string };
+  source: { id: string; name: string; sample_size: number; fieldwork: string; url: string };
   limitations: string;
 }
 

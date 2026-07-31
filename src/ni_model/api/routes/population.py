@@ -92,8 +92,15 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
 
 
 @router.get("/voting-prediction", response_model=VotingPrediction)
-def voting_prediction(run_id: Optional[UUID] = None, db: Session = Depends(get_db)):
-    predictor = VotingPredictor(db, run_id=run_id)
+def voting_prediction(
+    run_id: Optional[UUID] = None,
+    calibration: str = "lucidtalk_winter_2025",
+    db: Session = Depends(get_db),
+):
+    try:
+        predictor = VotingPredictor(db, run_id=run_id, calibration=calibration)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     result = predictor.predict()
     by_location = predictor.predict_by_location()
     return VotingPrediction(**result, by_location=by_location)
