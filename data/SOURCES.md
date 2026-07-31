@@ -8,7 +8,7 @@ The generator uses official NISRA Census 2021 marginal distributions:
 |---|---|---|
 | `age` | Five-year age band | MS-A02 |
 | `gender` | Published census sex | MS-A07 |
-| `religious_background` | Religion or religion brought up in; used as a community-background proxy | MS-B23 |
+| `religious_background` | Religion or religion brought up in by LGD; used as a community-background proxy | MS-B23 |
 | `origin` | Country of birth; GB combines England, Scotland, and Wales | MS-A16 |
 
 Source workbooks:
@@ -22,10 +22,10 @@ NISRA applies statistical disclosure control independently to output tables, so
 their totals can differ from the headline Census population by a few people.
 Weights therefore use each topic table's own denominator.
 
-The model samples these as independent marginals. It does not yet reproduce
-their joint distributions (for example age by community background or origin by
-location), so a generated population is plausible in aggregate but is not
-synthetic Census microdata.
+The model jointly samples LGD and community background from MS-B23, preserving
+the large geographic differences needed by area scenarios. Age, sex and origin
+remain independent marginals, so the generated population is not synthetic
+Census microdata.
 
 ## Population components, 2002–2024
 

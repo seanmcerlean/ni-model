@@ -152,9 +152,7 @@ def _capture_snapshot(
     )
 
 
-def _snapshot_voting_prediction(
-    db: Session, run_id: UUID, calibration: str
-) -> dict:
+def _snapshot_voting_prediction(db: Session, run_id: UUID, calibration: str) -> dict:
     predictor = VotingPredictor(db, run_id=run_id, calibration=calibration)
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 

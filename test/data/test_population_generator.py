@@ -82,6 +82,22 @@ def test_lgd_shares_match_census_marginals(population):
     )
 
 
+def test_community_background_preserves_lgd_joint_distribution(population):
+    derry = [p for p in population if p.location == Location.DERRY_STRABANE]
+    mid_east_antrim = [p for p in population if p.location == Location.MID_EAST_ANTRIM]
+
+    derry_catholic = sum(
+        p.religious_background == ReligiousBackground.CATHOLIC for p in derry
+    ) / len(derry)
+    mea_protestant = sum(
+        p.religious_background == ReligiousBackground.PROTESTANT
+        for p in mid_east_antrim
+    ) / len(mid_east_antrim)
+
+    assert derry_catholic == pytest.approx(109_131 / 150_756, abs=0.04)
+    assert mea_protestant == pytest.approx(93_477 / 138_994, abs=0.04)
+
+
 def test_origin_ni_dominant(population):
     shares = _shares(population, "origin")
     assert shares[Origin.NI] == pytest.approx(0.865, abs=0.02)

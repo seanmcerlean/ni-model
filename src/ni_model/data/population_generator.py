@@ -44,6 +44,28 @@ def _load_location_weights():
 
 _LOCATION_WEIGHTS = _load_location_weights()
 
+
+def _load_location_background_weights():
+    """Load Census 2021 community-background weights conditional on LGD."""
+    path = _DATA_DIR / "ni_census_2021_lgd_community_background.csv"
+    weights = {}
+    with path.open(encoding="utf-8", newline="") as source:
+        for row in csv.DictReader(source):
+            counts = [
+                (ReligiousBackground.CATHOLIC, int(row["catholic"])),
+                (ReligiousBackground.PROTESTANT, int(row["protestant"])),
+                (ReligiousBackground.OTHER, int(row["other"])),
+                (ReligiousBackground.NONE, int(row["none"])),
+            ]
+            total = sum(count for _, count in counts)
+            weights[Location(row["location"])] = [
+                (background, count / total) for background, count in counts
+            ]
+    return weights
+
+
+_BACKGROUND_WEIGHTS_BY_LOCATION = _load_location_background_weights()
+
 # Census 2021 country of birth, MS-A16. `GB` combines England, Scotland and
 # Wales; `OTHER` combines all remaining published categories.
 _ORIGIN_WEIGHTS = [
@@ -138,11 +160,14 @@ def iter_population(
     background_weights = religion_weights or _RELIGION_WEIGHTS
     for _ in range(size):
         age = _sample_age(rng)
+        location = _weighted_choice(_LOCATION_WEIGHTS, rng)
+        if religion_weights is None:
+            background_weights = _BACKGROUND_WEIGHTS_BY_LOCATION[location]
         yield Person(
             age=age,
             religious_background=_weighted_choice(background_weights, rng),
             gender=_weighted_choice(_GENDER_WEIGHTS, rng),
-            location=_weighted_choice(_LOCATION_WEIGHTS, rng),
+            location=location,
             origin=_weighted_choice(_ORIGIN_WEIGHTS, rng),
             education_level=_weighted_choice(_education_weights(age), rng),
         )
