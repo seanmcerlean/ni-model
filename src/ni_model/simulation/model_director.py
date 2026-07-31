@@ -259,9 +259,44 @@ class ModelDirector:
             "migration_rates": adjustments.get("migration_multiplier", 1.0),
             "internal_migration_rates": adjustments.get("relocation_multiplier", 1.0),
         }
+        community = adjustments.get("community") or {}
+        section_fields = {
+            "birth_rates": "birth_multiplier",
+            "death_rates": "death_multiplier",
+            "migration_rates": "migration_multiplier",
+            "internal_migration_rates": "relocation_multiplier",
+        }
         for section, multiplier in section_multipliers.items():
-            for rule in config.get(section, []):
+            rules = config.get(section, [])
+            for rule in rules:
                 rule["rate"] *= multiplier
+            group_values = {
+                group.upper(): values.get(section_fields[section], 1.0)
+                for group, values in community.items()
+            }
+            if group_values:
+                expanded = []
+                for rule in rules:
+                    existing_group = rule.get("filters", {}).get("religious_background")
+                    if existing_group:
+                        rule["rate"] *= group_values.get(existing_group, 1.0)
+                        expanded.append(rule)
+                    elif len(set(group_values.values())) == 1:
+                        rule["rate"] *= next(iter(group_values.values()))
+                        expanded.append(rule)
+                    else:
+                        for group, group_multiplier in group_values.items():
+                            expanded.append(
+                                {
+                                    **rule,
+                                    "rate": rule["rate"] * group_multiplier,
+                                    "filters": {
+                                        **rule.get("filters", {}),
+                                        "religious_background": group,
+                                    },
+                                }
+                            )
+                config[section] = expanded
         if adjustments.get("random_seed") is not None:
             config["random_seed"] = adjustments["random_seed"]
         return cls(db_session, config, run_id=run_id)

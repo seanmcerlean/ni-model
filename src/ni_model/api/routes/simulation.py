@@ -104,6 +104,8 @@ def simulation_models():
                 baseline_year=config.get("baseline_year"),
                 data_through=config.get("data_through"),
                 projection_version=config.get("projection_version"),
+                default_start_year=config.get("default_start_year"),
+                default_end_year=config.get("default_end_year"),
                 birth_rules=len(rule_groups[0]),
                 death_rules=len(rule_groups[1]),
                 migration_rules=len(rule_groups[2]),
@@ -221,6 +223,7 @@ def stream_simulation(
     migration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     relocation_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     random_seed: Optional[int] = None,
+    community_adjustments: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     if not (1900 <= start_year <= 2200) or not (1900 <= end_year <= 2200):
@@ -231,13 +234,20 @@ def stream_simulation(
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
 
     _resolve_model_path(model_path)
-    adjustments = SimulationAdjustments(
-        birth_multiplier=birth_multiplier,
-        death_multiplier=death_multiplier,
-        migration_multiplier=migration_multiplier,
-        relocation_multiplier=relocation_multiplier,
-        random_seed=random_seed,
-    ).model_dump()
+    try:
+        community = json.loads(community_adjustments) if community_adjustments else {}
+        adjustments = SimulationAdjustments(
+            birth_multiplier=birth_multiplier,
+            death_multiplier=death_multiplier,
+            migration_multiplier=migration_multiplier,
+            relocation_multiplier=relocation_multiplier,
+            random_seed=random_seed,
+            community=community if community_adjustments else None,
+        ).model_dump(exclude_none=True)
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422, detail=f"Invalid community adjustments: {exc}"
+        ) from exc
     run = PopulationManager.create_run(
         db, model_path, start_year, end_year, adjustments
     )
@@ -283,10 +293,13 @@ def run_simulation(request: SimulationRunRequest, db: Session = Depends(get_db))
         request.model_path,
         request.start_year,
         request.end_year,
-        request.adjustments.model_dump(),
+        request.adjustments.model_dump(exclude_none=True),
     )
     director = _load_director(
-        db, request.model_path, run.id, request.adjustments.model_dump()
+        db,
+        request.model_path,
+        run.id,
+        request.adjustments.model_dump(exclude_none=True),
     )
     orchestrator = SimulationOrchestrator(db, director)
 

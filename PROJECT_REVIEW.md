@@ -109,8 +109,10 @@ Primary references:
   origin and education distributions reuse the current generator.
 - [x] **Isolated run adjustments.** The frontend can apply bounded multipliers
   to birth, mortality, external-migration, and internal-relocation rules plus a
-  reproducibility seed. Adjustments are validated by the API, stored with the
-  durable run, and never modify the sourced YAML model.
+  reproducibility seed, globally and separately for Catholic, Protestant,
+  Other, and None backgrounds. Unfiltered rules are split into cohorts only for
+  that run. Adjustments are validated by the API, stored with the durable run,
+  and never modify the sourced YAML model.
 - [x] Improve UI usability and presentation: current-model defaults, visible
   loading and error states, accessible controls and location detail, responsive
   layout, and per-year polling estimates during playback.

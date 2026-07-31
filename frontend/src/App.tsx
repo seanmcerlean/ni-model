@@ -5,7 +5,28 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { ModelRule, PlaybackSpeed, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+import { CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+
+const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
+
+function isCommunityBackground(value: string): value is CommunityBackground {
+  return BACKGROUNDS.some((background) => background === value);
+}
+
+function defaultAdjustments(): SimulationAdjustments {
+  const rateDefaults = (): CommunityRateAdjustments => ({
+    birth_multiplier: 1, death_multiplier: 1,
+    migration_multiplier: 1, relocation_multiplier: 1,
+  });
+  return {
+    birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
+    relocation_multiplier: 1, random_seed: null,
+    community: {
+      catholic: rateDefaults(), protestant: rateDefaults(),
+      other: rateDefaults(), none: rateDefaults(),
+    },
+  };
+}
 
 export default function App() {
   const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
@@ -23,10 +44,7 @@ export default function App() {
   const [votingLoading, setVotingLoading] = useState(true);
   const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
-  const [adjustments, setAdjustments] = useState<SimulationAdjustments>({
-    birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
-    relocation_multiplier: 1, random_seed: null,
-  });
+  const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -126,8 +144,8 @@ export default function App() {
   const handleModelChange = useCallback((path: string) => {
     setModelPath(path);
     const model = models.find((item) => item.path === path);
-    if (model?.year_min) setStartYear(Math.max(model.year_min, 2024));
-    if (model?.year_max) setEndYear(Math.min(model.year_max, 2035));
+    if (model?.default_start_year) setStartYear(model.default_start_year);
+    if (model?.default_end_year) setEndYear(model.default_end_year);
     setCurrentYear(null);
     setIsPlaying(false);
   }, [models]);
@@ -243,7 +261,8 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   onChange: (value: SimulationAdjustments) => void;
   disabled: boolean;
 }) {
-  const fields: Array<[keyof SimulationAdjustments, string]> = [
+  const [selectedBackground, setSelectedBackground] = useState<CommunityBackground>("catholic");
+  const fields: Array<[keyof CommunityRateAdjustments, string]> = [
     ["birth_multiplier", "Birth rates"], ["death_multiplier", "Mortality rates"],
     ["migration_multiplier", "External migration"], ["relocation_multiplier", "Internal relocation"],
   ];
@@ -255,11 +274,37 @@ function AdjustmentEditor({ value, onChange, disabled }: {
         value={value[key] ?? ""}
         onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} />
     </label>)}
+    <fieldset className="community-adjustments">
+      <legend>Community-specific multipliers</legend>
+      <label className="community-selector">Background
+        <select value={selectedBackground} disabled={disabled}
+          onChange={(event) => {
+            if (isCommunityBackground(event.target.value)) setSelectedBackground(event.target.value);
+          }}>
+          {BACKGROUNDS.map((background) => <option key={background} value={background}>{friendly(background)}</option>)}
+        </select>
+      </label>
+      <div className="community-rate-fields">
+        {fields.map(([key, label]) => <label key={key}>{label}
+          <input type="number" min="0" max="3" step="0.05" disabled={disabled}
+            value={value.community[selectedBackground][key]}
+            onChange={(event) => onChange({
+              ...value,
+              community: {
+                ...value.community,
+                [selectedBackground]: {
+                  ...value.community[selectedBackground], [key]: Number(event.target.value),
+                },
+              },
+            })} />
+        </label>)}
+      </div>
+    </fieldset>
     <label>Random seed<input type="number" disabled={disabled} placeholder="Model default"
       value={value.random_seed ?? ""}
       onChange={(event) => onChange({ ...value, random_seed: event.target.value === "" ? null : Number(event.target.value) })} /></label>
     <button type="button" className="control-button" disabled={disabled}
-      onClick={() => onChange({ birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1, relocation_multiplier: 1, random_seed: null })}>Reset</button>
+      onClick={() => onChange(defaultAdjustments())}>Reset</button>
   </details>;
 }
 

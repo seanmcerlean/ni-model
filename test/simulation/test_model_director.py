@@ -360,6 +360,60 @@ def test_default_jitter_applied_when_not_configured(postgres_db_session):
     assert director.jitter == 0.05
 
 
+def test_per_community_adjustments_split_unfiltered_rules(
+    postgres_db_session, tmp_path
+):
+    model_path = tmp_path / "model.yaml"
+    model_path.write_text(
+        "rate_jitter: 0\nrandom_seed: 42\nbirth_rates:\n"
+        "- rate: 10\n  filters: {}\ndeath_rates: []\n"
+        "migration_rates: []\ninternal_migration_rates: []\n",
+        encoding="utf-8",
+    )
+    community = {
+        group: {
+            "birth_multiplier": 2.0 if group == "catholic" else 1.0,
+            "death_multiplier": 1.0,
+            "migration_multiplier": 1.0,
+            "relocation_multiplier": 1.0,
+        }
+        for group in ("catholic", "protestant", "other", "none")
+    }
+
+    director = ModelDirector.from_yaml(
+        postgres_db_session, model_path, adjustments={"community": community}
+    )
+
+    rules = director.config["birth_rates"]
+    assert len(rules) == 4
+    rates = {rule["filters"]["religious_background"]: rule["rate"] for rule in rules}
+    assert rates == {"CATHOLIC": 20.0, "PROTESTANT": 10.0, "OTHER": 10.0, "NONE": 10.0}
+
+
+def test_per_community_adjustments_modify_existing_group_rules(postgres_db_session):
+    adjustments = {
+        "community": {
+            "catholic": {"birth_multiplier": 1.5},
+            "protestant": {"birth_multiplier": 1.0},
+            "other": {"birth_multiplier": 1.0},
+            "none": {"birth_multiplier": 1.0},
+        }
+    }
+
+    director = ModelDirector.from_yaml(
+        postgres_db_session,
+        "models/ni_current_community.yaml",
+        adjustments=adjustments,
+    )
+
+    catholic = next(
+        rule
+        for rule in director.config["birth_rates"]
+        if rule["filters"]["religious_background"] == "CATHOLIC"
+    )
+    assert catholic["rate"] == pytest.approx(12.135442 * 1.5)
+
+
 def test_same_seed_produces_same_rate_sequence(postgres_db_session):
     config = {
         "random_seed": 123,

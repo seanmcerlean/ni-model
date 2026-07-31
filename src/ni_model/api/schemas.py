@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class AgeStats(BaseModel):
@@ -73,6 +73,8 @@ class SimulationModelSummary(BaseModel):
     baseline_year: Optional[int] = None
     data_through: Optional[int] = None
     projection_version: Optional[str] = None
+    default_start_year: Optional[int] = None
+    default_end_year: Optional[int] = None
     birth_rules: int
     death_rules: int
     migration_rules: int
@@ -89,12 +91,33 @@ class SimulationYearsList(BaseModel):
     years: List[int]
 
 
+class CommunityRateAdjustments(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    birth_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    death_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+
+
+class CommunityAdjustments(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    catholic: CommunityRateAdjustments = Field(default_factory=CommunityRateAdjustments)
+    protestant: CommunityRateAdjustments = Field(
+        default_factory=CommunityRateAdjustments
+    )
+    other: CommunityRateAdjustments = Field(default_factory=CommunityRateAdjustments)
+    none: CommunityRateAdjustments = Field(default_factory=CommunityRateAdjustments)
+
+
 class SimulationAdjustments(BaseModel):
     birth_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     death_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     random_seed: Optional[int] = None
+    community: Optional[CommunityAdjustments] = None
 
 
 class SimulationRunRequest(BaseModel):

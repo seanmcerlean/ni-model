@@ -59,6 +59,8 @@ export interface SimulationModel {
   baseline_year: number | null;
   data_through: number | null;
   projection_version: string | null;
+  default_start_year: number | null;
+  default_end_year: number | null;
   birth_rules: number;
   death_rules: number;
   migration_rules: number;
@@ -90,6 +92,16 @@ export interface SimulationAdjustments {
   migration_multiplier: number;
   relocation_multiplier: number;
   random_seed: number | null;
+  community: Record<CommunityBackground, CommunityRateAdjustments>;
+}
+
+export type CommunityBackground = "catholic" | "protestant" | "other" | "none";
+
+export interface CommunityRateAdjustments {
+  birth_multiplier: number;
+  death_multiplier: number;
+  migration_multiplier: number;
+  relocation_multiplier: number;
 }
 
 export const LOCATION_KEYS: Record<string, string> = {

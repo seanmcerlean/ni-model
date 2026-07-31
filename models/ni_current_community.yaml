@@ -6,6 +6,8 @@ description: NISRA 2024 principal totals split by community background using con
 baseline_year: 2021
 data_through: 2024
 projection_version: Estimated community differential over NISRA/ONS 2024 principal
+default_start_year: 2024
+default_end_year: 2050
 rate_jitter: 0
 random_seed: 42
 birth_rates:

@@ -82,6 +82,8 @@ def build_model(source):
             "projection_version": (
                 "Estimated community differential over NISRA/ONS 2024 principal"
             ),
+            "default_start_year": 2024,
+            "default_end_year": 2050,
         }
     )
     for section in ("birth_rates", "death_rates"):

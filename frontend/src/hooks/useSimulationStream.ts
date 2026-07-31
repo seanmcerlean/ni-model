@@ -47,6 +47,7 @@ export function useSimulationStream(): UseSimulationStream {
         params.set("death_multiplier", String(adjustments.death_multiplier));
         params.set("migration_multiplier", String(adjustments.migration_multiplier));
         params.set("relocation_multiplier", String(adjustments.relocation_multiplier));
+        params.set("community_adjustments", JSON.stringify(adjustments.community));
         if (adjustments.random_seed !== null) params.set("random_seed", String(adjustments.random_seed));
       }
       const es = new EventSource(`/api/simulation/stream?${params}`);

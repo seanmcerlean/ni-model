@@ -39,6 +39,10 @@ Model assumptions are defined in YAML and loaded at runtime via
 `ModelDirector`. Restoring a run resets it from the immutable baseline;
 snapshots and run status survive API restarts.
 
+The run editor supports global and per-community multipliers for births,
+deaths, external migration and internal relocation. These are sensitivity
+controls: they alter an isolated run and do not rewrite the sourced model.
+
 ## Quick start
 
 **Prerequisites:** Python 3.11+, PostgreSQL (or use the Kubernetes setup below)

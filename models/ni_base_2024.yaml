@@ -4,6 +4,8 @@ description: >
   Troubles era (1969-1994): higher birth rates, higher mortality, net emigration.
   Post-GFA (1998-2009): normalising rates, return migration.
   Modern (2010+): contemporary rates, lower Catholic/Protestant gap.
+default_start_year: 1969
+default_end_year: 2024
 
 rate_jitter: 0.05  # ±5% random variation applied to each rate per simulation year
 random_seed: 42    # same population + model + seed produces the same run

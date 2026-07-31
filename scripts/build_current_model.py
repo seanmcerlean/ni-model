@@ -239,6 +239,8 @@ def build_model(rows, internal_flows):
         "baseline_year": 2021,
         "data_through": 2024,
         "projection_version": "NISRA/ONS 2024-based principal projection",
+        "default_start_year": 2024,
+        "default_end_year": 2035,
         "rate_jitter": 0,
         "random_seed": 42,
         "birth_rates": births,

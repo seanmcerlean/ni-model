@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock react-leaflet to avoid DOM/canvas issues in jsdom
@@ -82,6 +82,8 @@ describe("App", () => {
           baseline_year: null,
           data_through: null,
           projection_version: null,
+          default_start_year: 1969,
+          default_end_year: 2024,
           birth_rules: 0,
           death_rules: 0,
           migration_rules: 0,
@@ -103,9 +105,34 @@ describe("App", () => {
           baseline_year: 2021,
           data_through: 2024,
           projection_version: "NISRA/ONS 2024-based principal projection",
+          default_start_year: 2024,
+          default_end_year: 2035,
           birth_rules: 53,
           death_rules: 53,
           migration_rules: 103,
+          internal_migration_rules: 0,
+          birth_rate_rules: [],
+          death_rate_rules: [],
+          migration_rate_rules: [],
+          internal_migration_rate_rules: [],
+          year_min: 2022,
+          year_max: 2074,
+        },
+        {
+          id: "ni_current_community",
+          path: "models/ni_current_community.yaml",
+          name: "NI Current – community-differentiated estimate",
+          description: "Estimated community differential.",
+          rate_jitter: 0,
+          random_seed: 42,
+          baseline_year: 2021,
+          data_through: 2024,
+          projection_version: "Estimated community differential",
+          default_start_year: 2024,
+          default_end_year: 2050,
+          birth_rules: 0,
+          death_rules: 0,
+          migration_rules: 0,
           internal_migration_rules: 0,
           birth_rate_rules: [],
           death_rate_rules: [],
@@ -124,6 +151,21 @@ describe("App", () => {
 
     expect(screen.getByText("2021 Census")).toBeInTheDocument();
     expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Adjust this run"));
+    const community = screen.getByRole("group", { name: "Community-specific multipliers" });
+    expect(within(community).getByLabelText("Background")).toHaveValue("catholic");
+    expect(within(community).getByLabelText("Birth rates")).toHaveValue(1);
+    fireEvent.change(within(community).getByLabelText("Background"), {
+      target: { value: "protestant" },
+    });
+    expect(within(community).getByLabelText("Background")).toHaveValue("protestant");
+
+    fireEvent.change(select, { target: { value: "models/ni_base_2024.yaml" } });
+    expect(screen.getByLabelText("Start")).toHaveValue(1969);
+    expect(screen.getByLabelText("End")).toHaveValue(2024);
+    fireEvent.change(select, { target: { value: "models/ni_current_community.yaml" } });
+    expect(screen.getByLabelText("Start")).toHaveValue(2024);
+    expect(screen.getByLabelText("End")).toHaveValue(2050);
   });
 
   it("shows the evidence-calibrated voting scenario", async () => {

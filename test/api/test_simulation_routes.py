@@ -29,6 +29,8 @@ def test_simulation_models_describes_available_configs(client):
     assert models[0]["name"] == "NI Historical Model"
     assert models[0]["birth_rules"] == 12
     assert models[0]["birth_rate_rules"][0]["rate"] == 26.0
+    assert models[0]["default_start_year"] == 1969
+    assert models[0]["default_end_year"] == 2024
 
     current = next(model for model in models if model["id"] == "ni_current")
     assert current["baseline_year"] == 2021
@@ -39,12 +41,16 @@ def test_simulation_models_describes_available_configs(client):
     assert current["birth_rules"] == 53
     assert current["migration_rules"] == 103
     assert current["internal_migration_rules"] == 110
+    assert current["default_start_year"] == 2024
+    assert current["default_end_year"] == 2035
     assert current["migration_rate_rules"][3]["flow"] == "in"
 
     community = next(model for model in models if model["id"] == "ni_current_community")
     assert community["birth_rules"] == current["birth_rules"] * 4
     assert community["death_rules"] == current["death_rules"] * 4
     assert community["migration_rules"] == current["migration_rules"] * 4
+    assert community["default_start_year"] == 2024
+    assert community["default_end_year"] == 2050
     assert "not an official projection" in community["description"]
     assert {
         rule["filters"]["religious_background"]
@@ -137,6 +143,29 @@ def test_run_adjustments_are_validated_and_persisted(client):
             "end_year": 2024,
             "adjustments": {"birth_multiplier": 3.1},
         },
+    )
+    assert invalid.status_code == 422
+
+
+def test_per_community_adjustments_are_validated_and_persisted(client):
+    created = client.post(
+        "/api/simulation/run",
+        json={
+            "start_year": 2024,
+            "end_year": 2024,
+            "adjustments": {"community": {"catholic": {"birth_multiplier": 1.4}}},
+        },
+    )
+
+    assert created.status_code == 200
+    summary = client.get(f"/api/simulation/runs/{created.json()['run_id']}").json()
+    catholic = summary["adjustments"]["community"]["catholic"]
+    assert catholic["birth_multiplier"] == 1.4
+    assert catholic["death_multiplier"] == 1.0
+
+    invalid = client.post(
+        "/api/simulation/run",
+        json={"adjustments": {"community": {"catholic": {"birth_multiplier": 3.1}}}},
     )
     assert invalid.status_code == 422
 
@@ -253,6 +282,10 @@ def test_stream_rejects_path_traversal_and_invalid_range(client):
         "?start_year=2024&end_year=2024&model_path=../pyproject.toml"
     )
     reversed_years = client.get("/api/simulation/stream?start_year=2025&end_year=2024")
+    malformed_community = client.get(
+        "/api/simulation/stream?community_adjustments=not-json"
+    )
 
     assert traversal.status_code == 422
     assert reversed_years.status_code == 422
+    assert malformed_community.status_code == 422
