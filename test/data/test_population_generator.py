@@ -209,6 +209,11 @@ def test_zero_size():
     assert generate_population(0) == []
 
 
+def test_birth_year_uses_requested_reference_year():
+    person = generate_population(1, seed=42, reference_year=1971)[0]
+    assert person.birth_year == 1971 - person.age
+
+
 def test_negative_size_rejected():
     with pytest.raises(ValueError, match="non-negative"):
         generate_population(-1)

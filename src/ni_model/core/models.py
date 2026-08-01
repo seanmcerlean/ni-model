@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Column,
     DateTime,
     Enum,
@@ -65,6 +66,7 @@ class Person(Base):
     __tablename__ = "persons"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    person_number = Column(BigInteger, nullable=True, unique=True, index=True)
     run_id = Column(
         UUID(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
@@ -72,6 +74,7 @@ class Person(Base):
         index=True,
     )
     age = Column(Integer, nullable=False)
+    birth_year = Column(Integer, nullable=True, index=True)
     religious_background = Column(Enum(ReligiousBackground), nullable=False)
     gender = Column(Enum(Gender), nullable=False)
     education_level = Column(Enum(EducationLevel), nullable=False)
@@ -115,6 +118,8 @@ class SimulationRun(Base):
         cascade="all, delete-orphan",
         order_by="SimulationSnapshot.year",
     )
+    person_events = relationship("SimulationPersonEvent", cascade="all, delete-orphan")
+    checkpoints = relationship("SimulationCheckpoint", cascade="all, delete-orphan")
 
 
 class SimulationSnapshot(Base):
@@ -136,3 +141,62 @@ class SimulationSnapshot(Base):
     )
 
     __table_args__ = (UniqueConstraint("run_id", "year", name="uq_run_snapshot_year"),)
+
+
+class SimulationPersonEvent(Base):
+    """Append-only change to an individual during one simulation run."""
+
+    __tablename__ = "simulation_person_events"
+
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
+    run_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("simulation_runs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    person_id = Column(UUID(as_uuid=True), nullable=False)
+    year = Column(Integer, nullable=False)
+    event_type = Column(String(24), nullable=False)
+    data = Column(JSON, nullable=False, default=dict)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (
+        Index("idx_event_run_year", "run_id", "year"),
+        Index("idx_event_run_person_year", "run_id", "person_id", "year"),
+    )
+
+
+class SimulationCheckpoint(Base):
+    """Metadata for a columnar full-population run checkpoint."""
+
+    __tablename__ = "simulation_checkpoints"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("simulation_runs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    year = Column(Integer, nullable=False)
+    storage_uri = Column(String(1000), nullable=False)
+    population_count = Column(Integer, nullable=False)
+    byte_size = Column(BigInteger, nullable=False)
+    checksum = Column(String(64), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+    )
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "year", name="uq_run_checkpoint_year"),
+        Index("idx_checkpoint_run_year", "run_id", "year"),
+    )

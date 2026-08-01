@@ -6,10 +6,11 @@ import sys
 import uuid
 from pathlib import Path
 
-from alembic import command
-from alembic.config import Config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from alembic import command
+from alembic.config import Config
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -20,11 +21,13 @@ from src.ni_model.data.population_generator import iter_population  # noqa: E402
 PROFILES = {
     "current": {
         "size": 1_903_175,
+        "reference_year": 2021,
         "religion_weights": None,
         "status": "Census 2021 sourced baseline",
     },
     "historical": {
         "size": 1_536_065,
+        "reference_year": 1971,
         "religion_weights": [
             (ReligiousBackground.CATHOLIC, 0.311),
             (ReligiousBackground.PROTESTANT, 0.649),
@@ -40,11 +43,13 @@ PROFILES = {
 }
 
 
-def _mapping(person: Person) -> dict:
+def _mapping(person: Person, person_number: int) -> dict:
     return {
         "id": uuid.uuid4(),
+        "person_number": person_number,
         "run_id": None,
         "age": person.age,
+        "birth_year": person.birth_year,
         "religious_background": person.religious_background,
         "gender": person.gender,
         "education_level": person.education_level,
@@ -80,10 +85,16 @@ def seed(
             session.commit()
 
         batch = []
-        for person in iter_population(
-            population_size, seed=42, religion_weights=profile["religion_weights"]
+        for person_number, person in enumerate(
+            iter_population(
+                population_size,
+                seed=42,
+                religion_weights=profile["religion_weights"],
+                reference_year=profile["reference_year"],
+            ),
+            start=1,
         ):
-            batch.append(_mapping(person))
+            batch.append(_mapping(person, person_number))
             if len(batch) == batch_size:
                 session.bulk_insert_mappings(Person, batch)
                 session.commit()

@@ -1,5 +1,5 @@
-import yaml
 import pytest
+import yaml
 
 from scripts.build_community_model import MULTIPLIERS, SHARES, build_model
 

@@ -193,6 +193,7 @@ def iter_population(
     size: int,
     seed: Optional[int] = None,
     religion_weights=None,
+    reference_year: int = 2021,
 ) -> Iterator[Person]:
     """Yield residents without retaining a full-scale population in memory."""
     if size < 0:
@@ -206,6 +207,7 @@ def iter_population(
         background_weights = regional_background_weights[location]
         yield Person(
             age=age,
+            birth_year=reference_year - age,
             religious_background=_weighted_choice(background_weights, rng),
             gender=_weighted_choice(_GENDER_WEIGHTS, rng),
             location=location,
@@ -214,7 +216,9 @@ def iter_population(
         )
 
 
-def generate_population(size: int, seed: int = None) -> List[Person]:
+def generate_population(
+    size: int, seed: int = None, reference_year: int = 2021
+) -> List[Person]:
     """Generate a list of Person objects with realistic NI demographic distributions.
 
     Args:
@@ -224,4 +228,4 @@ def generate_population(size: int, seed: int = None) -> List[Person]:
     Returns:
         List of unsaved Person instances
     """
-    return list(iter_population(size, seed=seed))
+    return list(iter_population(size, seed=seed, reference_year=reference_year))

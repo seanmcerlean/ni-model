@@ -36,6 +36,7 @@ class PopulationManager:
         start_year: int,
         end_year: int,
         adjustments: Optional[Dict] = None,
+        clone_population: bool = True,
     ) -> SimulationRun:
         """Create a durable run and clone the immutable baseline into it."""
         baseline_count = (
@@ -51,7 +52,8 @@ class PopulationManager:
         )
         db_session.add(run)
         db_session.flush()
-        cls(db_session, run.id).reset_to_baseline()
+        if clone_population:
+            cls(db_session, run.id).reset_to_baseline()
         db_session.commit()
         return run
 
@@ -85,6 +87,7 @@ class PopulationManager:
                     "id": uuid.uuid4(),
                     "run_id": self.run_id,
                     "age": person.age,
+                    "birth_year": person.birth_year,
                     "religious_background": person.religious_background,
                     "gender": person.gender,
                     "education_level": person.education_level,

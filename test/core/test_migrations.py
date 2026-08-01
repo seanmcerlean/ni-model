@@ -26,16 +26,20 @@ def test_initial_migration_upgrades_and_downgrades_clean_database():
         inspector = inspect(engine)
         assert {
             "persons",
+            "simulation_checkpoints",
+            "simulation_person_events",
             "simulation_runs",
             "simulation_snapshots",
             "alembic_version",
         }.issubset(inspector.get_table_names())
-        assert "run_id" in {
-            column["name"] for column in inspector.get_columns("persons")
-        }
+        person_columns = {column["name"] for column in inspector.get_columns("persons")}
+        assert {"run_id", "person_number", "birth_year"}.issubset(person_columns)
         with engine.connect() as connection:
-            location = connection.execute(text("SELECT location FROM persons")).scalar()
-        assert location == "BELFAST"
+            row = connection.execute(
+                text("SELECT location, person_number FROM persons")
+            ).one()
+        assert row.location == "BELFAST"
+        assert row.person_number == 1
 
         command.downgrade(config, "base")
         assert inspect(engine).get_table_names() == ["alembic_version"]

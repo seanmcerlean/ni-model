@@ -12,6 +12,9 @@ from src.ni_model.core.models import (
     Origin,
     Person,
     ReligiousBackground,
+    SimulationCheckpoint,
+    SimulationPersonEvent,
+    SimulationRun,
 )
 
 
@@ -45,6 +48,44 @@ def test_person_model_creation(in_memory_db):
 
     assert person.id is not None
     assert isinstance(person.id, uuid.UUID)
+
+
+def test_temporal_run_records_can_be_persisted(in_memory_db):
+    run = SimulationRun(
+        model_path="models/ni_current.yaml",
+        start_year=2024,
+        end_year=2025,
+        base_population_count=1,
+    )
+    in_memory_db.add(run)
+    in_memory_db.flush()
+    person_id = uuid.uuid4()
+    in_memory_db.add(
+        SimulationPersonEvent(
+            run_id=run.id,
+            person_id=person_id,
+            year=2025,
+            event_type="relocation",
+            data={"location": "belfast"},
+        )
+    )
+    in_memory_db.add(
+        SimulationCheckpoint(
+            run_id=run.id,
+            year=2025,
+            storage_uri="file:///tmp/checkpoint.parquet",
+            population_count=1,
+            byte_size=123,
+            checksum="0" * 64,
+        )
+    )
+    in_memory_db.commit()
+
+    event = in_memory_db.query(SimulationPersonEvent).one()
+    checkpoint = in_memory_db.query(SimulationCheckpoint).one()
+    assert event.person_id == person_id
+    assert event.data == {"location": "belfast"}
+    assert checkpoint.population_count == 1
 
 
 def test_person_model_constraints(in_memory_db):
