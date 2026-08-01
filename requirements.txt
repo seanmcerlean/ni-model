@@ -10,3 +10,4 @@ adbc-driver-postgresql>=1.6.0,<2.0.0
 fastapi>=0.110.0
 uvicorn>=0.29.0
 pyyaml>=6.0
+fastmcp==4.0.0b1

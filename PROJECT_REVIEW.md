@@ -72,6 +72,8 @@ Primary references:
 - [x] Custom overall polling baselines reweight LucidTalk subgroup odds on
   demand, preserving demographic and area differences without stored
   person-level political scores.
-- [ ] Add MCP functionality in addition to the APIs so an AI could interact if desired. Use FastMCP 4
+- [x] FastMCP 4.0.0b1 exposes model discovery, demographics, on-demand polling,
+  durable simulation control and bounded person inspection over HTTP and stdio;
+  destructive deletion is intentionally REST-only.
 
 Performance work is tracked separately in `performance.md`.

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from ..mcp.server import mcp
 from .routes.population import router as population_router
 from .routes.simulation import router as simulation_router
 
@@ -12,9 +13,13 @@ FRONTEND_DIST = os.path.join(
 )
 
 
+mcp_http_app = mcp.http_app(path="/", stateless_http=True)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    yield
+    async with mcp_http_app.lifespan(app):
+        yield
 
 
 def create_app() -> FastAPI:
@@ -32,6 +37,7 @@ def create_app() -> FastAPI:
 
     app.include_router(population_router)
     app.include_router(simulation_router)
+    app.mount("/mcp", mcp_http_app, name="mcp")
     if os.path.isdir(FRONTEND_DIST):
         app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
     return app

@@ -15,6 +15,7 @@ resulting population state.
 - Generates border poll voting predictions (Unite/Remain/Undecided) from the simulated population
 - Validates model output against NISRA census benchmarks (1971–2021)
 - Streams simulation results in real time via SSE to a React/Leaflet map visualisation
+- Exposes the same read, simulation and polling workflows to AI clients over MCP
 
 ## Architecture
 
@@ -23,6 +24,7 @@ src/ni_model/
 ├── api/            # FastAPI — REST endpoints + SSE stream
 ├── core/           # SQLAlchemy models, database session
 ├── data/           # Population generator, repository pattern
+├── mcp/            # FastMCP 4 tools over HTTP or stdio
 ├── simulation/     # Engine, orchestrator, calculators, model director, voting predictor
 └── validation/     # Historical validator, model comparator
 ```
@@ -69,7 +71,19 @@ alembic upgrade head
 uvicorn src.ni_model.api.app:app --reload
 ```
 
-API available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+API available at `http://localhost:8000`. Interactive docs are at
+`http://localhost:8000/docs`, and the MCP endpoint is
+`http://localhost:8000/mcp/`.
+
+The MCP interface uses the FastMCP 4 beta and MCP 2 protocol types. It provides
+model discovery, baseline and area statistics, custom polling scenarios,
+durable simulation control, aggregate year snapshots, and bounded inspection
+of individual histories. It deliberately does not expose destructive run
+deletion. To use a local stdio transport instead:
+
+```bash
+venv/bin/python scripts/mcp_server.py
+```
 
 ### Full-scale PostgreSQL baseline
 
@@ -84,18 +98,18 @@ docker compose up --build
 The API and built frontend are then available at `http://localhost:8000`.
 Seeding uses batches of 25,000 so memory use does not grow with the population.
 
-A separate, opt-in 1,536,065-record 1971-scale database is available for
+A separate, opt-in 1,512,500-record historical database is available for
 engineering and performance testing:
 
 ```bash
 docker compose --profile historical up historical-seed
 ```
 
-That historical baseline is a **best-effort representative estimate**, not a
-perfect reconstruction: only its total and legacy community-background
-assumptions are historical; age, current-LGD, country-of-birth and education
-distributions use the current generator. Treat those fields as estimates and do
-not present them as observed 1971 data.
+That 1969 baseline is a **best-effort representative estimate**, not a perfect
+reconstruction. Its total is sourced for 1969 and its broad age distribution
+uses the 1971 Census as the nearest documented proxy. Community background and
+other unavailable joint distributions remain estimates, and current LGDs are
+used as stable simulation areas rather than claimed historical boundaries.
 
 ## Kubernetes deployment
 
@@ -123,6 +137,7 @@ kubectl apply -f k8s/app.yaml
 | DELETE | `/api/simulation/runs/{run_id}` | Delete a terminal run, events, snapshots, and checkpoints |
 | GET | `/api/simulation/runs/{run_id}/years/{year}/people` | Filtered, paginated individual population state |
 | GET | `/api/simulation/runs/{run_id}/people/{person_id}/history` | Inspect one resident's initial state and events |
+| MCP | `/mcp/` | FastMCP 4 discovery and tool calls over HTTP |
 
 SSE stream example:
 ```
@@ -131,8 +146,8 @@ GET /api/simulation/stream?start_year=1971&end_year=2024&model_path=models/ni_ba
 
 Each event contains the run ID and full demographic snapshot for that year.
 The response also exposes `X-Simulation-Run-ID`; a final `event: complete`
-signals the end. Run populations and snapshots are deleted together when the
-run is explicitly removed (a deletion endpoint is not yet exposed).
+signals the end. Run events, snapshots and checkpoints are deleted together
+through the terminal-run deletion endpoint.
 
 ## Model configuration
 
