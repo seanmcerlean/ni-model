@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-benchmark:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ni_model
+          POSTGRES_USER: ni_user
+          POSTGRES_PASSWORD: ni_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ni_user -d ni_model"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: python -m venv venv
+      - run: venv/bin/pip install -r requirements.txt
+      - run: venv/bin/black --check --workers 4 src test scripts alembic
+      - run: venv/bin/isort --check-only src test scripts alembic
+      - run: venv/bin/flake8 src test
+      - run: venv/bin/pytest test/
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm test -- --run
+      - working-directory: frontend
+        run: npm run build
+      - env:
+          DATABASE_URL: postgresql://ni_user:ni_password@localhost:5432/ni_model
+        run: venv/bin/python scripts/seed_population.py current --size 25000
+      - env:
+          DATABASE_URL: postgresql://ni_user:ni_password@localhost:5432/ni_model
+        run: >-
+          venv/bin/python scripts/benchmark_simulation.py
+          --engine columnar --expected-size 25000
+          --start-year 2025 --end-year 2025 --enforce-budget

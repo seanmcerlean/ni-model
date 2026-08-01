@@ -6,7 +6,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from alembic import command
@@ -101,6 +101,14 @@ def seed(
                 batch = []
         if batch:
             session.bulk_insert_mappings(Person, batch)
+            session.commit()
+        if engine.dialect.name == "postgresql":
+            session.execute(
+                text(
+                    "SELECT setval('persons_person_number_seq', "
+                    "COALESCE((SELECT max(person_number) FROM persons), 0) + 1, false)"
+                )
+            )
             session.commit()
         print(f"Seeded {population_size:,} residents. {profile['status']}")
         return population_size

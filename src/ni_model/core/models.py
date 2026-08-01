@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    FetchedValue,
     Index,
     Integer,
     String,
@@ -66,7 +67,13 @@ class Person(Base):
     __tablename__ = "persons"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    person_number = Column(BigInteger, nullable=True, unique=True, index=True)
+    person_number = Column(
+        BigInteger,
+        nullable=True,
+        unique=True,
+        index=True,
+        server_default=FetchedValue(),
+    )
     run_id = Column(
         UUID(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
@@ -170,7 +177,7 @@ class SimulationPersonEvent(Base):
     )
 
     __table_args__ = (
-        Index("idx_event_run_year", "run_id", "year"),
+        Index("idx_event_run_year_id", "run_id", "year", "id"),
         Index("idx_event_run_person_year", "run_id", "person_id", "year"),
     )
 

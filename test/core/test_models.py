@@ -88,6 +88,19 @@ def test_temporal_run_records_can_be_persisted(in_memory_db):
     assert checkpoint.population_count == 1
 
 
+def test_event_indexes_lead_with_run_scope_and_cover_pagination():
+    indexes = {
+        index.name: tuple(column.name for column in index.columns)
+        for index in SimulationPersonEvent.__table__.indexes
+    }
+    assert indexes["idx_event_run_year_id"] == ("run_id", "year", "id")
+    assert indexes["idx_event_run_person_year"] == (
+        "run_id",
+        "person_id",
+        "year",
+    )
+
+
 def test_person_model_constraints(in_memory_db):
     """Test Person model field constraints"""
     person = Person(

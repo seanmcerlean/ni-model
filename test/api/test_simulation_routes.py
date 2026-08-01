@@ -2,6 +2,8 @@ import json
 import time
 import uuid
 
+import polars as pl
+
 from src.ni_model.api.routes.simulation import _columnar_years, _load_director
 from src.ni_model.core.models import (
     Person,
@@ -248,6 +250,74 @@ def test_run_summary_and_year_endpoints(client):
     assert snapshot.json()["run_id"] == run_id
     assert snapshot.json()["year"] == 2024
     assert "locations" in snapshot.json()
+
+
+def test_completed_year_checkpoint_can_be_downloaded(client, tmp_path):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+
+    response = client.get(
+        f"/api/simulation/runs/{created['run_id']}/years/2024/checkpoint"
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/vnd.apache.parquet"
+    assert response.headers["x-checkpoint-sha256"]
+    path = tmp_path / "download.parquet"
+    path.write_bytes(response.content)
+    frame = pl.read_parquet(path)
+    assert frame.height == int(response.headers["x-population-count"])
+
+
+def test_checkpoint_download_requires_an_exact_available_file(
+    client, populated_db
+):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+    run_id = uuid.UUID(created["run_id"])
+
+    missing_year = client.get(
+        f"/api/simulation/runs/{run_id}/years/2024/checkpoint"
+    )
+    assert missing_year.status_code == 404
+
+    checkpoint = (
+        populated_db.query(SimulationCheckpoint)
+        .filter(SimulationCheckpoint.run_id == run_id)
+        .one()
+    )
+    checkpoint.storage_uri = "file:///missing/checkpoint.parquet"
+    populated_db.commit()
+    unavailable = client.get(
+        f"/api/simulation/runs/{run_id}/years/2025/checkpoint"
+    )
+    assert unavailable.status_code == 410
+
+
+def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
+    client, populated_db
+):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+    stored = (
+        populated_db.query(SimulationSnapshot)
+        .filter(SimulationSnapshot.run_id == uuid.UUID(created["run_id"]))
+        .one()
+    )
+
+    response = client.get(
+        f"/api/simulation/runs/{created['run_id']}/years/2024"
+    ).json()
+
+    assert stored.data["_polling_inputs"]
+    assert len(stored.data["_polling_inputs"][0]) == 4
+    assert "_polling_inputs" not in response
 
 
 def test_run_exposes_paginated_people_and_individual_history(client):

@@ -12,6 +12,10 @@ from ni_model.core import models  # noqa: E402,F401
 from ni_model.core.database import Base  # noqa: E402
 
 config = context.config
+database_url = os.getenv("DATABASE_URL")
+configured_url = config.get_main_option("sqlalchemy.url")
+if database_url and "localhost" in configured_url:
+    config.set_main_option("sqlalchemy.url", database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

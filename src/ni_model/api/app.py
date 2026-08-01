@@ -24,6 +24,12 @@ def create_app() -> FastAPI:
         version="0.2.4",
         lifespan=lifespan,
     )
+
+    @app.get("/health", tags=["operations"])
+    def health() -> dict[str, str]:
+        """Remain a cheap liveness probe while simulations run elsewhere."""
+        return {"status": "ok"}
+
     app.include_router(population_router)
     app.include_router(simulation_router)
     if os.path.isdir(FRONTEND_DIST):

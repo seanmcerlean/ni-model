@@ -5,11 +5,12 @@ import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import AsyncGenerator, Optional
+from urllib.parse import unquote, urlparse
 from uuid import UUID
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -226,9 +227,10 @@ def _capture_columnar_snapshot(
     year: int,
     result: dict,
     db: Session,
+    voting_rows=None,
 ) -> SimulationYearSnapshot:
     aggregates = worker.demographic_summary(year)
-    voting_rows = worker.voting_rows(year)
+    voting_rows = worker.voting_rows(year) if voting_rows is None else voting_rows
     voting_predictions = {
         calibration: _snapshot_voting_prediction(
             db,
@@ -246,6 +248,15 @@ def _capture_columnar_snapshot(
         voting_predictions=voting_predictions,
         simulation_result=SimulationYearResult(**result),
     )
+
+
+def _stored_columnar_snapshot(snapshot: SimulationYearSnapshot, voting_rows) -> dict:
+    data = snapshot.model_dump(mode="json")
+    data["_polling_inputs"] = [
+        [row.location.value, row.religious_background.value, row.age, row.count]
+        for row in voting_rows
+    ]
+    return data
 
 
 def _columnar_years(
@@ -286,18 +297,20 @@ def _columnar_years(
             seed=director.seed,
         )
         first_year = run.start_year
-    event_offset = 0
     checkpoint_interval = max(1, int(os.getenv("CHECKPOINT_INTERVAL", "5")))
     for year in range(first_year, run.end_year + 1):
         db.refresh(run)
         if run.status == "cancelling":
             return
         result = worker.run_year(year)
-        snapshot = _capture_columnar_snapshot(worker, run.id, year, result, db)
-        event_store.append(run.id, worker.events[event_offset:])
-        event_offset = len(worker.events)
+        voting_rows = worker.voting_rows(year)
+        snapshot = _capture_columnar_snapshot(
+            worker, run.id, year, result, db, voting_rows=voting_rows
+        )
+        event_store.append(run.id, worker.events)
+        worker.events.clear()
         PopulationManager(db, run.id).create_snapshot(
-            f"year_{year}", year, snapshot.model_dump(mode="json")
+            f"year_{year}", year, _stored_columnar_snapshot(snapshot, voting_rows)
         )
         if (
             year == run.end_year
@@ -367,6 +380,45 @@ def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_
     if not snapshot:
         raise HTTPException(status_code=404, detail=f"No snapshot for year {year}")
     return SimulationYearSnapshot.model_validate(snapshot.data)
+
+
+@router.get("/runs/{run_id}/years/{year}/checkpoint")
+def simulation_year_checkpoint(
+    run_id: UUID, year: int, db: Session = Depends(get_db)
+):
+    """Download an exact, durable full-population Parquet checkpoint."""
+    _get_run(db, run_id)
+    checkpoint = (
+        db.query(SimulationCheckpoint)
+        .filter(
+            SimulationCheckpoint.run_id == run_id,
+            SimulationCheckpoint.year == year,
+        )
+        .one_or_none()
+    )
+    if not checkpoint:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No full-population checkpoint for year {year}",
+        )
+    parsed = urlparse(checkpoint.storage_uri)
+    if parsed.scheme != "file":
+        raise HTTPException(
+            status_code=501,
+            detail="This checkpoint storage backend cannot be downloaded directly",
+        )
+    path = Path(unquote(parsed.path))
+    if not path.is_file():
+        raise HTTPException(status_code=410, detail="Checkpoint file is unavailable")
+    return FileResponse(
+        path,
+        media_type="application/vnd.apache.parquet",
+        filename=f"ni-model-{run_id}-{year}.parquet",
+        headers={
+            "X-Checkpoint-SHA256": checkpoint.checksum,
+            "X-Population-Count": str(checkpoint.population_count),
+        },
+    )
 
 
 @router.get("/runs/{run_id}/years/{year}/people", response_model=SimulationPeoplePage)

@@ -2,10 +2,11 @@
 
 import json
 import resource
+import statistics
 import time
 from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterator
 
@@ -20,6 +21,29 @@ class StageMeasurement:
     cpu_seconds: float = 0.0
     sql_statements: int = 0
     rows_affected: int = 0
+    wall_samples: list[float] = field(default_factory=list)
+    cpu_samples: list[float] = field(default_factory=list)
+
+    @staticmethod
+    def _percentile(samples: list[float], fraction: float) -> float:
+        if not samples:
+            return 0.0
+        ordered = sorted(samples)
+        index = max(0, round(fraction * len(ordered) + 0.5) - 1)
+        return ordered[min(index, len(ordered) - 1)]
+
+    def report(self) -> dict:
+        return {
+            "calls": self.calls,
+            "wall_seconds": self.wall_seconds,
+            "wall_median_seconds": statistics.median(self.wall_samples),
+            "wall_p95_seconds": self._percentile(self.wall_samples, 0.95),
+            "cpu_seconds": self.cpu_seconds,
+            "cpu_median_seconds": statistics.median(self.cpu_samples),
+            "cpu_p95_seconds": self._percentile(self.cpu_samples, 0.95),
+            "sql_statements": self.sql_statements,
+            "rows_affected": self.rows_affected,
+        }
 
 
 class PerformanceRecorder:
@@ -30,10 +54,16 @@ class PerformanceRecorder:
         self.measurements: Dict[str, StageMeasurement] = defaultdict(StageMeasurement)
         self._active_stage = None
         self._listening = False
+        self._wall_started = None
+        self._cpu_started = None
+        self.total_wall_seconds = 0.0
+        self.total_cpu_seconds = 0.0
 
     def __enter__(self):
         event.listen(self.engine, "after_cursor_execute", self._after_cursor_execute)
         self._listening = True
+        self._wall_started = time.perf_counter()
+        self._cpu_started = time.process_time()
         return self
 
     def __exit__(self, _exc_type, _exc, _traceback):
@@ -42,6 +72,9 @@ class PerformanceRecorder:
                 self.engine, "after_cursor_execute", self._after_cursor_execute
             )
             self._listening = False
+        if self._wall_started is not None:
+            self.total_wall_seconds = time.perf_counter() - self._wall_started
+            self.total_cpu_seconds = time.process_time() - self._cpu_started
 
     def _after_cursor_execute(
         self, _connection, cursor, _statement, _parameters, _context, _many
@@ -65,17 +98,27 @@ class PerformanceRecorder:
         try:
             yield
         finally:
-            measurement.wall_seconds += time.perf_counter() - wall_start
-            measurement.cpu_seconds += time.process_time() - cpu_start
+            wall_elapsed = time.perf_counter() - wall_start
+            cpu_elapsed = time.process_time() - cpu_start
+            measurement.wall_seconds += wall_elapsed
+            measurement.cpu_seconds += cpu_elapsed
+            measurement.wall_samples.append(wall_elapsed)
+            measurement.cpu_samples.append(cpu_elapsed)
             self._active_stage = None
 
     def report(self, metadata=None) -> dict:
         usage = resource.getrusage(resource.RUSAGE_SELF)
+        measured_wall = sum(item.wall_seconds for item in self.measurements.values())
         return {
             "metadata": metadata or {},
             "peak_rss_kib": usage.ru_maxrss,
+            "total_wall_seconds": self.total_wall_seconds,
+            "total_cpu_seconds": self.total_cpu_seconds,
+            "unattributed_wall_seconds": max(
+                0.0, self.total_wall_seconds - measured_wall
+            ),
             "stages": {
-                name: asdict(measurement)
+                name: measurement.report()
                 for name, measurement in sorted(self.measurements.items())
             },
         }

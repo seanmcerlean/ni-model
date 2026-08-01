@@ -1,188 +1,123 @@
-# Individual-population performance plan
+# Individual-population performance implementation
 
-## Objective
+## Status
 
-Simulate and retain Northern Ireland's complete individual population while
-making yearly execution fast enough for interactive use. Every synthetic
-resident must keep a stable identity and an inspectable history. Existing model
-selection, adjustments, reproducible randomness, LGD detail, polling estimates,
-durable runs, playback, and exports must remain available.
+Implemented and verified for the 0.3.0 release. The application simulates the
+complete 1,903,175-person synthetic population while retaining stable identity,
+inspectable individual history, yearly NI/LGD aggregates, both polling models,
+durable restart, and aggregate-only browser streaming.
 
-The target architecture keeps PostgreSQL as the authoritative database and uses
-Polars/Apache Arrow in a worker process for vectorised simulation. PostgreSQL
-stores the immutable population, run metadata, individual events, checkpoints,
-and aggregate snapshots. The worker loads compact typed columns, applies a year
-without Python ORM objects, persists events and snapshots, and emits progress to
-the existing API stream.
+PostgreSQL remains authoritative. A separate worker loads the immutable
+baseline into compact Polars/Arrow columns, applies each year vectorially,
+persists append-only lifecycle and relocation events, writes yearly aggregate
+snapshots, and creates periodic full-population Parquet checkpoints.
 
-## Performance budgets
+## Verified budgets
 
-Benchmarks must report median and 95th percentile timings on PostgreSQL for a
-fixed seed and model.
+| Workload | Measured | Target |
+|---|---:|---:|
+| 25,000-person core year | 0.150 s p95 | under 0.250 s |
+| 250,000-person core year | 0.292 s p95 | under 0.750 s |
+| 1,903,175-person core year | 1.962 s p95 | under 3.000 s |
+| First full-scale streamed year excluding cold load | 4.409 s | under 5.000 s |
+| Full-scale peak worker RSS | 986,324 KiB | under 1 GiB |
+| Repeated fixed-seed full run | identical annual results | identical |
 
-| Workload | Target |
-|---|---:|
-| 25,000-person year | under 250 ms |
-| 250,000-person year | under 750 ms |
-| 1,903,175-person year | under 3 seconds |
-| First streamed year, excluding a cold full-scale load | under 5 seconds |
-| Full-scale worker memory per active run | under 1 GB |
-| Repeated run with same model, inputs and seed | identical results |
+Full methodology, hardware, parity tables, stage timings, payload sizes,
+storage measurements, source validation, and limitations are recorded in
+`benchmarks/README.md`.
 
-Performance work is not complete if it meets timing targets by omitting
-individual history, area detail, either polling calibration, or durable yearly
-snapshots.
+## Implemented architecture
 
-## Public delivery and stream boundary
+### Measurement and correctness
 
-The browser stream must remain aggregate-only even though each simulation runs
-against the complete individual population. The current SSE boundary already
-has the correct shape: it emits yearly NI and LGD demographic totals, political
-predictions, and event counts, without serialising individual residents.
+- `scripts/benchmark_simulation.py` benchmarks ORM and columnar engines on
+  PostgreSQL, validates baseline size, and records wall/CPU total, median and
+  p95 timing, SQL activity, RSS, outputs, and SSE size by stage.
+- CI runs all backend and frontend gates plus a regression-failing 25K
+  PostgreSQL benchmark.
+- Deterministic tests cover historical, flat-current, and
+  community-differentiated paths. Engine parity covers totals, events,
+  community cohorts, LGDs, and polling output.
 
-Optimisation must therefore focus on server-side execution and storage rather
-than reducing model fidelity or moving individual records through the stream:
+### Aggregate boundary
 
-- Do not clone the complete baseline population into PostgreSQL rows for every
-  run. Reference one versioned immutable baseline and store run-specific state
-  as lifecycle and location events, plus checkpoints.
-- Keep annual aggregate snapshots small and immediately available for playback.
-- Measure snapshot query time and SSE payload size separately from simulation
-  time so network efficiency does not conceal database costs.
-- Calculate both polling calibrations from one shared aggregate dataset. If
-  profiling still shows material cost, stream the selected calibration and
-  obtain alternatives on demand without repeating population aggregation.
-- Never send person-level state in normal SSE messages. Expose individual
-  history separately through filtered, paginated APIs and downloadable
-  checkpoints.
-- For public hosting, execute simulations as bounded background jobs rather than
-  holding an HTTP request and database transaction open for the run lifetime.
-- Apply per-user concurrency, horizon, cancellation, timeout, retention, and
-  storage limits while keeping model version and seed metadata reproducible.
+- One grouped demographic query produces NI and every LGD snapshot.
+- One shared location/community/exact-age dataset produces LucidTalk and NILT
+  results; both calibrations do not rescan the population.
+- Yearly snapshots retain private joint polling inputs so a future custom
+  baseline can be calculated on demand without storing person-level political
+  scores or rerunning the simulation.
+- SSE messages contain only aggregate yearly data. They never contain resident
+  rows or individual events.
 
-## Milestone 1: measurement and correctness harness
+### Compact individuals and deterministic evolution
 
-- Add a benchmark command for 25K, 250K, and full-scale baselines.
-- Time baseline preparation, ageing, births, deaths, external migration,
-  relocation, political calculation, snapshot aggregation, persistence, and
-  serialization separately.
-- Count SQL statements and rows transferred for every stage.
-- Record CPU time, wall time, peak resident memory, stored bytes per run, and
-  per-year SSE payload size.
-- Create deterministic reference runs for the flat current, differentiated
-  current, and historical models.
-- Add statistical parity assertions for totals, cohort distributions, LGDs,
-  event counts, and political estimates.
+- Residents have stable UUID identity and `BIGINT` person numbers. The worker
+  stores `birth_year`, derives age for the requested year, and uses typed
+  categorical columns for community, gender, LGD, origin, and education.
+- Birth, death, arrival, departure, and relocation events are append-only and
+  include their effective year. This event log is the canonical lifecycle and
+  location-history representation; separate mutable lifecycle columns and a
+  duplicate location table were intentionally avoided.
+- Random selection uses local deterministic streams derived from seed, year,
+  event/rule identity, and stable resident identity. Process-global randomness
+  is not used.
+- Sequential semantics remain ageing-by-year, births, deaths, external
+  migration, internal relocation, then aggregation.
+- Flat rules, community-specific rules, and global/per-community multipliers
+  all execute through the same production worker.
 
-Exit criteria: a reproducible report identifies the three dominant costs and
-fails CI when the 25K benchmark regresses materially.
+### History, checkpoints, and recovery
 
-## Milestone 2: remove redundant database work
+- The starting population is immutable and shared instead of cloned for each
+  production run.
+- Aggregate JSON snapshots are stored every year. Full Parquet checkpoints are
+  stored at a configurable interval and at completion with size and SHA-256
+  metadata.
+- Arbitrary years reconstruct from the nearest checkpoint plus ordered events.
+  Exact checkpoint years use lazy Parquet pagination.
+- APIs expose filtered/paginated population years, individual histories, and
+  downloadable exact-year Parquet checkpoints without widening SSE.
+- Checkpoint resume, replay, cancellation, retention cleanup, and deletion are
+  covered by regression tests.
 
-- Replace per-LGD snapshot queries with grouped queries over location,
-  community background, age, gender, and origin.
-- Derive NI totals from the same grouped result.
-- Calculate LucidTalk and NILT, including all LGDs, from one shared
-  location/background/age dataset.
-- Avoid independently recomputing and serialising both complete polling
-  calibrations when an on-demand alternative is measurably cheaper.
-- Cache immutable model configuration and compiled active rules by year.
-- Avoid recounting the run population while creating the same yearly snapshot.
-- Keep the SSE response aggregate-only and preserve the frontend data needed for
-  playback, maps, area statistics, overall statistics, and political estimates.
+### Public execution
 
-Exit criteria: yearly snapshot and political output require no more than five
-aggregate queries and exactly match the reference output.
+- Run creation returns durable pending metadata immediately. A separate worker
+  claims jobs with PostgreSQL `FOR UPDATE SKIP LOCKED`.
+- SSE polls durable snapshots independently of worker transactions. Cooperative
+  cancellation occurs between years, and interrupted running jobs recover to
+  pending before resuming from the latest checkpoint.
+- Per-owner concurrency and horizon limits, worker count, timeout, retention,
+  and checkpoint storage limits are configurable.
+- `/health` is a constant-time application liveness probe and remains
+  independent of simulation work. Two-run isolation and endpoint responsiveness
+  are tested.
+- Docker Compose and Kubernetes manifests run API and worker separately and
+  share durable checkpoint storage.
 
-## Milestone 3: compact individual representation
+## Full-scale verification
 
-- Add stable `BIGINT` internal person identifiers while retaining UUID run IDs.
-- Store `birth_year` instead of incrementing every resident's age annually.
-- Use compact categorical codes in the worker for community background, gender,
-  LGD, origin, and education.
-- Add lifecycle fields for birth, death, arrival, and departure years.
-- Add a location-history table with effective-from and effective-to years.
-- Provide compatibility queries that expose age and current location exactly as
-  the API expects.
-- Select indexes from `EXPLAIN ANALYZE` evidence, with `run_id` leading all
-  run-scoped access paths.
+The release run evolved all 1,903,175 baseline residents from 2025 through 2050
+and ended at 1,906,726. It retained yearly area details and both political
+calibrations. The vector worker is now the production default; the ORM engine is
+retained only as a one-release benchmark/diagnostic comparison path.
 
-Exit criteria: any resident can be reconstructed at any simulated year, annual
-ageing performs no population-wide database update, and existing API tests pass.
+Full-scale `EXPLAIN ANALYZE` evidence selected run-leading indexes. Annual event
+pagination now uses `(run_id, year, id)` and measured 0.53 ms for 100 rows;
+individual history uses `(run_id, person_id, year)` and measured 3.15 ms.
 
-## Milestone 4: vectorised simulation worker
+## Operational limits and known model limitations
 
-- Introduce a worker interface behind the existing model director contract.
-- Load the active run into typed Polars/Arrow columns without constructing
-  SQLAlchemy `Person` objects.
-- Apply birth, death, immigration, emigration, and relocation rules using
-  vectorised masks and bulk column operations.
-- Give every event a deterministic random stream derived from run seed, year,
-  event type, rule, and person identifier.
-- Preserve sequential semantics: age, births, deaths, external migration,
-  internal relocation, then snapshot.
-- Support flat rules, community-differentiated rules, and all global and
-  per-community run multipliers.
-- Bulk-write new people and individual lifecycle/location events to PostgreSQL.
-
-Exit criteria: the worker meets parity tolerances on reference runs, produces
-identical output for repeated seeds, and meets the 25K and 250K budgets.
-
-## Milestone 5: event history and checkpoints
-
-- Keep the immutable starting population once rather than copying annual states.
-- Persist individual births, deaths, arrivals, departures, and relocations as
-  append-only events.
-- Store aggregate JSON snapshots every year for immediate UI playback.
-- Write a full individual Parquet checkpoint at a configurable interval and at
-  run completion.
-- Reconstruct arbitrary years from the nearest checkpoint plus subsequent
-  events.
-- Add an individual-history API with pagination and filters, without placing
-  individual records in the normal yearly SSE payload.
-- Verify restore, cancellation, replay, and deletion semantics.
-
-Exit criteria: a user can inspect any individual or full population year,
-restart an interrupted run from a checkpoint, and reproduce the same remaining
-years.
-
-## Milestone 6: background execution and concurrency
-
-- Make simulation creation return a durable pending run immediately.
-- Use a PostgreSQL-backed worker queue with `FOR UPDATE SKIP LOCKED`; avoid an
-  additional queue service until measurements justify one.
-- Stream status and completed snapshots independently of the worker transaction.
-- Add cooperative cancellation between years.
-- Limit concurrent workers by measured memory and database capacity.
-- Ensure one slow full-scale run cannot block population and model endpoints.
-
-Exit criteria: two simultaneous runs remain isolated, API health stays
-responsive, cancellation is durable, and a worker restart does not corrupt or
-duplicate events.
-
-## Milestone 7: full-scale rollout
-
-- Run the old and vectorised engines against the same seeded 25K and 250K
-  populations and explain every difference.
-- Run at least one complete 1,903,175-person current scenario through 2050.
-- Validate yearly population components against the selected source model.
-- Test area statistics and both polling calibrations at the first, middle, and
-  final years.
-- Make the vectorised worker the default only after correctness and performance
-  gates pass.
-- Retain the previous engine for one release as a diagnostic comparison path,
-  then remove it after migration evidence is recorded.
-
-Exit criteria: the full-scale target is met without reducing the feature set,
-and the release documentation includes benchmark hardware, timings, memory,
-limitations, and parity results.
-
-## Explicit non-goals
-
-- Do not replace individual residents with aggregate-only cohorts.
-- Do not use Pandas object rows or Python loops as the main execution path.
-- Do not send millions of residents through SSE; provide paginated individual
-  access and downloadable checkpoints instead.
-- Do not introduce Spark, GPU infrastructure, or a distributed database unless
-  full-scale profiling demonstrates a need.
-- Do not present speed improvements without PostgreSQL full-scale evidence.
+- A 26-year full run occupies approximately 1.05 GB after proportional event
+  index storage, so a public deployment must enforce retention and storage
+  quotas and monitor PostgreSQL growth.
+- Current-model mortality is presently flat across ages within each community
+  group. Historical rules contain age bands. Improving current age-specific
+  mortality is model-calibration work and remains visible as a limitation.
+- Internal relocation and community differentials are documented estimates,
+  not observed individual transitions.
+- Polling projections are scenario estimates based on simulated adult
+  location/community/age composition. They are neither area polls nor stored
+  person-level constitutional preferences.

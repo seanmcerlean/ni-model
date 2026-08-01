@@ -38,6 +38,7 @@ class PopulationManager:
         adjustments: Optional[Dict] = None,
         clone_population: bool = True,
         owner_key: Optional[str] = None,
+        status: str = "pending",
     ) -> SimulationRun:
         """Create a durable run and clone the immutable baseline into it."""
         baseline_count = (
@@ -47,7 +48,7 @@ class PopulationManager:
             model_path=model_path,
             start_year=start_year,
             end_year=end_year,
-            status="pending",
+            status=status,
             base_population_count=baseline_count,
             adjustments=adjustments or {},
             owner_key=owner_key,
