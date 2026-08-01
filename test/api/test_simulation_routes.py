@@ -1,7 +1,15 @@
 import json
+import time
 import uuid
 
-from src.ni_model.core.models import Person, SimulationRun, SimulationSnapshot
+from src.ni_model.api.routes.simulation import _columnar_years, _load_director
+from src.ni_model.core.models import (
+    Person,
+    SimulationCheckpoint,
+    SimulationRun,
+    SimulationSnapshot,
+)
+from src.ni_model.simulation.population_manager import PopulationManager
 
 
 def _parse_sse(text: str) -> list:
@@ -18,6 +26,17 @@ def _parse_sse(text: str) -> list:
     if current:
         events.append(current)
     return events
+
+
+def _wait_for_run(client, run_id: str) -> dict:
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        summary = client.get(f"/api/simulation/runs/{run_id}").json()
+        if summary["status"] in {"complete", "failed", "cancelled"}:
+            assert summary["status"] == "complete", summary
+            return summary
+        time.sleep(0.02)
+    raise AssertionError(f"simulation {run_id} did not complete")
 
 
 def test_simulation_models_describes_available_configs(client):
@@ -65,7 +84,7 @@ def test_runs_empty_initially(client):
     assert response.json() == []
 
 
-def test_run_creates_isolated_population_and_durable_snapshots(client, populated_db):
+def test_run_uses_shared_baseline_and_durable_snapshots(client, populated_db):
     baseline_count = populated_db.query(Person).filter(Person.run_id.is_(None)).count()
 
     response = client.post(
@@ -76,18 +95,25 @@ def test_run_creates_isolated_population_and_durable_snapshots(client, populated
     assert response.status_code == 200
     data = response.json()
     run_id = uuid.UUID(data["run_id"])
-    assert data["status"] == "complete"
-    assert data["years_simulated"] == 2
+    assert data["status"] == "pending"
+    assert data["years_simulated"] == 0
+    _wait_for_run(client, data["run_id"])
     assert (
         populated_db.query(Person).filter(Person.run_id.is_(None)).count()
         == baseline_count
     )
-    assert populated_db.query(Person).filter(Person.run_id == run_id).count() > 0
+    assert populated_db.query(Person).filter(Person.run_id == run_id).count() == 0
     assert (
         populated_db.query(SimulationSnapshot)
         .filter(SimulationSnapshot.run_id == run_id)
         .count()
         == 2
+    )
+    assert (
+        populated_db.query(SimulationCheckpoint)
+        .filter(SimulationCheckpoint.run_id == run_id)
+        .count()
+        == 1
     )
 
 
@@ -103,7 +129,8 @@ def test_current_model_can_be_selected_for_a_run(client):
 
     assert response.status_code == 200
     assert response.json()["model_path"] == "models/ni_current.yaml"
-    assert response.json()["status"] == "complete"
+    assert response.json()["status"] == "pending"
+    _wait_for_run(client, response.json()["run_id"])
 
 
 def test_community_differentiated_model_can_be_selected(client):
@@ -118,6 +145,7 @@ def test_community_differentiated_model_can_be_selected(client):
 
     assert response.status_code == 200
     assert response.json()["model_path"] == "models/ni_current_community.yaml"
+    _wait_for_run(client, response.json()["run_id"])
 
 
 def test_run_adjustments_are_validated_and_persisted(client):
@@ -133,6 +161,7 @@ def test_run_adjustments_are_validated_and_persisted(client):
         json={"start_year": 2024, "end_year": 2024, "adjustments": adjustments},
     )
     assert created.status_code == 200
+    _wait_for_run(client, created.json()["run_id"])
     summary = client.get(f"/api/simulation/runs/{created.json()['run_id']}").json()
     assert summary["adjustments"] == adjustments
 
@@ -158,6 +187,7 @@ def test_per_community_adjustments_are_validated_and_persisted(client):
     )
 
     assert created.status_code == 200
+    _wait_for_run(client, created.json()["run_id"])
     summary = client.get(f"/api/simulation/runs/{created.json()['run_id']}").json()
     catholic = summary["adjustments"]["community"]["catholic"]
     assert catholic["birth_multiplier"] == 1.4
@@ -170,7 +200,9 @@ def test_per_community_adjustments_are_validated_and_persisted(client):
     assert invalid.status_code == 422
 
 
-def test_two_runs_are_user_isolated(client, populated_db):
+def test_two_runs_share_immutable_baseline_and_keep_results_isolated(
+    client, populated_db
+):
     first = client.post(
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
     ).json()
@@ -182,12 +214,20 @@ def test_two_runs_are_user_isolated(client, populated_db):
             "model_path": "models/ni_zero_migration.yaml",
         },
     ).json()
+    _wait_for_run(client, first["run_id"])
+    _wait_for_run(client, second["run_id"])
 
     first_id = uuid.UUID(first["run_id"])
     second_id = uuid.UUID(second["run_id"])
     assert first_id != second_id
-    assert populated_db.query(Person).filter(Person.run_id == first_id).count() > 0
-    assert populated_db.query(Person).filter(Person.run_id == second_id).count() > 0
+    assert populated_db.query(Person).filter(Person.run_id == first_id).count() == 0
+    assert populated_db.query(Person).filter(Person.run_id == second_id).count() == 0
+    assert (
+        populated_db.query(SimulationSnapshot)
+        .filter(SimulationSnapshot.run_id.in_([first_id, second_id]))
+        .count()
+        == 2
+    )
 
 
 def test_run_summary_and_year_endpoints(client):
@@ -195,6 +235,7 @@ def test_run_summary_and_year_endpoints(client):
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
     ).json()
     run_id = created["run_id"]
+    _wait_for_run(client, run_id)
 
     summary = client.get(f"/api/simulation/runs/{run_id}")
     years = client.get(f"/api/simulation/runs/{run_id}/years")
@@ -209,6 +250,128 @@ def test_run_summary_and_year_endpoints(client):
     assert "locations" in snapshot.json()
 
 
+def test_run_exposes_paginated_people_and_individual_history(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+    ).json()
+    run_id = created["run_id"]
+    _wait_for_run(client, run_id)
+
+    page = client.get(
+        f"/api/simulation/runs/{run_id}/years/2025/people",
+        params={"limit": 5, "location": "belfast"},
+    )
+
+    assert page.status_code == 200
+    data = page.json()
+    assert data["run_id"] == run_id
+    assert data["year"] == 2025
+    assert len(data["people"]) <= 5
+    assert all(person["location"] == "belfast" for person in data["people"])
+    person = data["people"][0]
+    assert person["age"] == 2025 - person["birth_year"]
+
+    history = client.get(
+        f"/api/simulation/runs/{run_id}/people/{person['person_id']}/history"
+    )
+    assert history.status_code == 200
+    assert history.json()["person_id"] == person["person_id"]
+    assert "initial" in history.json()
+
+
+def test_people_endpoint_validates_year_and_pagination(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+    run_id = created["run_id"]
+
+    assert (
+        client.get(f"/api/simulation/runs/{run_id}/years/2025/people").status_code
+        == 422
+    )
+    assert (
+        client.get(
+            f"/api/simulation/runs/{run_id}/years/2024/people?limit=1001"
+        ).status_code
+        == 422
+    )
+
+
+def test_pending_run_can_be_cancelled(client, populated_db):
+    run = SimulationRun(
+        model_path="models/ni_current.yaml",
+        start_year=2024,
+        end_year=2050,
+        status="pending",
+        base_population_count=100,
+    )
+    populated_db.add(run)
+    populated_db.commit()
+
+    response = client.post(f"/api/simulation/runs/{run.id}/cancel")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+
+
+def test_completed_run_can_be_deleted(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+
+    deleted = client.delete(f"/api/simulation/runs/{created['run_id']}")
+
+    assert deleted.status_code == 204
+    assert client.get(f"/api/simulation/runs/{created['run_id']}").status_code == 404
+
+
+def test_running_run_must_be_cancelled_before_deletion(client, populated_db):
+    run = SimulationRun(
+        model_path="models/ni_current.yaml",
+        start_year=2024,
+        end_year=2050,
+        status="running",
+        base_population_count=100,
+    )
+    populated_db.add(run)
+    populated_db.commit()
+
+    response = client.delete(f"/api/simulation/runs/{run.id}")
+
+    assert response.status_code == 409
+
+
+def test_columnar_run_resumes_from_latest_checkpoint(
+    populated_db, monkeypatch, tmp_path
+):
+    monkeypatch.setenv("CHECKPOINT_INTERVAL", "1")
+    monkeypatch.setenv("CHECKPOINT_DIR", str(tmp_path / "checkpoints"))
+    run = PopulationManager.create_run(
+        populated_db,
+        "models/ni_current.yaml",
+        2024,
+        2025,
+        clone_population=False,
+    )
+    director = _load_director(populated_db, run.model_path, run.id)
+    first_attempt = _columnar_years(populated_db, run, director)
+    next(first_attempt)
+    first_attempt.close()
+
+    resumed = list(_columnar_years(populated_db, run, director))
+
+    assert [result[0]["year"] for result in resumed] == [2025]
+    assert [snapshot.year for snapshot in run.snapshots] == [2024, 2025]
+    assert (
+        populated_db.query(SimulationCheckpoint)
+        .filter(SimulationCheckpoint.run_id == run.id)
+        .count()
+        == 2
+    )
+
+
 def test_missing_run_and_snapshot_return_404(client):
     missing_id = uuid.uuid4()
 
@@ -217,6 +380,7 @@ def test_missing_run_and_snapshot_return_404(client):
     created = client.post(
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
     ).json()
+    _wait_for_run(client, created["run_id"])
     response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2025")
     assert response.status_code == 404
 
@@ -227,9 +391,10 @@ def test_stream_persists_run_and_emits_run_id(client, populated_db):
     assert response.status_code == 200
     run_id = uuid.UUID(response.headers["x-simulation-run-id"])
     events = _parse_sse(response.text)
-    assert len(events) == 3
+    assert len(events) == 4
+    assert events[0]["event"] == "started"
     assert events[0]["data"]["run_id"] == str(run_id)
-    predictions = events[0]["data"]["voting_predictions"]
+    predictions = events[1]["data"]["voting_predictions"]
     assert set(predictions) == {"lucidtalk_winter_2025", "nilt_2024"}
     assert predictions["lucidtalk_winter_2025"]["source"]["id"] == (
         "lucidtalk_winter_2025"
@@ -274,6 +439,36 @@ def test_run_rejects_invalid_model_and_years(client):
     assert invalid_model.status_code == 422
     assert reversed_years.status_code == 422
     assert invalid_year.status_code == 422
+
+
+def test_public_run_horizon_limit(client, monkeypatch):
+    monkeypatch.setenv("MAX_SIMULATION_HORIZON_YEARS", "2")
+
+    response = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2026}
+    )
+
+    assert response.status_code == 422
+    assert "cannot exceed 2 years" in response.json()["detail"]
+
+
+def test_public_active_run_limit_is_per_anonymous_client(
+    client, populated_db, monkeypatch
+):
+    monkeypatch.setenv("EMBEDDED_SIMULATION_WORKER", "false")
+    monkeypatch.setenv("MAX_ACTIVE_RUNS_PER_USER", "1")
+
+    first = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    )
+    second = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    run = populated_db.get(SimulationRun, uuid.UUID(first.json()["run_id"]))
+    assert len(run.owner_key) == 64
 
 
 def test_stream_rejects_path_traversal_and_invalid_range(client):

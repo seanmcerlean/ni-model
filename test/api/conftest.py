@@ -57,7 +57,8 @@ def populated_db(db_session):
 
 
 @pytest.fixture
-def client(populated_db):
+def client(populated_db, monkeypatch, tmp_path):
+    monkeypatch.setenv("CHECKPOINT_DIR", str(tmp_path / "checkpoints"))
     app = create_app()
     app.dependency_overrides[get_db] = lambda: populated_db
     return TestClient(app)

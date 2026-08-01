@@ -1,18 +1,30 @@
+import asyncio
+import hashlib
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import AsyncGenerator, Optional
 from uuid import UUID
 
 import yaml
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, sessionmaker
 
-from ...core.models import SimulationRun, SimulationSnapshot
+from ...core.models import (
+    SimulationCheckpoint,
+    SimulationPersonEvent,
+    SimulationRun,
+    SimulationSnapshot,
+)
+from ...simulation.columnar_worker import ColumnarSimulationWorker
+from ...simulation.event_store import EventStore
+from ...simulation.jobs import submit_run
 from ...simulation.model_director import ModelDirector
-from ...simulation.orchestrator import SimulationOrchestrator
 from ...simulation.population_manager import PopulationManager
+from ...simulation.reconstruction import PopulationReconstructor
 from ...simulation.voting_predictor import CALIBRATIONS, VotingPredictor
 from ..queries import snapshot_aggregates
 from ..routes.population import get_db
@@ -20,6 +32,8 @@ from ..schemas import (
     SimulationAdjustments,
     SimulationLocationSnapshot,
     SimulationModelSummary,
+    SimulationPeoplePage,
+    SimulationPersonHistory,
     SimulationRunRequest,
     SimulationRunResponse,
     SimulationRunSummary,
@@ -31,6 +45,42 @@ from ..schemas import (
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 MODELS_DIR = PROJECT_ROOT / "models"
+ACTIVE_STATUSES = {"pending", "running", "cancelling"}
+
+
+def _owner_key(request: Request) -> str:
+    host = request.client.host if request.client else "unknown"
+    return hashlib.sha256(host.encode()).hexdigest()
+
+
+def _enforce_run_limits(
+    db: Session, request: Request, start_year: int, end_year: int
+) -> str:
+    horizon = max(1, int(os.getenv("MAX_SIMULATION_HORIZON_YEARS", "100")))
+    if end_year - start_year + 1 > horizon:
+        raise HTTPException(
+            status_code=422,
+            detail=f"simulation horizon cannot exceed {horizon} years",
+        )
+    owner_key = _owner_key(request)
+    if db.get_bind().dialect.name == "postgresql":
+        lock_key = int.from_bytes(bytes.fromhex(owner_key[:16]), signed=True)
+        db.execute(select(func.pg_advisory_xact_lock(lock_key)))
+    maximum = max(1, int(os.getenv("MAX_ACTIVE_RUNS_PER_USER", "2")))
+    active = (
+        db.query(SimulationRun)
+        .filter(
+            SimulationRun.owner_key == owner_key,
+            SimulationRun.status.in_(ACTIVE_STATUSES),
+        )
+        .count()
+    )
+    if active >= maximum:
+        raise HTTPException(
+            status_code=429,
+            detail=f"at most {maximum} active simulations are allowed",
+        )
+    return owner_key
 
 
 def _resolve_model_path(model_path: str) -> Path:
@@ -170,11 +220,106 @@ def _snapshot_voting_prediction(
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
 
+def _capture_columnar_snapshot(
+    worker: ColumnarSimulationWorker,
+    run_id: UUID,
+    year: int,
+    result: dict,
+    db: Session,
+) -> SimulationYearSnapshot:
+    aggregates = worker.demographic_summary(year)
+    voting_rows = worker.voting_rows(year)
+    voting_predictions = {
+        calibration: _snapshot_voting_prediction(
+            db,
+            run_id,
+            calibration,
+            voting_rows,
+            aggregates["total_population"],
+        )
+        for calibration in CALIBRATIONS
+    }
+    return SimulationYearSnapshot(
+        run_id=run_id,
+        year=year,
+        **aggregates,
+        voting_predictions=voting_predictions,
+        simulation_result=SimulationYearResult(**result),
+    )
+
+
+def _columnar_years(
+    db: Session,
+    run: SimulationRun,
+    director: ModelDirector,
+):
+    event_store = EventStore(db)
+    checkpoint = (
+        db.query(SimulationCheckpoint)
+        .filter(SimulationCheckpoint.run_id == run.id)
+        .order_by(SimulationCheckpoint.year.desc())
+        .first()
+    )
+    if checkpoint:
+        worker = ColumnarSimulationWorker(
+            event_store.load(checkpoint),
+            director.config,
+            run.id,
+            seed=director.seed,
+        )
+        first_year = checkpoint.year + 1
+        db.query(SimulationPersonEvent).filter(
+            SimulationPersonEvent.run_id == run.id,
+            SimulationPersonEvent.year > checkpoint.year,
+        ).delete(synchronize_session=False)
+        db.query(SimulationSnapshot).filter(
+            SimulationSnapshot.run_id == run.id,
+            SimulationSnapshot.year > checkpoint.year,
+        ).delete(synchronize_session=False)
+        db.commit()
+    else:
+        worker = ColumnarSimulationWorker.load_baseline(
+            db,
+            director.config,
+            run.id,
+            run.start_year,
+            seed=director.seed,
+        )
+        first_year = run.start_year
+    event_offset = 0
+    checkpoint_interval = max(1, int(os.getenv("CHECKPOINT_INTERVAL", "5")))
+    for year in range(first_year, run.end_year + 1):
+        db.refresh(run)
+        if run.status == "cancelling":
+            return
+        result = worker.run_year(year)
+        snapshot = _capture_columnar_snapshot(worker, run.id, year, result, db)
+        event_store.append(run.id, worker.events[event_offset:])
+        event_offset = len(worker.events)
+        PopulationManager(db, run.id).create_snapshot(
+            f"year_{year}", year, snapshot.model_dump(mode="json")
+        )
+        if (
+            year == run.end_year
+            or (year - run.start_year + 1) % checkpoint_interval == 0
+        ):
+            event_store.checkpoint(run.id, year, worker.population)
+        db.commit()
+        yield result, snapshot
+
+
 def _get_run(db: Session, run_id: UUID) -> SimulationRun:
     run = db.get(SimulationRun, run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    db.refresh(run)
     return run
+
+
+def _submit_if_embedded(run_id: UUID, db: Session) -> None:
+    enabled = os.getenv("EMBEDDED_SIMULATION_WORKER", "true").lower()
+    if enabled in {"1", "true", "yes"}:
+        submit_run(run_id, sessionmaker(bind=db.get_bind(), autoflush=False))
 
 
 @router.get("/runs", response_model=list[SimulationRunSummary])
@@ -224,8 +369,57 @@ def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_
     return SimulationYearSnapshot.model_validate(snapshot.data)
 
 
+@router.get("/runs/{run_id}/years/{year}/people", response_model=SimulationPeoplePage)
+def simulation_year_people(
+    run_id: UUID,
+    year: int,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    location: Optional[str] = None,
+    religious_background: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    run = _get_run(db, run_id)
+    try:
+        total, people = PopulationReconstructor(db).page(
+            run,
+            year,
+            offset,
+            limit,
+            location=location,
+            religious_background=religious_background,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return SimulationPeoplePage(
+        run_id=run_id,
+        year=year,
+        total=total,
+        offset=offset,
+        limit=limit,
+        people=people,
+    )
+
+
+@router.get(
+    "/runs/{run_id}/people/{person_id}/history",
+    response_model=SimulationPersonHistory,
+)
+def simulation_person_history(
+    run_id: UUID, person_id: UUID, db: Session = Depends(get_db)
+):
+    run = _get_run(db, run_id)
+    try:
+        return SimulationPersonHistory(
+            **PopulationReconstructor(db).history(run, person_id)
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @router.get("/stream")
 def stream_simulation(
+    request: Request,
     start_year: int = 2024,
     end_year: int = 2030,
     model_path: str = "models/ni_base_2024.yaml",
@@ -243,6 +437,7 @@ def stream_simulation(
         )
     if end_year < start_year:
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
+    owner_key = _enforce_run_limits(db, request, start_year, end_year)
 
     _resolve_model_path(model_path)
     try:
@@ -260,34 +455,52 @@ def stream_simulation(
             status_code=422, detail=f"Invalid community adjustments: {exc}"
         ) from exc
     run = PopulationManager.create_run(
-        db, model_path, start_year, end_year, adjustments
+        db,
+        model_path,
+        start_year,
+        end_year,
+        adjustments,
+        clone_population=False,
+        owner_key=owner_key,
     )
-    director = _load_director(db, model_path, run.id, adjustments)
-    orchestrator = SimulationOrchestrator(db, director)
+    worker_sessions = sessionmaker(bind=db.get_bind(), autoflush=False)
+    _submit_if_embedded(run.id, db)
 
     async def event_stream() -> AsyncGenerator[str, None]:
-        try:
-            run.status = "running"
-            db.commit()
-            for result in orchestrator._iter_years(start_year, end_year):
-                snapshot = _capture_snapshot(run.id, result["year"], result, db)
-                PopulationManager(db, run.id).create_snapshot(
-                    f"year_{result['year']}",
-                    result["year"],
-                    snapshot.model_dump(mode="json"),
+        emitted_years = set()
+        yield f"event: started\ndata: {json.dumps({'run_id': str(run.id)})}\n\n"
+        while True:
+            if await request.is_disconnected():
+                return
+            poll_db = worker_sessions()
+            try:
+                current = poll_db.get(SimulationRun, run.id)
+                snapshots = (
+                    poll_db.query(SimulationSnapshot)
+                    .filter(
+                        SimulationSnapshot.run_id == run.id,
+                        ~SimulationSnapshot.year.in_(emitted_years),
+                    )
+                    .order_by(SimulationSnapshot.year)
+                    .all()
                 )
-                db.commit()
+                status = current.status
+                error = current.error
+                payloads = [snapshot.data for snapshot in snapshots]
+            finally:
+                poll_db.close()
+            for payload in payloads:
+                emitted_years.add(payload["year"])
+                snapshot = SimulationYearSnapshot.model_validate(payload)
                 yield f"data: {snapshot.model_dump_json()}\n\n"
-            run.status = "complete"
-            run.completed_at = datetime.now(UTC)
-            db.commit()
-            yield f"event: complete\ndata: {json.dumps({'run_id': str(run.id)})}\n\n"
-        except Exception as exc:
-            db.rollback()
-            run.status = "failed"
-            run.error = str(exc)
-            db.commit()
-            raise
+            if status in {"complete", "cancelled", "failed"}:
+                event_name = "error" if status == "failed" else status
+                data = {"run_id": str(run.id)}
+                if error:
+                    data["error"] = error
+                yield f"event: {event_name}\ndata: {json.dumps(data)}\n\n"
+                return
+            await asyncio.sleep(0.05)
 
     return StreamingResponse(
         event_stream(),
@@ -297,52 +510,60 @@ def stream_simulation(
 
 
 @router.post("/run", response_model=SimulationRunResponse)
-def run_simulation(request: SimulationRunRequest, db: Session = Depends(get_db)):
-    _resolve_model_path(request.model_path)
+def run_simulation(
+    payload: SimulationRunRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _resolve_model_path(payload.model_path)
+    owner_key = _enforce_run_limits(db, request, payload.start_year, payload.end_year)
     run = PopulationManager.create_run(
         db,
-        request.model_path,
-        request.start_year,
-        request.end_year,
-        request.adjustments.model_dump(exclude_none=True),
+        payload.model_path,
+        payload.start_year,
+        payload.end_year,
+        payload.adjustments.model_dump(exclude_none=True),
+        clone_population=False,
+        owner_key=owner_key,
     )
-    director = _load_director(
+    _load_director(
         db,
-        request.model_path,
+        payload.model_path,
         run.id,
-        request.adjustments.model_dump(exclude_none=True),
+        payload.adjustments.model_dump(exclude_none=True),
     )
-    orchestrator = SimulationOrchestrator(db, director)
-
-    results = []
-    try:
-        run.status = "running"
-        for result in orchestrator._iter_years(request.start_year, request.end_year):
-            results.append(result)
-            snapshot = _capture_snapshot(run.id, result["year"], result, db)
-            PopulationManager(db, run.id).create_snapshot(
-                f"year_{result['year']}",
-                result["year"],
-                snapshot.model_dump(mode="json"),
-            )
-            db.commit()
-        run.status = "complete"
-        run.completed_at = datetime.now(UTC)
-        db.commit()
-    except Exception as exc:
-        db.rollback()
-        run.status = "failed"
-        run.error = str(exc)
-        db.commit()
-        raise
-    orchestrator.results = results
-
+    _submit_if_embedded(run.id, db)
     return SimulationRunResponse(
         run_id=run.id,
         status=run.status,
-        model_path=request.model_path,
-        start_year=request.start_year,
-        end_year=request.end_year,
-        years_simulated=len(results),
-        results=[SimulationYearResult(**r) for r in results],
+        model_path=payload.model_path,
+        start_year=payload.start_year,
+        end_year=payload.end_year,
+        years_simulated=0,
+        results=[],
     )
+
+
+@router.post("/runs/{run_id}/cancel", response_model=SimulationRunSummary)
+def cancel_simulation(run_id: UUID, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id)
+    if run.status == "pending":
+        run.status = "cancelled"
+        run.completed_at = datetime.now(UTC)
+    elif run.status == "running":
+        run.status = "cancelling"
+    db.commit()
+    db.refresh(run)
+    return _run_summary(run)
+
+
+@router.delete("/runs/{run_id}", status_code=204)
+def delete_simulation(run_id: UUID, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id)
+    if run.status in {"running", "cancelling"}:
+        raise HTTPException(
+            status_code=409, detail="cancel the running simulation first"
+        )
+    EventStore(db).delete_run(run.id)
+    db.delete(run)
+    db.commit()

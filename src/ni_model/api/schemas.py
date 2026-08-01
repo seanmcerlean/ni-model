@@ -91,6 +91,39 @@ class SimulationYearsList(BaseModel):
     years: List[int]
 
 
+class SimulationPerson(BaseModel):
+    person_id: UUID
+    person_number: Optional[int] = None
+    birth_year: int
+    age: int
+    religious_background: str
+    gender: str
+    education_level: str
+    location: str
+    origin: str
+
+
+class SimulationPeoplePage(BaseModel):
+    run_id: UUID
+    year: int
+    total: int
+    offset: int
+    limit: int
+    people: List[SimulationPerson]
+
+
+class SimulationPersonEventSummary(BaseModel):
+    year: int
+    event_type: str
+    data: Dict[str, Any]
+
+
+class SimulationPersonHistory(BaseModel):
+    person_id: UUID
+    initial: Dict[str, Any]
+    events: List[SimulationPersonEventSummary]
+
+
 class CommunityRateAdjustments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

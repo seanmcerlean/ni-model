@@ -6,8 +6,8 @@ import { useSimulationStream } from "../hooks/useSimulationStream";
 interface MockES {
   onmessage: ((e: { data: string }) => void) | null;
   onerror: (() => void) | null;
-  listeners: Record<string, () => void>;
-  addEventListener: (event: string, cb: () => void) => void;
+  listeners: Record<string, (event?: MessageEvent<string>) => void>;
+  addEventListener: (event: string, cb: (event?: MessageEvent<string>) => void) => void;
   close: () => void;
   url: string;
 }
@@ -19,7 +19,7 @@ beforeEach(() => {
     onmessage: null,
     onerror: null,
     listeners: {},
-    addEventListener(event: string, cb: () => void) { this.listeners[event] = cb; },
+    addEventListener(event: string, cb: (event?: MessageEvent<string>) => void) { this.listeners[event] = cb; },
     close: vi.fn(),
     url: "",
   };
@@ -78,6 +78,30 @@ describe("useSimulationStream", () => {
     act(() => result.current.startStream(2024, 2025));
     act(() => result.current.abort());
     expect(mockEs.close).toHaveBeenCalled();
+    expect(result.current.status).toBe("idle");
+  });
+
+  it("cancels the durable run when aborting after the started event", () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    const { result } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(2024, 2025));
+    act(() => mockEs.listeners["started"]?.({
+      data: JSON.stringify({ run_id: "00000000-0000-0000-0000-000000000001" }),
+    } as MessageEvent<string>));
+
+    act(() => result.current.abort());
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/simulation/runs/00000000-0000-0000-0000-000000000001/cancel",
+      { method: "POST", keepalive: true },
+    );
+  });
+
+  it("returns to idle when the server confirms cancellation", () => {
+    const { result } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(2024, 2025));
+    act(() => mockEs.listeners["cancelled"]?.());
     expect(result.current.status).toBe("idle");
   });
 

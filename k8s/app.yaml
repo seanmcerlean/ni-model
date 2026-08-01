@@ -19,16 +19,28 @@ spec:
         env:
         - name: DATABASE_URL
           value: postgresql://ni_user:ni_password@postgres:5432/ni_model
-        - name: REDIS_URL
-          value: redis://redis:6379/0
-        command: ["tail", "-f", "/dev/null"]
+        - name: EMBEDDED_SIMULATION_WORKER
+          value: "false"
+        - name: CHECKPOINT_DIR
+          value: /data/checkpoints
+        - name: MAX_ACTIVE_RUNS_PER_USER
+          value: "2"
+        - name: MAX_SIMULATION_HORIZON_YEARS
+          value: "100"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
         volumeMounts:
-        - name: app-code
-          mountPath: /app
+        - name: checkpoints
+          mountPath: /data/checkpoints
       volumes:
-      - name: app-code
-        hostPath:
-          path: /home/sean/source/ni-model
+      - name: checkpoints
+        persistentVolumeClaim:
+          claimName: checkpoints-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -41,3 +53,60 @@ spec:
   ports:
   - port: 8000
     targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ni-model-worker
+  namespace: ni-model
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ni-model-worker
+  template:
+    metadata:
+      labels:
+        app: ni-model-worker
+    spec:
+      containers:
+      - name: worker
+        image: ni-model:latest
+        command: ["python", "scripts/simulation_worker.py"]
+        env:
+        - name: DATABASE_URL
+          value: postgresql://ni_user:ni_password@postgres:5432/ni_model
+        - name: CHECKPOINT_DIR
+          value: /data/checkpoints
+        - name: SIMULATION_TIMEOUT_SECONDS
+          value: "1800"
+        - name: SIMULATION_RETENTION_DAYS
+          value: "30"
+        - name: MAX_CHECKPOINT_BYTES_PER_RUN
+          value: "10737418240"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 1Gi
+          limits:
+            cpu: "4"
+            memory: 2Gi
+        volumeMounts:
+        - name: checkpoints
+          mountPath: /data/checkpoints
+      volumes:
+      - name: checkpoints
+        persistentVolumeClaim:
+          claimName: checkpoints-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: checkpoints-pvc
+  namespace: ni-model
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

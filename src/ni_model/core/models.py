@@ -102,6 +102,7 @@ class SimulationRun(Base):
     start_year = Column(Integer, nullable=False)
     end_year = Column(Integer, nullable=False)
     status = Column(String(32), nullable=False, default="pending", index=True)
+    owner_key = Column(String(64), nullable=True, index=True)
     base_population_count = Column(Integer, nullable=False, default=0)
     created_at = Column(
         DateTime(timezone=True),

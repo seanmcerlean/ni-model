@@ -17,10 +17,18 @@ export function useSimulationStream(): UseSimulationStream {
   const [status, setStatus] = useState<StreamStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  const runIdRef = useRef<string | null>(null);
 
   const abort = useCallback(() => {
     esRef.current?.close();
     esRef.current = null;
+    if (runIdRef.current) {
+      void fetch(`/api/simulation/runs/${runIdRef.current}/cancel`, {
+        method: "POST",
+        keepalive: true,
+      });
+      runIdRef.current = null;
+    }
     setStatus((s) => (s === "streaming" ? "idle" : s));
   }, []);
 
@@ -36,6 +44,7 @@ export function useSimulationStream(): UseSimulationStream {
       setYears([]);
       setError(null);
       setStatus("streaming");
+      runIdRef.current = null;
 
       const params = new URLSearchParams({
         start_year: String(startYear),
@@ -55,16 +64,30 @@ export function useSimulationStream(): UseSimulationStream {
 
       es.onmessage = (e) => {
         const snap: YearSnapshot = JSON.parse(e.data);
+        if (snap.run_id) runIdRef.current = snap.run_id;
         setSnapshots((prev) => ({ ...prev, [snap.year]: snap }));
         setYears((prev) =>
           prev.includes(snap.year) ? prev : [...prev, snap.year].sort((a, b) => a - b)
         );
       };
 
+      es.addEventListener("started", (event) => {
+        const message = event as MessageEvent<string>;
+        runIdRef.current = (JSON.parse(message.data) as { run_id: string }).run_id;
+      });
+
       es.addEventListener("complete", () => {
         es.close();
         esRef.current = null;
+        runIdRef.current = null;
         setStatus("complete");
+      });
+
+      es.addEventListener("cancelled", () => {
+        es.close();
+        esRef.current = null;
+        runIdRef.current = null;
+        setStatus("idle");
       });
 
       es.onerror = () => {

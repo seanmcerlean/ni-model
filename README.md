@@ -7,8 +7,8 @@ resulting population state.
 
 ## What it does
 
-- Maintains an immutable baseline plus isolated per-run populations in
-  PostgreSQL (~2M person records per active run)
+- Maintains one immutable PostgreSQL baseline and isolated per-run event history
+  without copying ~2M person records for each run
 - Simulates demographic change year-by-year using configurable, era-specific rates
 - Applies different rates to different cohorts (e.g. community-background birth rates and age-specific mortality)
 - Tracks internal migration between NI locations and external migration in/out
@@ -27,17 +27,26 @@ src/ni_model/
 └── validation/     # Historical validator, model comparator
 ```
 
-Each simulation has a durable run ID. Its cloned population is isolated from
-other users, and every completed year is persisted as an aggregate snapshot.
-The simulation follows a sequential DB-update pattern per year:
+Each simulation has a durable run ID. A bounded background worker loads the
+immutable baseline into compact Polars/Arrow columns, and every completed year
+is persisted as an aggregate snapshot plus append-only individual events. Full
+Parquet checkpoints support restart and reconstruction. The simulation follows
+the same sequential semantics per year:
 
 ```
-age all residents → generate births → remove deaths → apply migration → snapshot
+derive age → generate births → remove deaths → apply migration → snapshot
 ```
 
 Model assumptions are defined in YAML and loaded at runtime via
-`ModelDirector`. Restoring a run resets it from the immutable baseline;
-snapshots and run status survive API restarts.
+`ModelDirector`. PostgreSQL provides a durable `SKIP LOCKED` job queue;
+snapshots, events, checkpoints, cancellation, and run status survive API and
+worker restarts.
+
+Public deployments can bound anonymous-client concurrency and horizons with
+`MAX_ACTIVE_RUNS_PER_USER` and `MAX_SIMULATION_HORIZON_YEARS`. Worker execution,
+retention, and checkpoint storage are controlled by
+`SIMULATION_TIMEOUT_SECONDS`, `SIMULATION_RETENTION_DAYS`, and
+`MAX_CHECKPOINT_BYTES_PER_RUN`.
 
 The run editor supports global and per-community multipliers for births,
 deaths, external migration and internal relocation. These are sensitivity
@@ -108,8 +117,12 @@ kubectl apply -f k8s/app.yaml
 | GET | `/api/simulation/runs` | List durable simulation runs |
 | GET | `/api/simulation/runs/{run_id}` | Run status and completed years |
 | GET | `/api/simulation/runs/{run_id}/years/{year}` | Durable year snapshot |
-| GET | `/api/simulation/stream` | SSE stream — creates an isolated run and emits year snapshots |
-| POST | `/api/simulation/run` | Run simulation synchronously |
+| GET | `/api/simulation/stream` | Queue a run and stream completed aggregate year snapshots |
+| POST | `/api/simulation/run` | Queue a durable background simulation |
+| POST | `/api/simulation/runs/{run_id}/cancel` | Cooperatively cancel a queued/running simulation |
+| DELETE | `/api/simulation/runs/{run_id}` | Delete a terminal run, events, snapshots, and checkpoints |
+| GET | `/api/simulation/runs/{run_id}/years/{year}/people` | Filtered, paginated individual population state |
+| GET | `/api/simulation/runs/{run_id}/people/{person_id}/history` | Inspect one resident's initial state and events |
 
 SSE stream example:
 ```

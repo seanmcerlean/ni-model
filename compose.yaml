@@ -26,11 +26,32 @@ services:
     build: .
     environment:
       DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
+      EMBEDDED_SIMULATION_WORKER: "false"
+      CHECKPOINT_DIR: /app/data/checkpoints
+      MAX_ACTIVE_RUNS_PER_USER: "2"
+      MAX_SIMULATION_HORIZON_YEARS: "100"
     ports:
       - "8000:8000"
     depends_on:
       current-seed:
         condition: service_completed_successfully
+    volumes:
+      - checkpoints:/app/data/checkpoints
+
+  worker:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
+      CHECKPOINT_DIR: /app/data/checkpoints
+      SIMULATION_TIMEOUT_SECONDS: "1800"
+      SIMULATION_RETENTION_DAYS: "30"
+      MAX_CHECKPOINT_BYTES_PER_RUN: "10737418240"
+    command: ["python", "scripts/simulation_worker.py"]
+    depends_on:
+      current-seed:
+        condition: service_completed_successfully
+    volumes:
+      - checkpoints:/app/data/checkpoints
 
   historical-db:
     image: postgres:15
@@ -57,6 +78,23 @@ services:
       historical-db:
         condition: service_healthy
 
+  benchmark-db:
+    image: postgres:15
+    profiles: ["performance"]
+    environment:
+      POSTGRES_DB: ni_benchmark
+      POSTGRES_USER: ni_user
+      POSTGRES_PASSWORD: ni_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ni_user -d ni_benchmark"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - benchmark-data:/var/lib/postgresql/data
+
 volumes:
   current-data:
   historical-data:
+  checkpoints:
+  benchmark-data:
