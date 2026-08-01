@@ -104,6 +104,16 @@ death totals are not accidentally replaced by the 2024 population structure.
 
 - [NISRA Registrar General Annual Report 2024 deaths tables](https://www.nisra.gov.uk/publications/registrar-general-annual-report-2024-deaths)
 
+The current synthetic baseline also preserves the Census 2021 relationship
+between broad age and community background from table MS-B31. In particular,
+23.36% of the Protestant-and-other-Christian-background population was aged
+65+, compared with 14.22% of the Catholic-background population. Five-year age
+detail within each published broad band follows MS-A02. This matters because
+the age-specific mortality schedule must operate on the observed older
+Protestant-background distribution rather than independent age assignments.
+
+- [NISRA Census 2021 table MS-B31](https://www.nisra.gov.uk/publications/census-2021-main-statistics-northern-ireland-supplemental)
+
 ### Community-differentiated sensitivity variant
 
 `ni_current_community.yaml` retains every annual NISRA principal-projection

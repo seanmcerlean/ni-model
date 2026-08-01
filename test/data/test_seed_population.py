@@ -1,5 +1,7 @@
-from scripts.seed_population import PROFILES, _mapping
-from src.ni_model.core.models import ReligiousBackground
+import pytest
+
+from scripts.seed_population import PROFILES, _mapping, validate_baseline
+from src.ni_model.core.models import Person, ReligiousBackground
 from src.ni_model.data.population_generator import generate_population
 
 
@@ -25,3 +27,20 @@ def test_profiles_define_their_population_reference_year():
     assert PROFILES["historical"]["reference_year"] == 1969
     assert PROFILES["historical"]["age_bands"] is not None
     assert PROFILES["historical"]["origin_weights"] is not None
+
+
+def test_current_baseline_invariants_validate_joint_demographics(db_session):
+    people = generate_population(10_000, seed=42)
+    db_session.bulk_insert_mappings(
+        Person,
+        [_mapping(person, index) for index, person in enumerate(people, start=1)],
+    )
+    db_session.commit()
+
+    validate_baseline(db_session, "current", 10_000)
+
+    first = db_session.query(Person).first()
+    first.birth_year += 1
+    db_session.commit()
+    with pytest.raises(RuntimeError, match="inconsistent birth years"):
+        validate_baseline(db_session, "current", 10_000)

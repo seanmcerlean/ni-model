@@ -1,12 +1,13 @@
 """Create a reproducible, full-scale baseline population database."""
 
 import argparse
+import math
 import os
 import sys
 import uuid
 from pathlib import Path
 
-from sqlalchemy import create_engine, func, text
+from sqlalchemy import case, create_engine, func, text
 from sqlalchemy.orm import sessionmaker
 
 from alembic import command
@@ -45,6 +46,22 @@ PROFILES = {
         "age_bands": None,
         "origin_weights": None,
         "status": "Census 2021 sourced baseline",
+        "community_shares": {
+            ReligiousBackground.CATHOLIC: 869_749 / 1_903_167,
+            ReligiousBackground.PROTESTANT: 827_541 / 1_903_167,
+            ReligiousBackground.OTHER: 28_516 / 1_903_167,
+            ReligiousBackground.NONE: 177_361 / 1_903_167,
+        },
+        "age_shares": (
+            (0, 14, 365_212 / 1_903_167),
+            (15, 39, 594_363 / 1_903_167),
+            (40, 64, 617_124 / 1_903_167),
+            (65, 110, 326_468 / 1_903_167),
+        ),
+        "background_65_plus": {
+            ReligiousBackground.CATHOLIC: 123_700 / 869_749,
+            ReligiousBackground.PROTESTANT: 193_314 / 827_541,
+        },
     },
     "historical": {
         "size": 1_512_500,
@@ -63,8 +80,103 @@ PROFILES = {
             "community and origin are documented estimates; modern LGD spatial "
             "patterns are retained because equivalent 1971 LGDs did not exist"
         ),
+        "community_shares": {
+            ReligiousBackground.CATHOLIC: 0.311,
+            ReligiousBackground.PROTESTANT: 0.649,
+            ReligiousBackground.OTHER: 0.020,
+            ReligiousBackground.NONE: 0.020,
+        },
+        "age_shares": (
+            (0, 14, 456_997 / _HISTORICAL_TOTAL),
+            (15, 39, 512_242 / _HISTORICAL_TOTAL),
+            (40, 64, 400_842 / _HISTORICAL_TOTAL),
+            (65, 110, 165_984 / _HISTORICAL_TOTAL),
+        ),
+        "background_65_plus": {},
     },
 }
+
+
+def _share_tolerance(expected: float, denominator: int) -> float:
+    """Four-sigma sampling tolerance with a strict full-scale floor."""
+    return max(0.002, 4 * math.sqrt(expected * (1 - expected) / denominator))
+
+
+def validate_baseline(session, profile_name: str, expected_size: int) -> None:
+    """Fail when a generated profile violates its defining demographic facts."""
+    profile = PROFILES[profile_name]
+    filters = (
+        Person.run_id.is_(None),
+        Person.baseline_profile == profile_name,
+    )
+    actual_size = session.query(func.count(Person.id)).filter(*filters).scalar() or 0
+    if actual_size != expected_size:
+        raise RuntimeError(
+            f"{profile_name} baseline row count {actual_size:,} != {expected_size:,}"
+        )
+    inconsistent_birth_years = (
+        session.query(func.count(Person.id))
+        .filter(
+            *filters,
+            Person.birth_year != profile["reference_year"] - Person.age,
+        )
+        .scalar()
+        or 0
+    )
+    if inconsistent_birth_years:
+        raise RuntimeError(
+            f"{profile_name} baseline has {inconsistent_birth_years:,} inconsistent birth years"
+        )
+
+    community_counts = dict(
+        session.query(Person.religious_background, func.count(Person.id))
+        .filter(*filters)
+        .group_by(Person.religious_background)
+        .all()
+    )
+    for background, expected in profile["community_shares"].items():
+        actual = community_counts.get(background, 0) / actual_size
+        tolerance = _share_tolerance(expected, actual_size)
+        if abs(actual - expected) > tolerance:
+            raise RuntimeError(
+                f"{profile_name} {background.value} share {actual:.4f} outside "
+                f"{expected:.4f} +/- {tolerance:.4f}"
+            )
+
+    for age_min, age_max, expected in profile["age_shares"]:
+        count = (
+            session.query(
+                func.sum(case((Person.age.between(age_min, age_max), 1), else_=0))
+            )
+            .filter(*filters)
+            .scalar()
+            or 0
+        )
+        actual = count / actual_size
+        tolerance = _share_tolerance(expected, actual_size)
+        if abs(actual - expected) > tolerance:
+            raise RuntimeError(
+                f"{profile_name} age {age_min}-{age_max} share {actual:.4f} outside "
+                f"{expected:.4f} +/- {tolerance:.4f}"
+            )
+
+    for background, expected in profile["background_65_plus"].items():
+        denominator = community_counts.get(background, 0)
+        count = (
+            session.query(func.count(Person.id))
+            .filter(
+                *filters, Person.religious_background == background, Person.age >= 65
+            )
+            .scalar()
+            or 0
+        )
+        actual = count / denominator
+        tolerance = _share_tolerance(expected, denominator)
+        if abs(actual - expected) > tolerance:
+            raise RuntimeError(
+                f"{profile_name} {background.value} age 65+ share {actual:.4f} "
+                f"outside {expected:.4f} +/- {tolerance:.4f}"
+            )
 
 
 def _mapping(
@@ -107,6 +219,7 @@ def seed(
         )
         existing = session.query(Person).filter(*profile_filter).count()
         if existing and not replace:
+            validate_baseline(session, profile_name, existing)
             print(f"Baseline already contains {existing:,} residents; nothing changed.")
             return existing
         if replace:
@@ -147,6 +260,7 @@ def seed(
                 )
             )
             session.commit()
+        validate_baseline(session, profile_name, population_size)
         print(f"Seeded {population_size:,} residents. {profile['status']}")
         return population_size
     finally:

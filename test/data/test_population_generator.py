@@ -179,6 +179,27 @@ def test_elderly_share(population):
     assert share == pytest.approx(0.17, abs=0.03)
 
 
+def test_community_background_uses_census_age_distribution(population):
+    catholic = [
+        person
+        for person in population
+        if person.religious_background == ReligiousBackground.CATHOLIC
+    ]
+    protestant = [
+        person
+        for person in population
+        if person.religious_background == ReligiousBackground.PROTESTANT
+    ]
+    catholic_65_plus = sum(person.age >= 65 for person in catholic) / len(catholic)
+    protestant_65_plus = sum(person.age >= 65 for person in protestant) / len(
+        protestant
+    )
+
+    assert catholic_65_plus == pytest.approx(123_700 / 869_749, abs=0.025)
+    assert protestant_65_plus == pytest.approx(193_314 / 827_541, abs=0.025)
+    assert protestant_65_plus - catholic_65_plus > 0.07
+
+
 def test_centenarian_share_is_realistic(population):
     centenarians = sum(1 for p in population if p.age >= 100)
     assert centenarians / len(population) < 0.001

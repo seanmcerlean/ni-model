@@ -159,6 +159,32 @@ def calibrated_age_bands(targets):
     return calibrated
 
 
+# Census 2021 MS-B31. Detailed five-year age shapes come from MS-A02 and are
+# calibrated to the published age-by-community broad bands. This retains both
+# the national age pyramid and the materially older Protestant-background
+# population instead of sampling age and community independently.
+_BACKGROUND_AGE_COUNTS = {
+    ReligiousBackground.CATHOLIC: (869_749, (177_818, 286_070, 282_161, 123_700)),
+    ReligiousBackground.PROTESTANT: (
+        827_541,
+        (118_693, 223_474, 292_060, 193_314),
+    ),
+    ReligiousBackground.OTHER: (28_516, (6_054, 11_889, 8_226, 2_347)),
+    ReligiousBackground.NONE: (177_361, (62_647, 72_930, 34_677, 7_107)),
+}
+_BACKGROUND_AGE_BANDS = {
+    background: calibrated_age_bands(
+        [
+            (0, 14, counts[0] / total),
+            (15, 39, counts[1] / total),
+            (40, 64, counts[2] / total),
+            (65, 110, counts[3] / total),
+        ]
+    )
+    for background, (total, counts) in _BACKGROUND_AGE_COUNTS.items()
+}
+
+
 # Education weights are scenario assumptions selected by broad age, not
 # observed joint Census distributions.
 _PRE = EducationLevel.PRE_PRIMARY
@@ -216,17 +242,22 @@ def iter_population(
         raise ValueError("size must be non-negative")
 
     rng = random.Random(seed)
+    use_background_age_bands = religion_weights is None and age_bands is None
     age_bands = _AGE_BANDS if age_bands is None else age_bands
     origin_weights = _ORIGIN_WEIGHTS if origin_weights is None else origin_weights
     regional_background_weights = _regional_background_weights(religion_weights)
     for _ in range(size):
-        age = _sample_age(rng, age_bands)
         location = _weighted_choice(_LOCATION_WEIGHTS, rng)
         background_weights = regional_background_weights[location]
+        background = _weighted_choice(background_weights, rng)
+        selected_age_bands = (
+            _BACKGROUND_AGE_BANDS[background] if use_background_age_bands else age_bands
+        )
+        age = _sample_age(rng, selected_age_bands)
         yield Person(
             age=age,
             birth_year=reference_year - age,
-            religious_background=_weighted_choice(background_weights, rng),
+            religious_background=background,
             gender=_weighted_choice(_GENDER_WEIGHTS, rng),
             location=location,
             origin=_weighted_choice(origin_weights, rng),
