@@ -38,6 +38,37 @@ describe("App", () => {
     expect(screen.getByText("Run")).toBeInTheDocument();
   });
 
+  it("starts with an explicit random seed that can be changed or regenerated", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{
+        id: "ni_current", path: "models/ni_current.yaml", name: "NI Current",
+        description: "Current model", rate_jitter: 0, random_seed: 42,
+        baseline_year: 2021, data_through: 2024, projection_version: "2024-based",
+        default_start_year: 2024, default_end_year: 2035,
+        birth_rules: 0, death_rules: 0, migration_rules: 0,
+        internal_migration_rules: 0, birth_rate_rules: [], death_rate_rules: [],
+        migration_rate_rules: [], internal_migration_rate_rules: [],
+        year_min: 2024, year_max: 2050,
+      }],
+    } as Response);
+    const randomValues = vi.spyOn(crypto, "getRandomValues")
+      .mockImplementation((values) => {
+        (values as Uint32Array)[0] = 123456;
+        return values;
+      });
+    render(<App />);
+    fireEvent.click(await screen.findByText("Adjust this run"));
+    const seed = screen.getByLabelText("Random seed");
+    expect(seed).toHaveValue(123456);
+
+    fireEvent.change(seed, { target: { value: "987" } });
+    expect(seed).toHaveValue(987);
+    fireEvent.click(screen.getByRole("button", { name: "New random seed" }));
+    expect(seed).toHaveValue(123456);
+    randomValues.mockRestore();
+  });
+
   it("Play button is disabled with no buffered years", () => {
     render(<App />);
     expect(screen.getByText("▶ Play")).toBeDisabled();

@@ -59,12 +59,14 @@ Primary references:
 - Synchronous year snapshots are captured in the year they represent instead of
   all being copied from the final population state.
 
-### High-priority work ledger
+### Work ledger
 
-- [ ] Ingest exact five-year age/sex, geography, country-of-birth, births,
-  deaths, and migration series from NISRA rather than hand-maintained weights.
-- [ ] Validate and update historic rates to the extent possible.
-- [ ] Calibrate demographic rates and model uncertainty instead of applying
-  undocumented fixed assumptions.
+- [ ] "Current" models should apply deathrates realistically and not in a flat fashion regardless of age
+- [x] Items appear in a consistent semantic order in the area details.
+- [x] Each frontend run starts with a random, visible seed that remains editable.
+- [ ] Historic models should start from a realistic baseline
+- [ ] Frontend should have a toggle to select from sample or full populations
+- [ ] There should be an option to add in custom baseline polling values; sub values should adjust based on difference from LucidTalk
+- [ ] Add MCP functionality in addition to the APIs so an AI could interact if desired. Use FastMCP 4
 
 Performance work is tracked separately in `performance.md`.

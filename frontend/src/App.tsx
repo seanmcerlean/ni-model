@@ -20,12 +20,18 @@ function defaultAdjustments(): SimulationAdjustments {
   });
   return {
     birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
-    relocation_multiplier: 1, random_seed: null,
+    relocation_multiplier: 1, random_seed: randomSeed(),
     community: {
       catholic: rateDefaults(), protestant: rateDefaults(),
       other: rateDefaults(), none: rateDefaults(),
     },
   };
+}
+
+function randomSeed(): number {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return values[0];
 }
 
 export default function App() {
@@ -300,9 +306,11 @@ function AdjustmentEditor({ value, onChange, disabled }: {
         </label>)}
       </div>
     </fieldset>
-    <label>Random seed<input type="number" disabled={disabled} placeholder="Model default"
+    <label>Random seed<input type="number" min="0" max="4294967295" disabled={disabled}
       value={value.random_seed ?? ""}
       onChange={(event) => onChange({ ...value, random_seed: event.target.value === "" ? null : Number(event.target.value) })} /></label>
+    <button type="button" className="control-button" disabled={disabled}
+      onClick={() => onChange({ ...value, random_seed: randomSeed() })}>New random seed</button>
     <button type="button" className="control-button" disabled={disabled}
       onClick={() => onChange(defaultAdjustments())}>Reset</button>
   </details>;

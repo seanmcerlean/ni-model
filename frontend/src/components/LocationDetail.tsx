@@ -1,5 +1,12 @@
 import { LOCATION_KEYS, LocationVotingPrediction, SimulationLocationSnapshot } from "../types";
 
+const DETAIL_ORDERS = {
+  community: ["catholic", "protestant", "other", "none"],
+  gender: ["female", "male", "other"],
+  origin: ["ni", "roi", "gb", "other"],
+  age: ["under_18", "18_34", "35_49", "50_64", "65_79", "80_plus"],
+} as const;
+
 interface Props {
   locationId: string | null;
   year: number | null;
@@ -21,10 +28,10 @@ export function LocationDetail({ locationId, year, detail, voting, pollingSource
         <div className="location-population">{detail.total.toLocaleString()}</div>
         <div className="location-population-label">simulated residents</div>
         {voting && <AreaVoting prediction={voting} source={pollingSource} />}
-        <Section title="Community background" data={detail.religious_breakdown} />
-        <Section title="Gender" data={detail.gender_breakdown} />
-        <Section title="Origin" data={detail.origin_breakdown} />
-        <Section title="Age bands" data={detail.age_bands} />
+        <Section title="Community background" data={detail.religious_breakdown} order={DETAIL_ORDERS.community} />
+        <Section title="Gender" data={detail.gender_breakdown} order={DETAIL_ORDERS.gender} />
+        <Section title="Origin" data={detail.origin_breakdown} order={DETAIL_ORDERS.origin} />
+        <Section title="Age bands" data={detail.age_bands} order={DETAIL_ORDERS.age} />
       </>}
     </aside>
   );
@@ -49,11 +56,22 @@ function percent(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-function Section({ title, data }: { title: string; data: Record<string, number> }) {
+function Section({ title, data, order }: {
+  title: string;
+  data: Record<string, number>;
+  order: readonly string[];
+}) {
   const total = Object.values(data).reduce((sum, value) => sum + value, 0) || 1;
+  const keys = [
+    ...order.filter((key) => Object.prototype.hasOwnProperty.call(data, key)),
+    ...Object.keys(data)
+      .filter((key) => !(order as readonly string[]).includes(key))
+      .sort(),
+  ];
   return <section className="detail-section">
     <h3>{title}</h3>
-    {Object.entries(data).map(([key, value]) => {
+    {keys.map((key) => {
+      const value = data[key];
       const share = (value / total) * 100;
       return <div key={key} className="detail-bar-row">
         <span className="detail-bar-label">{friendly(key)}</span>
