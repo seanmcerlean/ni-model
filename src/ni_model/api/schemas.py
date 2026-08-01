@@ -55,6 +55,8 @@ class SimulationYearSnapshot(BaseModel):
     run_id: Optional[UUID] = None
     year: int
     total_population: int
+    sample_population: Optional[int] = None
+    population_scale: float = 1.0
     religious_breakdown: Dict[str, int]
     gender_breakdown: Dict[str, int]
     location_breakdown: Dict[str, int]
@@ -71,6 +73,8 @@ class SimulationModelSummary(BaseModel):
     rate_jitter: float
     random_seed: Optional[int]
     baseline_year: Optional[int] = None
+    baseline_profile: str
+    baseline_population: int
     data_through: Optional[int] = None
     projection_version: Optional[str] = None
     default_start_year: Optional[int] = None
@@ -154,10 +158,11 @@ class SimulationAdjustments(BaseModel):
 
 
 class SimulationRunRequest(BaseModel):
-    model_path: str = "models/ni_base_2024.yaml"
+    model_path: str = "models/ni_current.yaml"
     start_year: int = 2024
     end_year: int = 2030
     adjustments: SimulationAdjustments = Field(default_factory=SimulationAdjustments)
+    population_limit: Optional[int] = Field(default=None, ge=1, le=1_903_175)
 
     @field_validator("end_year")
     @classmethod
@@ -191,6 +196,9 @@ class SimulationRunSummary(BaseModel):
     end_year: int
     status: str
     base_population_count: int
+    represented_population_count: int
+    population_scale: float
+    baseline_profile: str
     completed_years: List[int]
     error: Optional[str] = None
     adjustments: Dict[str, Any] = Field(default_factory=dict)

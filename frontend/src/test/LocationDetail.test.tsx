@@ -46,7 +46,7 @@ describe("LocationDetail", () => {
         religious_breakdown: { none: 10, other: 5, protestant: 35, catholic: 50 },
         gender_breakdown: { other: 1, male: 48, female: 51 },
         origin_breakdown: { other: 5, gb: 10, roi: 5, ni: 80 },
-        age_bands: { "80_plus": 5, "35_49": 25, under_18: 20, "65_79": 10, "18_34": 25, "50_64": 15 },
+        age_bands: { "71+": 15, "36-50": 25, "0-17": 20, "18-35": 25, "51-70": 15 },
       }}
       voting={null}
       pollingSource={null}
@@ -59,6 +59,6 @@ describe("LocationDetail", () => {
     expect(labels(sections[0])).toEqual(["Catholic", "Protestant", "Other", "None"]);
     expect(labels(sections[1])).toEqual(["Female", "Male", "Other"]);
     expect(labels(sections[2])).toEqual(["Ni", "Roi", "Gb", "Other"]);
-    expect(labels(sections[3])).toEqual(["Under 18", "18 34", "35 49", "50 64", "65 79", "80 Plus"]);
+    expect(labels(sections[3])).toEqual(["0-17", "18-35", "36-50", "51-70", "71+"]);
   });
 });

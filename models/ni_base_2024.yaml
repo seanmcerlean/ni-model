@@ -1,4 +1,7 @@
 name: "NI Historical Model"
+baseline_profile: historical
+baseline_population: 1512500
+baseline_year: 1969
 description: >
   Northern Ireland demographic model with era-specific rates.
   Troubles era (1969-1994): higher birth rates, higher mortality, net emigration.

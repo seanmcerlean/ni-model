@@ -149,7 +149,9 @@ class VotingPredictor:
             func.count(Person.id).label("count"),
         ).filter(Person.age >= 18, *filters)
         if self.run_id is None:
-            query = query.filter(Person.run_id.is_(None))
+            query = query.filter(
+                Person.run_id.is_(None), Person.baseline_profile == "current"
+            )
         else:
             query = query.filter(Person.run_id == self.run_id)
         return query.group_by(Person.religious_background, Person.age).all()
@@ -163,9 +165,12 @@ class VotingPredictor:
             Person.age,
             func.count(Person.id).label("count"),
         ).filter(Person.age >= 18)
-        query = query.filter(
-            Person.run_id.is_(None) if run_id is None else Person.run_id == run_id
-        )
+        if run_id is None:
+            query = query.filter(
+                Person.run_id.is_(None), Person.baseline_profile == "current"
+            )
+        else:
+            query = query.filter(Person.run_id == run_id)
         return query.group_by(
             Person.location, Person.religious_background, Person.age
         ).all()
@@ -266,6 +271,8 @@ class VotingPredictor:
                 if self.run_id is None
                 else Person.run_id == self.run_id
             )
+            if self.run_id is None:
+                total_query = total_query.filter(Person.baseline_profile == "current")
             total_population = total_query.scalar() or 0
         else:
             total_population = sum(row.count for row in self.aggregate_rows)

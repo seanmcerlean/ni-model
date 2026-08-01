@@ -1,4 +1,6 @@
 name: NI Current – NISRA 2024 principal projection
+baseline_profile: current
+baseline_population: 1903175
 description: Observed NISRA components for 2022–2024 followed by the official 2024-based principal
   projection for 2025–2074. The population baseline uses Census 2021 marginals; internal relocation
   follows the Census 2021 LGD origin–destination pattern. This is a projection scenario, not

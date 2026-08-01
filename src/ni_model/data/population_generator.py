@@ -158,6 +158,7 @@ def calibrated_age_bands(targets):
         )
     return calibrated
 
+
 # Education weights are scenario assumptions selected by broad age, not
 # observed joint Census distributions.
 _PRE = EducationLevel.PRE_PRIMARY

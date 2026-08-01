@@ -58,13 +58,12 @@ describe("App", () => {
         return values;
       });
     render(<App />);
-    fireEvent.click(await screen.findByText("Adjust this run"));
-    const seed = screen.getByLabelText("Random seed");
+    const seed = await screen.findByLabelText("Simulation seed");
     expect(seed).toHaveValue(123456);
 
     fireEvent.change(seed, { target: { value: "987" } });
     expect(seed).toHaveValue(987);
-    fireEvent.click(screen.getByRole("button", { name: "New random seed" }));
+    fireEvent.click(screen.getByRole("button", { name: "New seed" }));
     expect(seed).toHaveValue(123456);
     randomValues.mockRestore();
   });
@@ -180,12 +179,16 @@ describe("App", () => {
     await waitFor(() => expect(select).toHaveTextContent("NI Current"));
     fireEvent.change(select, { target: { value: "models/ni_current.yaml" } });
 
-    expect(screen.getByText("2021 Census")).toBeInTheDocument();
+    expect(screen.getByText("2021")).toBeInTheDocument();
     expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Adjust this run"));
     const community = screen.getByRole("group", { name: "Community-specific multipliers" });
     expect(within(community).getByLabelText("Background")).toHaveValue("catholic");
     expect(within(community).getByLabelText("Birth rates")).toHaveValue(1);
+    const fullPopulation = screen.getByRole("switch", { name: /Full population/ });
+    expect(fullPopulation).not.toBeChecked();
+    fireEvent.click(fullPopulation);
+    expect(fullPopulation).toBeChecked();
     fireEvent.change(within(community).getByLabelText("Background"), {
       target: { value: "protestant" },
     });

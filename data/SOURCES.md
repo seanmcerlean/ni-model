@@ -27,15 +27,17 @@ the large geographic differences needed by area scenarios. Age, sex and origin
 remain independent marginals, so the generated population is not synthetic
 Census microdata.
 
-## Historical 1971 baseline
+## Historical 1969 baseline
 
-The historical profile uses the official 1971 Census population of 1,536,065
-and its published broad-age counts: 456,997 aged 0–14, 512,242 aged 15–39,
-400,842 aged 40–64, and 165,984 aged 65 and over. The generator calibrates the
-modern five-year shape within each broad band to those exact 1971 marginals.
+The historical model starts from NISRA's mid-1969 population estimate of
+1,512,500. Its nearest authoritative age structure is the 1971 Census:
+456,997 aged 0–14, 512,242 aged 15–39, 400,842 aged 40–64, and 165,984 aged 65
+and over. The generator calibrates the modern five-year shape within each broad
+band to those exact 1971 age shares and treats them as a documented 1969 proxy.
 
 - [NISRA Census 2021 population bulletin, historical Census age table](https://datavis.nisra.gov.uk/census/census-2021-population-and-household-estimates-for-northern-ireland-statistical-bulletin-24-may-2022.html)
 - [NISRA 1971 Census reports](https://www.nisra.gov.uk/publications/1971-census-reports)
+- [CSO historical NI population table sourced from NISRA](https://www.cso.ie/en/releasesandpublications/ep/p-syi/psyi2018/appendix1-northernireland/northernirelandpeoplesociety/)
 
 There is no equivalent 1971 joint table on current LGD boundaries. Iterative
 proportional fitting preserves the documented estimated NI-wide community

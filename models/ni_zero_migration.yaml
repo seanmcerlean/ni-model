@@ -1,4 +1,6 @@
 name: "Zero Net Migration Sensitivity"
+baseline_profile: current
+baseline_population: 1903175
 description: >
   A deterministic sensitivity scenario using the modern fertility and mortality
   assumptions from the historical model, with external and internal net

@@ -64,9 +64,10 @@ Primary references:
 - [ ] "Current" models should apply deathrates realistically and not in a flat fashion regardless of age
 - [x] Items appear in a consistent semantic order in the area details.
 - [x] Each frontend run starts with a random, visible seed that remains editable.
-- [x] Historical models start from a documented 1971-scale population with
-  official Census broad-age marginals and clearly labelled spatial estimates.
-- [ ] Frontend should have a toggle to select from sample or full populations
+- [x] Historical models start in 1969 from a documented 1,512,500 population;
+  the 1971 Census broad-age marginals are used as a clearly labelled proxy.
+- [x] Frontend has a single toggle to select a representative sample or all
+  available baseline rows, while reported totals retain real population scale.
 - [ ] There should be an option to add in custom baseline polling values; sub values should adjust based on difference from LucidTalk
 - [ ] Add MCP functionality in addition to the APIs so an AI could interact if desired. Use FastMCP 4
 

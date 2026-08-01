@@ -14,7 +14,10 @@ class PersonRepository:
         self.run_id = run_id
 
     def _query(self):
-        return self.db.query(Person).filter(Person.run_id == self.run_id)
+        query = self.db.query(Person).filter(Person.run_id == self.run_id)
+        if self.run_id is None:
+            query = query.filter(Person.baseline_profile == "current")
+        return query
 
     def create(self, person: Person) -> Person:
         """Create a new person record"""

@@ -4,7 +4,7 @@ const DETAIL_ORDERS = {
   community: ["catholic", "protestant", "other", "none"],
   gender: ["female", "male", "other"],
   origin: ["ni", "roi", "gb", "other"],
-  age: ["under_18", "18_34", "35_49", "50_64", "65_79", "80_plus"],
+  age: ["0-17", "18-35", "36-50", "51-70", "71+"],
 } as const;
 
 interface Props {

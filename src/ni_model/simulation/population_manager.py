@@ -39,10 +39,25 @@ class PopulationManager:
         clone_population: bool = True,
         owner_key: Optional[str] = None,
         status: str = "pending",
+        population_limit: Optional[int] = None,
+        baseline_profile: str = "current",
+        represented_population_count: Optional[int] = None,
     ) -> SimulationRun:
         """Create a durable run and clone the immutable baseline into it."""
+        available_count = (
+            db_session.query(Person)
+            .filter(
+                Person.run_id.is_(None),
+                Person.baseline_profile == baseline_profile,
+            )
+            .count()
+        )
+        if available_count == 0:
+            raise ValueError(f"baseline profile '{baseline_profile}' is not seeded")
         baseline_count = (
-            db_session.query(Person).filter(Person.run_id.is_(None)).count()
+            available_count
+            if population_limit is None
+            else min(available_count, population_limit)
         )
         run = SimulationRun(
             model_path=model_path,
@@ -50,6 +65,12 @@ class PopulationManager:
             end_year=end_year,
             status=status,
             base_population_count=baseline_count,
+            represented_population_count=(
+                represented_population_count or available_count
+            ),
+            population_scale=(represented_population_count or available_count)
+            / baseline_count,
+            baseline_profile=baseline_profile,
             adjustments=adjustments or {},
             owner_key=owner_key,
         )
@@ -78,9 +99,15 @@ class PopulationManager:
         if self.run_id is None:
             raise ValueError("a run_id is required to restore the baseline")
         self.clear_population()
+        run = self.db_session.get(SimulationRun, self.run_id)
         baseline = (
             self.db_session.query(Person)
-            .filter(Person.run_id.is_(None))
+            .filter(
+                Person.run_id.is_(None),
+                Person.baseline_profile == run.baseline_profile,
+            )
+            .order_by(Person.person_number, Person.id)
+            .limit(run.base_population_count)
             .yield_per(10_000)
         )
         mappings = []
@@ -89,6 +116,7 @@ class PopulationManager:
                 {
                     "id": uuid.uuid4(),
                     "run_id": self.run_id,
+                    "baseline_profile": run.baseline_profile,
                     "age": person.age,
                     "birth_year": person.birth_year,
                     "religious_background": person.religious_background,

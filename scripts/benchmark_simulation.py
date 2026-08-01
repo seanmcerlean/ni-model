@@ -62,7 +62,10 @@ def benchmark(args) -> dict:
     try:
         baseline_count = (
             session.query(func.count(Person.id))
-            .filter(Person.run_id.is_(None))
+            .filter(
+                Person.run_id.is_(None),
+                Person.baseline_profile == "current",
+            )
             .scalar()
         )
         if baseline_count == 0:

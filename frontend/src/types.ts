@@ -13,6 +13,8 @@ export interface YearSnapshot {
   run_id?: string;
   year: number;
   total_population: number;
+  sample_population?: number;
+  population_scale?: number;
   religious_breakdown: Record<string, number>;
   gender_breakdown: Record<string, number>;
   location_breakdown: Record<string, number>;
@@ -57,6 +59,8 @@ export interface SimulationModel {
   rate_jitter: number;
   random_seed: number | null;
   baseline_year: number | null;
+  baseline_profile: "current" | "historical";
+  baseline_population: number;
   data_through: number | null;
   projection_version: string | null;
   default_start_year: number | null;
@@ -84,6 +88,7 @@ export interface ModelRule {
 }
 
 export type PlaybackSpeed = 0.5 | 1 | 2 | 5;
+export type PopulationMode = "sample" | "full";
 export type StreamStatus = "idle" | "streaming" | "complete" | "error";
 
 export interface SimulationAdjustments {

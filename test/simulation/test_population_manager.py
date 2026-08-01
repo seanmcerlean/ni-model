@@ -66,6 +66,41 @@ def test_create_run_clones_immutable_baseline(postgres_db_session, run_and_manag
     )
 
 
+def test_create_run_can_limit_and_replay_a_stable_baseline_sample(
+    postgres_db_session,
+):
+    people = _sample_persons()
+    for number, person in enumerate(people, start=1):
+        person.person_number = number
+    postgres_db_session.add_all(people)
+    postgres_db_session.commit()
+
+    run = PopulationManager.create_run(
+        postgres_db_session,
+        "models/ni_base_2024.yaml",
+        2024,
+        2025,
+        population_limit=2,
+    )
+    manager = PopulationManager(postgres_db_session, run.id)
+    first_ages = [
+        person.age
+        for person in postgres_db_session.query(Person)
+        .filter(Person.run_id == run.id)
+        .order_by(Person.age)
+    ]
+
+    assert run.base_population_count == 2
+    assert manager.get_population_count() == 2
+    assert manager.reset_to_baseline() == 2
+    assert manager.get_population_count() == 2
+    replayed_ages = sorted(
+        person.age
+        for person in postgres_db_session.query(Person).filter(Person.run_id == run.id)
+    )
+    assert first_ages == replayed_ages == [25, 35]
+
+
 def test_clear_and_reset_affect_only_run(postgres_db_session, run_and_manager):
     _, manager = run_and_manager
 

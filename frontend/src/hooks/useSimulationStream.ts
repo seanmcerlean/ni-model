@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 
-import { SimulationAdjustments, StreamStatus, YearSnapshot } from "../types";
+import { PopulationMode, SimulationAdjustments, StreamStatus, YearSnapshot } from "../types";
 
 export interface UseSimulationStream {
   snapshots: Record<number, YearSnapshot>;
   years: number[];
   status: StreamStatus;
   error: string | null;
-  startStream: (startYear: number, endYear: number, modelPath?: string, adjustments?: SimulationAdjustments) => void;
+  startStream: (startYear: number, endYear: number, modelPath?: string, adjustments?: SimulationAdjustments, populationMode?: PopulationMode) => void;
   abort: () => void;
 }
 
@@ -38,6 +38,7 @@ export function useSimulationStream(): UseSimulationStream {
       endYear: number,
       modelPath = "models/ni_base_2024.yaml",
       adjustments?: SimulationAdjustments,
+      populationMode: PopulationMode = "sample",
     ) => {
       esRef.current?.close();
       setSnapshots({});
@@ -59,6 +60,7 @@ export function useSimulationStream(): UseSimulationStream {
         params.set("community_adjustments", JSON.stringify(adjustments.community));
         if (adjustments.random_seed !== null) params.set("random_seed", String(adjustments.random_seed));
       }
+      if (populationMode === "sample") params.set("population_limit", "25000");
       const es = new EventSource(`/api/simulation/stream?${params}`);
       esRef.current = es;
 

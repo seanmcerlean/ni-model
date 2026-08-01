@@ -33,11 +33,21 @@ def test_initial_migration_upgrades_and_downgrades_clean_database():
             "alembic_version",
         }.issubset(inspector.get_table_names())
         person_columns = {column["name"] for column in inspector.get_columns("persons")}
-        assert {"run_id", "person_number", "birth_year"}.issubset(person_columns)
+        assert {
+            "run_id",
+            "person_number",
+            "birth_year",
+            "baseline_profile",
+        }.issubset(person_columns)
         run_columns = {
             column["name"] for column in inspector.get_columns("simulation_runs")
         }
         assert "owner_key" in run_columns
+        assert {
+            "baseline_profile",
+            "represented_population_count",
+            "population_scale",
+        }.issubset(run_columns)
         with engine.connect() as connection:
             row = connection.execute(
                 text("SELECT location, person_number FROM persons")

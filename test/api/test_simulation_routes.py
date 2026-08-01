@@ -7,10 +7,12 @@ import polars as pl
 from src.ni_model.api.routes.simulation import _columnar_years, _load_director
 from src.ni_model.core.models import (
     Person,
+    ReligiousBackground,
     SimulationCheckpoint,
     SimulationRun,
     SimulationSnapshot,
 )
+from src.ni_model.data.population_generator import generate_population
 from src.ni_model.simulation.population_manager import PopulationManager
 
 
@@ -52,9 +54,14 @@ def test_simulation_models_describes_available_configs(client):
     assert models[0]["birth_rate_rules"][0]["rate"] == 26.0
     assert models[0]["default_start_year"] == 1969
     assert models[0]["default_end_year"] == 2024
+    assert models[0]["baseline_profile"] == "historical"
+    assert models[0]["baseline_population"] == 1_512_500
+    assert models[0]["baseline_year"] == 1969
 
     current = next(model for model in models if model["id"] == "ni_current")
     assert current["baseline_year"] == 2021
+    assert current["baseline_profile"] == "current"
+    assert current["baseline_population"] == 1_903_175
     assert current["data_through"] == 2024
     assert current["projection_version"] == "NISRA/ONS 2024-based principal projection"
     assert current["year_min"] == 2022
@@ -117,6 +124,89 @@ def test_run_uses_shared_baseline_and_durable_snapshots(client, populated_db):
         .count()
         == 1
     )
+
+
+def test_run_can_use_a_deterministic_population_sample(client, populated_db):
+    baseline_ids = [
+        person.id
+        for person in populated_db.query(Person)
+        .filter(Person.run_id.is_(None))
+        .order_by(Person.person_number, Person.id)
+        .limit(2)
+    ]
+    created = client.post(
+        "/api/simulation/run",
+        json={
+            "start_year": 2024,
+            "end_year": 2024,
+            "population_limit": 2,
+        },
+    )
+
+    assert created.status_code == 200
+    run_id = uuid.UUID(created.json()["run_id"])
+    summary = _wait_for_run(client, str(run_id))
+    assert summary["base_population_count"] == 2
+    assert summary["represented_population_count"] == 1_903_175
+    assert summary["population_scale"] == 1_903_175 / 2
+    assert summary["baseline_profile"] == "current"
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2024").json()
+    assert snapshot["sample_population"] >= 1
+    assert snapshot["population_scale"] == 1_903_175 / 2
+    assert snapshot["total_population"] > 1_000_000
+    page = client.get(f"/api/simulation/runs/{run_id}/years/2024/people").json()
+    assert page["total"] >= 1
+    history_ids = {person["person_id"] for person in page["people"]}
+    assert history_ids.intersection({str(person_id) for person_id in baseline_ids})
+    assert populated_db.query(Person).filter(Person.run_id == run_id).count() == 0
+    assert (
+        populated_db.query(SimulationSnapshot)
+        .filter(SimulationSnapshot.run_id == run_id)
+        .count()
+        == 1
+    )
+
+
+def test_historical_model_uses_lower_community_calibrated_baseline(
+    client, populated_db
+):
+    historical = generate_population(100, seed=7, reference_year=1969)
+    for index, person in enumerate(historical):
+        person.person_number = 10_000 + index
+        person.baseline_profile = "historical"
+        if index < 31:
+            person.religious_background = ReligiousBackground.CATHOLIC
+        elif index < 96:
+            person.religious_background = ReligiousBackground.PROTESTANT
+        elif index < 98:
+            person.religious_background = ReligiousBackground.OTHER
+        else:
+            person.religious_background = ReligiousBackground.NONE
+    populated_db.add_all(historical)
+    populated_db.commit()
+
+    created = client.post(
+        "/api/simulation/run",
+        json={
+            "model_path": "models/ni_base_2024.yaml",
+            "start_year": 1969,
+            "end_year": 1969,
+            "population_limit": 100,
+            "adjustments": {"random_seed": 42},
+        },
+    )
+
+    assert created.status_code == 200
+    run_id = created.json()["run_id"]
+    summary = _wait_for_run(client, run_id)
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/1969").json()
+    assert summary["baseline_profile"] == "historical"
+    assert summary["represented_population_count"] == 1_512_500
+    assert snapshot["total_population"] < 1_600_000
+    catholic_share = (
+        snapshot["religious_breakdown"]["catholic"] / snapshot["total_population"]
+    )
+    assert catholic_share < 0.4
 
 
 def test_current_model_can_be_selected_for_a_run(client):
@@ -271,18 +361,14 @@ def test_completed_year_checkpoint_can_be_downloaded(client, tmp_path):
     assert frame.height == int(response.headers["x-population-count"])
 
 
-def test_checkpoint_download_requires_an_exact_available_file(
-    client, populated_db
-):
+def test_checkpoint_download_requires_an_exact_available_file(client, populated_db):
     created = client.post(
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
     ).json()
     _wait_for_run(client, created["run_id"])
     run_id = uuid.UUID(created["run_id"])
 
-    missing_year = client.get(
-        f"/api/simulation/runs/{run_id}/years/2024/checkpoint"
-    )
+    missing_year = client.get(f"/api/simulation/runs/{run_id}/years/2024/checkpoint")
     assert missing_year.status_code == 404
 
     checkpoint = (
@@ -292,9 +378,7 @@ def test_checkpoint_download_requires_an_exact_available_file(
     )
     checkpoint.storage_uri = "file:///missing/checkpoint.parquet"
     populated_db.commit()
-    unavailable = client.get(
-        f"/api/simulation/runs/{run_id}/years/2025/checkpoint"
-    )
+    unavailable = client.get(f"/api/simulation/runs/{run_id}/years/2025/checkpoint")
     assert unavailable.status_code == 410
 
 
@@ -311,9 +395,7 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
         .one()
     )
 
-    response = client.get(
-        f"/api/simulation/runs/{created['run_id']}/years/2024"
-    ).json()
+    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2024").json()
 
     assert stored.data["_polling_inputs"]
     assert len(stored.data["_polling_inputs"][0]) == 4

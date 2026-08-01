@@ -35,8 +35,11 @@ def get_db():
 
 @router.get("/summary", response_model=PopulationSummary)
 def population_summary(db: Session = Depends(get_db)):
-    total = db.query(Person).count()
-    age_stats = db.query(
+    baseline = db.query(Person).filter(
+        Person.run_id.is_(None), Person.baseline_profile == "current"
+    )
+    total = baseline.count()
+    age_stats = baseline.with_entities(
         func.avg(Person.age),
         func.min(Person.age),
         func.max(Person.age),
@@ -79,7 +82,15 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
             status_code=404, detail=f"Location '{location_name}' not found"
         )
 
-    total = db.query(Person).filter(Person.location == location).count()
+    total = (
+        db.query(Person)
+        .filter(
+            Person.run_id.is_(None),
+            Person.baseline_profile == "current",
+            Person.location == location,
+        )
+        .count()
+    )
 
     return LocationDetail(
         location=location.value,

@@ -123,6 +123,15 @@ describe("useSimulationStream", () => {
     expect(mockEs.url).toContain("start_year=1969");
     expect(mockEs.url).toContain("end_year=2024");
     expect(mockEs.url).toContain("model_path=models%2Fcustom.yaml");
+    expect(mockEs.url).toContain("population_limit=25000");
+  });
+
+  it("omits the population limit for full-database runs", () => {
+    const { result } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(
+      2024, 2024, "models/ni_current.yaml", undefined, "full",
+    ));
+    expect(mockEs.url).not.toContain("population_limit");
   });
 
   it("adds isolated run adjustments to the SSE URL", () => {

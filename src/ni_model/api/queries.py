@@ -109,7 +109,10 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
 
 
 def _population_query(db: Session, *entities, run_id: uuid.UUID = None):
-    return db.query(*entities).filter(Person.run_id == run_id)
+    query = db.query(*entities).filter(Person.run_id == run_id)
+    if run_id is None:
+        query = query.filter(Person.baseline_profile == "current")
+    return query
 
 
 def religious_breakdown(

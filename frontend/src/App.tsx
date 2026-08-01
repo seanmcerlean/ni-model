@@ -5,7 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+import { CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
 
@@ -50,6 +50,7 @@ export default function App() {
   const [votingLoading, setVotingLoading] = useState(true);
   const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
+  const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -140,8 +141,8 @@ export default function App() {
   const handleStartStream = useCallback(() => {
     setCurrentYear(null);
     setIsPlaying(false);
-    startStream(startYear, endYear, modelPath, adjustments);
-  }, [startYear, endYear, modelPath, adjustments, startStream]);
+    startStream(startYear, endYear, modelPath, adjustments, populationMode);
+  }, [startYear, endYear, modelPath, adjustments, populationMode, startStream]);
 
   const handlePlayPause = useCallback(() => {
     setIsPlaying((p) => !p);
@@ -200,7 +201,8 @@ export default function App() {
               <dl className="model-facts">
                 <div><dt>Seed</dt><dd>{selectedModel.random_seed ?? "Random"}</dd></div>
                 <div><dt>Rate jitter</dt><dd>±{(selectedModel.rate_jitter * 100).toFixed(0)}%</dd></div>
-                {selectedModel.baseline_year && <div><dt>Baseline</dt><dd>{selectedModel.baseline_year} Census</dd></div>}
+                {selectedModel.baseline_year && <div><dt>Baseline year</dt><dd>{selectedModel.baseline_year}</dd></div>}
+                <div><dt>Baseline population</dt><dd>{selectedModel.baseline_population?.toLocaleString() ?? "Unknown"}</dd></div>
                 {selectedModel.data_through && <div><dt>Observed through</dt><dd>{selectedModel.data_through}</dd></div>}
                 {selectedModel.projection_version && <div><dt>Projection</dt><dd>{selectedModel.projection_version}</dd></div>}
               </dl>
@@ -216,6 +218,23 @@ export default function App() {
                 />
               </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
+              <label className="population-toggle">
+                <span><b>Full population</b><small>{populationMode === "full" ? "Every resident in the selected baseline" : "Off — representative 25,000-person sample"}</small></span>
+                <input type="checkbox" role="switch" checked={populationMode === "full"}
+                  disabled={status === "streaming"}
+                  onChange={(event) => setPopulationMode(event.target.checked ? "full" : "sample")} />
+              </label>
+              <div className="seed-control">
+                <label htmlFor="random-seed">Simulation seed</label>
+                <input id="random-seed" type="number" min="0" max="4294967295"
+                  disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
+                  onChange={(event) => setAdjustments({
+                    ...adjustments,
+                    random_seed: event.target.value === "" ? null : Number(event.target.value),
+                  })} />
+                <button type="button" className="control-button" disabled={status === "streaming"}
+                  onClick={() => setAdjustments({ ...adjustments, random_seed: randomSeed() })}>New seed</button>
+              </div>
               <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
             </>
           )}
@@ -306,11 +325,6 @@ function AdjustmentEditor({ value, onChange, disabled }: {
         </label>)}
       </div>
     </fieldset>
-    <label>Random seed<input type="number" min="0" max="4294967295" disabled={disabled}
-      value={value.random_seed ?? ""}
-      onChange={(event) => onChange({ ...value, random_seed: event.target.value === "" ? null : Number(event.target.value) })} /></label>
-    <button type="button" className="control-button" disabled={disabled}
-      onClick={() => onChange({ ...value, random_seed: randomSeed() })}>New random seed</button>
     <button type="button" className="control-button" disabled={disabled}
       onClick={() => onChange(defaultAdjustments())}>Reset</button>
   </details>;
@@ -381,6 +395,12 @@ function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
           <div className="stat-value">{value}</div>
         </div>
       ))}
+      {snapshot?.population_scale && snapshot.population_scale > 1 && (
+        <div className="stat-card">
+          <div className="stat-label">Representative sample</div>
+          <div className="stat-value">{snapshot.sample_population?.toLocaleString()}</div>
+        </div>
+      )}
       <div className="stat-card community-card">
         <div className="stat-label">Community background</div>
         {snapshot ? (

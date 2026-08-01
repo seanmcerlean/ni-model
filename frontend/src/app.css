@@ -50,6 +50,12 @@ button, input, select { font: inherit; }
 .rule-filters b { color: #cbd5e1; font-weight: 600; }
 .empty-rules { padding: 8px 12px; color: #64748b; font-size: 10px; }
 .model-note { padding: 10px; border-left: 2px solid #f59e0b; background: #78350f2e; color: #fcd34d; font-size: 10px; line-height: 1.45; }
+.population-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 9px; border: 1px solid #334b68; border-radius: 6px; color: #e2e8f0; font-size: 10px; }
+.population-toggle span { display: grid; gap: 2px; }
+.population-toggle small { color: #94a3b8; font-size: 9px; }
+.population-toggle input { width: 34px; height: 18px; accent-color: #38bdf8; cursor: pointer; }
+.seed-control { display: grid; grid-template-columns: 1fr 88px auto; align-items: center; gap: 7px; margin: 12px 0; color: #cbd5e1; font-size: 10px; }
+.seed-control input { min-width: 0; padding: 5px; border: 1px solid #334b68; border-radius: 4px; background: #13263e; color: #f8fafc; }
 .voting-panel { margin-top: 20px; padding-top: 16px; border-top: 1px solid #334b68; }
 .voting-headline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
 .voting-headline span { padding: 7px 4px; border-radius: 4px; background: #13263e; color: #94a3b8; font-size: 8px; text-align: center; text-transform: uppercase; }

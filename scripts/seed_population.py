@@ -6,7 +6,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, func, text
 from sqlalchemy.orm import sessionmaker
 
 from alembic import command
@@ -47,8 +47,8 @@ PROFILES = {
         "status": "Census 2021 sourced baseline",
     },
     "historical": {
-        "size": 1_536_065,
-        "reference_year": 1971,
+        "size": 1_512_500,
+        "reference_year": 1969,
         "religion_weights": [
             (ReligiousBackground.CATHOLIC, 0.311),
             (ReligiousBackground.PROTESTANT, 0.649),
@@ -58,7 +58,8 @@ PROFILES = {
         "age_bands": _HISTORICAL_AGE_BANDS,
         "origin_weights": _HISTORICAL_ORIGIN_WEIGHTS,
         "status": (
-            "Best-effort 1971 baseline: exact Census total and broad-age marginals; "
+            "Best-effort 1969 baseline: exact NISRA total and 1971 Census broad-age "
+            "marginals; "
             "community and origin are documented estimates; modern LGD spatial "
             "patterns are retained because equivalent 1971 LGDs did not exist"
         ),
@@ -66,11 +67,14 @@ PROFILES = {
 }
 
 
-def _mapping(person: Person, person_number: int) -> dict:
+def _mapping(
+    person: Person, person_number: int, baseline_profile: str = "current"
+) -> dict:
     return {
         "id": uuid.uuid4(),
         "person_number": person_number,
         "run_id": None,
+        "baseline_profile": baseline_profile,
         "age": person.age,
         "birth_year": person.birth_year,
         "religious_background": person.religious_background,
@@ -97,15 +101,23 @@ def seed(
     engine = create_engine(database_url)
     session = sessionmaker(bind=engine)()
     try:
-        existing = session.query(Person).filter(Person.run_id.is_(None)).count()
+        profile_filter = (
+            Person.run_id.is_(None),
+            Person.baseline_profile == profile_name,
+        )
+        existing = session.query(Person).filter(*profile_filter).count()
         if existing and not replace:
             print(f"Baseline already contains {existing:,} residents; nothing changed.")
             return existing
         if replace:
-            session.query(Person).filter(Person.run_id.is_(None)).delete(
+            session.query(Person).filter(*profile_filter).delete(
                 synchronize_session=False
             )
             session.commit()
+
+        next_person_number = (
+            session.query(func.max(Person.person_number)).scalar() or 0
+        ) + 1
 
         batch = []
         for person_number, person in enumerate(
@@ -117,9 +129,9 @@ def seed(
                 age_bands=profile["age_bands"],
                 origin_weights=profile["origin_weights"],
             ),
-            start=1,
+            start=next_person_number,
         ):
-            batch.append(_mapping(person, person_number))
+            batch.append(_mapping(person, person_number, profile_name))
             if len(batch) == batch_size:
                 session.bulk_insert_mappings(Person, batch)
                 session.commit()

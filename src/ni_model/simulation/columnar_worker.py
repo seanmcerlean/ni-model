@@ -75,7 +75,12 @@ class ColumnarSimulationWorker:
 
     @classmethod
     def baseline_frame(
-        cls, db: Session, start_year: int, recorder=None
+        cls,
+        db: Session,
+        start_year: int,
+        recorder=None,
+        population_limit: Optional[int] = None,
+        baseline_profile: str = "current",
     ) -> pl.DataFrame:
         """Read immutable residents as columns without constructing Persons."""
         bind = db.get_bind()
@@ -96,7 +101,13 @@ class ColumnarSimulationWorker:
             cast(Person.education_level, String).label("education_level"),
             cast(Person.location, String).label("location"),
             cast(Person.origin, String).label("origin"),
-        ).filter(Person.run_id.is_(None))
+        ).filter(
+            Person.run_id.is_(None),
+            Person.baseline_profile == baseline_profile,
+        )
+        query = query.order_by(Person.person_number, Person.id)
+        if population_limit is not None:
+            query = query.limit(population_limit)
         stage = recorder.stage("baseline_load") if recorder else nullcontext()
         with stage:
             if bind.dialect.name == "postgresql":
@@ -150,8 +161,16 @@ class ColumnarSimulationWorker:
         start_year: int,
         seed: Optional[int] = None,
         recorder=None,
+        population_limit: Optional[int] = None,
+        baseline_profile: str = "current",
     ) -> "ColumnarSimulationWorker":
-        frame = cls.baseline_frame(db, start_year, recorder=recorder)
+        frame = cls.baseline_frame(
+            db,
+            start_year,
+            recorder=recorder,
+            population_limit=population_limit,
+            baseline_profile=baseline_profile,
+        )
         return cls(frame, config, run_id, seed=seed, recorder=recorder)
 
     def _stage(self, name: str):

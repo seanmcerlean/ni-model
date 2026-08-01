@@ -1,5 +1,6 @@
 """Durable PostgreSQL-backed simulation job execution."""
 
+import logging
 import os
 import time
 import uuid
@@ -11,6 +12,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from ..core.database import SessionLocal
 from ..core.models import SimulationRun
 from .event_store import EventStore
+
+logger = logging.getLogger(__name__)
 
 _executor = ThreadPoolExecutor(
     max_workers=max(1, int(os.getenv("SIMULATION_WORKERS", "1"))),
@@ -124,6 +127,7 @@ def execute_run(
         if not completed:
             return
     except Exception as exc:
+        logger.exception("Simulation run %s failed", run_id)
         db.rollback()
         run = db.get(SimulationRun, run_id)
         if run is not None:

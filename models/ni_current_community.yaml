@@ -1,4 +1,6 @@
 name: NI Current – community-differentiated estimate
+baseline_profile: current
+baseline_population: 1903175
 description: NISRA 2024 principal totals split by community background using conservative
   estimated differentials calibrated to Census 2011–2021 change. Annual component rates are
   normalized to the official starting total. This sensitivity scenario is not an official

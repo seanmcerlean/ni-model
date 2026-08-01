@@ -8,8 +8,9 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
-    ForeignKey,
     FetchedValue,
+    Float,
+    ForeignKey,
     Index,
     Integer,
     String,
@@ -80,6 +81,7 @@ class Person(Base):
         nullable=True,
         index=True,
     )
+    baseline_profile = Column(String(32), nullable=False, default="current", index=True)
     age = Column(Integer, nullable=False)
     birth_year = Column(Integer, nullable=True, index=True)
     religious_background = Column(Enum(ReligiousBackground), nullable=False)
@@ -111,6 +113,9 @@ class SimulationRun(Base):
     status = Column(String(32), nullable=False, default="pending", index=True)
     owner_key = Column(String(64), nullable=True, index=True)
     base_population_count = Column(Integer, nullable=False, default=0)
+    represented_population_count = Column(Integer, nullable=False, default=0)
+    population_scale = Column(Float, nullable=False, default=1.0)
+    baseline_profile = Column(String(32), nullable=False, default="current")
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,

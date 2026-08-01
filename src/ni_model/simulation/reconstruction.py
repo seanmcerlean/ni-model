@@ -38,7 +38,10 @@ class PopulationReconstructor:
             after_year = checkpoint.year
         else:
             population = ColumnarSimulationWorker.baseline_frame(
-                self.db, run.start_year
+                self.db,
+                run.start_year,
+                population_limit=run.base_population_count,
+                baseline_profile=run.baseline_profile,
             )
             after_year = run.start_year - 1
         events = (
@@ -169,7 +172,11 @@ class PopulationReconstructor:
     def history(self, run: SimulationRun, person_id: uuid.UUID) -> dict:
         baseline = (
             self.db.query(Person)
-            .filter(Person.run_id.is_(None), Person.id == person_id)
+            .filter(
+                Person.run_id.is_(None),
+                Person.baseline_profile == run.baseline_profile,
+                Person.id == person_id,
+            )
             .one_or_none()
         )
         events = (
