@@ -287,13 +287,28 @@ class ColumnarSimulationWorker:
 
     def _deaths(self, year: int) -> int:
         total = 0
+        age_rates = self.config.get("mortality_age_rates")
         for rule_index, rule in self._active_rules("death_rates", year):
             rng = self._rng(year, "death", rule_index)
             cohort = self.population.filter(
                 self._filter_expression(rule.get("filters", {}), year)
             )
             count = int(self._rate(rule, rng) / 1000 * cohort.height)
-            ids = self._selected_ids(cohort, count, rng)
+            if age_rates and count > 0:
+                ages = year - cohort["birth_year"].to_numpy()
+                weights = np.zeros(cohort.height, dtype=np.float64)
+                for band in age_rates:
+                    mask = (ages >= band["age_min"]) & (ages <= band["age_max"])
+                    weights[mask] = band["rate"]
+                eligible = np.flatnonzero(weights > 0)
+                count = min(count, len(eligible))
+                probabilities = weights[eligible] / weights[eligible].sum()
+                selected = rng.choice(
+                    eligible, size=count, replace=False, p=probabilities
+                )
+                ids = cohort[selected.tolist()]["person_id"].to_list()
+            else:
+                ids = self._selected_ids(cohort, count, rng)
             total += self._remove_people(ids, year, "death")
         return total
 

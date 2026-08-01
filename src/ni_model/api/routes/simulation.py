@@ -178,6 +178,7 @@ def simulation_models():
                 internal_migration_rules=len(rule_groups[3]),
                 birth_rate_rules=rule_groups[0],
                 death_rate_rules=rule_groups[1],
+                mortality_age_rates=config.get("mortality_age_rates", []),
                 migration_rate_rules=rule_groups[2],
                 internal_migration_rate_rules=rule_groups[3],
                 year_min=min(years) if years else None,

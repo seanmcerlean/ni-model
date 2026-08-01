@@ -127,3 +127,31 @@ def test_columnar_worker_applies_community_and_age_filters():
     assert remaining.filter(
         (pl.col("religious_background") == "catholic") & (pl.col("age") >= 35)
     ).is_empty()
+
+
+def test_columnar_worker_weights_crude_deaths_by_age():
+    people = population(1_000).with_columns(
+        pl.Series("birth_year", [2005] * 500 + [1935] * 500).cast(pl.Int16)
+    )
+    weighted_config = {
+        "random_seed": 17,
+        "rate_jitter": 0.0,
+        "birth_rates": [],
+        "death_rates": [{"rate": 100.0, "filters": {}}],
+        "mortality_age_rates": [
+            {"age_min": 0, "age_max": 64, "rate": 1.0},
+            {"age_min": 65, "age_max": 130, "rate": 100.0},
+        ],
+        "migration_rates": [],
+        "internal_migration_rates": [],
+    }
+    worker = ColumnarSimulationWorker(people, weighted_config, uuid.uuid4())
+    old_ids = set(people.tail(500)["person_id"])
+
+    result = worker.run_year(2025)
+
+    death_ids = {
+        event.person_id for event in worker.events if event.event_type == "death"
+    }
+    assert result["deaths"] == 100
+    assert len(death_ids & old_ids) >= 95

@@ -90,6 +90,20 @@ The official publication cautions that projections are scenarios based on
 demographic assumptions, not forecasts. The model carries that limitation in
 its description.
 
+### Current age-specific mortality
+
+The current models preserve each year's observed or principal-projection crude
+death rate, but select deaths using the all-person 2024 age-specific rates in
+Table 5.3 of NISRA's Registrar General Annual Report. The rates per 1,000 are
+4.424556 at age 0; 0.091557 at 1–4; 0.073626 at 5–9; 0.030976 at 10–14;
+0.466414 at 15–24; 0.836050 at 25–34; 1.455992 at 35–44; 2.839962 at 45–54;
+7.009875 at 55–64; 16.609164 at 65–74; 44.028801 at 75–84; and 149.379433
+at 85+. These values determine relative individual risk; the active annual
+crude rate still determines the total number selected, so projected yearly
+death totals are not accidentally replaced by the 2024 population structure.
+
+- [NISRA Registrar General Annual Report 2024 deaths tables](https://www.nisra.gov.uk/publications/registrar-general-annual-report-2024-deaths)
+
 ### Community-differentiated sensitivity variant
 
 `ni_current_community.yaml` retains every annual NISRA principal-projection

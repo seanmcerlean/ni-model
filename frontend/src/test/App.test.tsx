@@ -143,6 +143,9 @@ describe("App", () => {
           internal_migration_rules: 0,
           birth_rate_rules: [],
           death_rate_rules: [],
+          mortality_age_rates: [
+            { rate: 149.379433, age_min: 85, age_max: 130 },
+          ],
           migration_rate_rules: [],
           internal_migration_rate_rules: [],
           year_min: 2022,
@@ -181,6 +184,9 @@ describe("App", () => {
 
     expect(screen.getByText("2021")).toBeInTheDocument();
     expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Mortality age profile"));
+    expect(screen.getByText("149.379433 per 1,000")).toBeInTheDocument();
+    expect(screen.getByText("85–130")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Adjust this run"));
     const community = screen.getByRole("group", { name: "Community-specific multipliers" });
     expect(within(community).getByLabelText("Background")).toHaveValue("catholic");

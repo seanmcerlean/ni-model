@@ -1,6 +1,7 @@
 import random
 import uuid
 from abc import ABC, abstractmethod
+from heapq import nlargest
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
@@ -114,6 +115,39 @@ class DeathCalculator(DemographicCalculator):
             for person in self.rng.sample(cohort, num_deaths):
                 self.db_session.delete(person)
 
+        return num_deaths
+
+
+class AgeWeightedDeathCalculator(DeathCalculator):
+    """Apply a cohort's crude death rate using age-specific relative risks."""
+
+    def __init__(
+        self, *args, age_rates: Optional[List[Dict[str, Any]]] = None, **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.age_rates = age_rates or []
+
+    def _age_rate(self, age: int) -> float:
+        for band in self.age_rates:
+            if band["age_min"] <= age <= band["age_max"]:
+                return band["rate"]
+        return 0.0
+
+    def calculate(self) -> int:
+        cohort = self._get_cohort()
+        num_deaths = min(int((self.rate / 1000.0) * len(cohort)), len(cohort))
+        if num_deaths <= 0:
+            return 0
+        weighted = [(person, self._age_rate(person.age)) for person in cohort]
+        eligible = [(person, weight) for person, weight in weighted if weight > 0]
+        num_deaths = min(num_deaths, len(eligible))
+        selected = nlargest(
+            num_deaths,
+            eligible,
+            key=lambda item: self.rng.random() ** (1.0 / item[1]),
+        )
+        for person, _weight in selected:
+            self.db_session.delete(person)
         return num_deaths
 
 

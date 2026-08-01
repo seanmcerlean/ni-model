@@ -71,6 +71,7 @@ export interface SimulationModel {
   internal_migration_rules: number;
   birth_rate_rules: ModelRule[];
   death_rate_rules: ModelRule[];
+  mortality_age_rates?: ModelRule[];
   migration_rate_rules: ModelRule[];
   internal_migration_rate_rules: ModelRule[];
   year_min: number | null;
@@ -79,12 +80,14 @@ export interface SimulationModel {
 
 export interface ModelRule {
   rate: number;
+  age_min?: number;
+  age_max?: number;
   year_min?: number;
   year_max?: number;
   destination?: string;
   evidence?: "observed" | "observed_net_only" | "principal_projection" | "census_2021_origin_destination" | "estimated_community_differential";
   flow?: "in" | "out";
-  filters: Record<string, string | number>;
+  filters?: Record<string, string | number>;
 }
 
 export type PlaybackSpeed = 0.5 | 1 | 2 | 5;

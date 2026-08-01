@@ -452,3 +452,26 @@ def test_same_seed_produces_same_rate_sequence(postgres_db_session):
 def test_invalid_model_config_rejected(postgres_db_session, config, message):
     with pytest.raises(ValueError, match=message):
         ModelDirector(postgres_db_session, config)
+
+
+@pytest.mark.parametrize(
+    "profile,message",
+    [
+        ([], "non-empty"),
+        ([{"age_min": 1, "age_max": 130, "rate": 1}], "contiguous"),
+        ([{"age_min": 0, "age_max": 50, "rate": 1}], "age 120"),
+        ([{"age_min": 0, "age_max": 130, "rate": 0}], "positive"),
+    ],
+)
+def test_invalid_mortality_age_profile_rejected(postgres_db_session, profile, message):
+    with pytest.raises(ValueError, match=message):
+        ModelDirector(postgres_db_session, {"mortality_age_rates": profile})
+
+
+def test_current_model_uses_observed_age_specific_mortality(postgres_db_session):
+    director = ModelDirector.from_yaml(postgres_db_session, "models/ni_current.yaml")
+
+    profile = director.config["mortality_age_rates"]
+    assert profile[1] == {"age_min": 1, "age_max": 4, "rate": 0.091557}
+    assert profile[-1]["age_min"] == 85
+    assert profile[-1]["rate"] == pytest.approx(149.379433)

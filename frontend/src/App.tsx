@@ -209,6 +209,12 @@ export default function App() {
               <div className="rule-groups">
                 <RuleGroup title="Birth rules" rules={selectedModel.birth_rate_rules} />
                 <RuleGroup title="Mortality rules" rules={selectedModel.death_rate_rules} />
+                {selectedModel.mortality_age_rates?.length ? (
+                  <RuleGroup
+                    title="Mortality age profile"
+                    rules={selectedModel.mortality_age_rates}
+                  />
+                ) : null}
                 <RuleGroup
                   title="Migration rules"
                   rules={[
@@ -395,12 +401,6 @@ function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
           <div className="stat-value">{value}</div>
         </div>
       ))}
-      {snapshot?.population_scale && snapshot.population_scale > 1 && (
-        <div className="stat-card">
-          <div className="stat-label">Representative sample</div>
-          <div className="stat-value">{snapshot.sample_population?.toLocaleString()}</div>
-        </div>
-      )}
       <div className="stat-card community-card">
         <div className="stat-label">Community background</div>
         {snapshot ? (
@@ -447,10 +447,13 @@ function RuleGroup({ title, rules }: { title: string; rules: ModelRule[] }) {
               {Object.entries(rule.filters ?? {}).map(([key, value]) => (
                 <span key={key}>{friendly(key)}: <b>{friendly(String(value))}</b></span>
               ))}
+              {rule.age_min !== undefined && rule.age_max !== undefined && (
+                <span>Age: <b>{rule.age_min === rule.age_max ? rule.age_min : `${rule.age_min}–${rule.age_max}`}</b></span>
+              )}
               {rule.destination && <span>Destination: <b>{friendly(rule.destination)}</b></span>}
               {rule.flow && <span>Flow: <b>{friendly(rule.flow)}</b></span>}
               {rule.evidence && <span>Evidence: <b>{friendly(rule.evidence)}</b></span>}
-              {Object.keys(rule.filters ?? {}).length === 0 && !rule.destination && <span>Whole population</span>}
+              {Object.keys(rule.filters ?? {}).length === 0 && rule.age_min === undefined && !rule.destination && <span>Whole population</span>}
             </div>
           </div>
         ))}

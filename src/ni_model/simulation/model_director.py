@@ -14,6 +14,7 @@ from ..core.models import (
     ReligiousBackground,
 )
 from .demographic_calculators import (
+    AgeWeightedDeathCalculator,
     BirthCalculator,
     DeathCalculator,
     InternalMigrationCalculator,
@@ -118,6 +119,35 @@ class ModelDirector:
                         Location[item["destination"]]
                     except (KeyError, TypeError) as exc:
                         raise ValueError(f"{label} has invalid destination") from exc
+        self._validate_mortality_age_rates()
+
+    def _validate_mortality_age_rates(self) -> None:
+        profile = self.config.get("mortality_age_rates")
+        if profile is None:
+            return
+        if not isinstance(profile, list) or not profile:
+            raise ValueError("mortality_age_rates must be a non-empty list")
+        expected_min = 0
+        for index, band in enumerate(profile):
+            label = f"mortality_age_rates[{index}]"
+            if not isinstance(band, dict):
+                raise ValueError(f"{label} must be a mapping")
+            age_min = band.get("age_min")
+            age_max = band.get("age_max")
+            rate = band.get("rate")
+            if age_min != expected_min or not isinstance(age_max, int):
+                raise ValueError("mortality_age_rates must be contiguous from age 0")
+            if age_max < age_min:
+                raise ValueError(f"{label} has age_min after age_max")
+            if (
+                isinstance(rate, bool)
+                or not isinstance(rate, (int, float))
+                or rate <= 0
+            ):
+                raise ValueError(f"{label}.rate must be positive")
+            expected_min = age_max + 1
+        if profile[-1]["age_max"] < 120:
+            raise ValueError("mortality_age_rates must cover age 120")
 
     def _is_active(self, rate_config: Dict, year: int) -> bool:
         """Return True if rate config applies to the given simulation year"""
@@ -198,9 +228,17 @@ class ModelDirector:
 
     def simulate_deaths(self, year: int) -> int:
         """Execute death calculators active for year and return total deaths"""
-        calcs = self._build_calculators(
-            self.config.get("death_rates", []), DeathCalculator, year
+        calculator = (
+            AgeWeightedDeathCalculator
+            if self.config.get("mortality_age_rates")
+            else DeathCalculator
         )
+        calcs = self._build_calculators(
+            self.config.get("death_rates", []), calculator, year
+        )
+        if calculator is AgeWeightedDeathCalculator:
+            for calc in calcs:
+                calc.age_rates = self.config["mortality_age_rates"]
         return sum(c.calculate() for c in calcs)
 
     def simulate_migration(self, year: int) -> int:

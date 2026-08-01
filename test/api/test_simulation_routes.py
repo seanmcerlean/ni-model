@@ -3,6 +3,7 @@ import time
 import uuid
 
 import polars as pl
+import pytest
 
 from src.ni_model.api.routes.simulation import _columnar_years, _load_director
 from src.ni_model.core.models import (
@@ -72,6 +73,9 @@ def test_simulation_models_describes_available_configs(client):
     assert current["default_start_year"] == 2024
     assert current["default_end_year"] == 2035
     assert current["migration_rate_rules"][3]["flow"] == "in"
+    assert current["mortality_age_rates"][0]["age_min"] == 0
+    assert current["mortality_age_rates"][-1]["age_min"] == 85
+    assert current["mortality_age_rates"][-1]["rate"] == pytest.approx(149.379433)
 
     community = next(model for model in models if model["id"] == "ni_current_community")
     assert community["birth_rules"] == current["birth_rules"] * 4

@@ -61,7 +61,8 @@ Primary references:
 
 ### Work ledger
 
-- [ ] "Current" models should apply deathrates realistically and not in a flat fashion regardless of age
+- [x] Current models preserve annual projected death totals while selecting
+  deaths with NISRA 2024 age-specific mortality rates.
 - [x] Items appear in a consistent semantic order in the area details.
 - [x] Each frontend run starts with a random, visible seed that remains editable.
 - [x] Historical models start in 1969 from a documented 1,512,500 population;
