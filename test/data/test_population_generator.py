@@ -10,7 +10,11 @@ from src.ni_model.core.models import (
     Person,
     ReligiousBackground,
 )
-from src.ni_model.data.population_generator import generate_population, iter_population
+from src.ni_model.data.population_generator import (
+    calibrated_age_bands,
+    generate_population,
+    iter_population,
+)
 
 SIZE = 10_000
 
@@ -119,6 +123,26 @@ def test_historical_targets_retain_geographic_pattern():
     ) / len(
         mid_east_antrim
     )
+
+
+def test_historical_age_calibration_matches_1971_broad_marginals():
+    total = 1_536_065
+    bands = calibrated_age_bands(
+        [
+            (0, 14, 456_997 / total),
+            (15, 39, 512_242 / total),
+            (40, 64, 400_842 / total),
+            (65, 110, 165_984 / total),
+        ]
+    )
+    historical = list(iter_population(30_000, seed=42, age_bands=bands))
+
+    assert sum(person.age <= 14 for person in historical) / len(
+        historical
+    ) == pytest.approx(456_997 / total, abs=0.015)
+    assert sum(person.age >= 65 for person in historical) / len(
+        historical
+    ) == pytest.approx(165_984 / total, abs=0.015)
 
 
 def test_origin_ni_dominant(population):

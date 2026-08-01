@@ -15,14 +15,35 @@ from alembic.config import Config
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.ni_model.core.models import Person, ReligiousBackground  # noqa: E402
-from src.ni_model.data.population_generator import iter_population  # noqa: E402
+from src.ni_model.core.models import Origin, Person, ReligiousBackground  # noqa: E402
+from src.ni_model.data.population_generator import (  # noqa: E402
+    calibrated_age_bands,
+    iter_population,
+)
+
+_HISTORICAL_TOTAL = 1_536_065
+_HISTORICAL_AGE_BANDS = calibrated_age_bands(
+    [
+        (0, 14, 456_997 / _HISTORICAL_TOTAL),
+        (15, 39, 512_242 / _HISTORICAL_TOTAL),
+        (40, 64, 400_842 / _HISTORICAL_TOTAL),
+        (65, 110, 165_984 / _HISTORICAL_TOTAL),
+    ]
+)
+_HISTORICAL_ORIGIN_WEIGHTS = [
+    (Origin.NI, 0.94),
+    (Origin.ROI, 0.025),
+    (Origin.GB, 0.03),
+    (Origin.OTHER, 0.005),
+]
 
 PROFILES = {
     "current": {
         "size": 1_903_175,
         "reference_year": 2021,
         "religion_weights": None,
+        "age_bands": None,
+        "origin_weights": None,
         "status": "Census 2021 sourced baseline",
     },
     "historical": {
@@ -34,10 +55,12 @@ PROFILES = {
             (ReligiousBackground.OTHER, 0.020),
             (ReligiousBackground.NONE, 0.020),
         ],
+        "age_bands": _HISTORICAL_AGE_BANDS,
+        "origin_weights": _HISTORICAL_ORIGIN_WEIGHTS,
         "status": (
-            "Best-effort 1971-scale representative estimate: community background "
-            "matches the legacy NI-wide estimate and borrows the 2021 LGD spatial "
-            "pattern; age, LGD, origin and education use current distributions"
+            "Best-effort 1971 baseline: exact Census total and broad-age marginals; "
+            "community and origin are documented estimates; modern LGD spatial "
+            "patterns are retained because equivalent 1971 LGDs did not exist"
         ),
     },
 }
@@ -91,6 +114,8 @@ def seed(
                 seed=42,
                 religion_weights=profile["religion_weights"],
                 reference_year=profile["reference_year"],
+                age_bands=profile["age_bands"],
+                origin_weights=profile["origin_weights"],
             ),
             start=1,
         ):

@@ -23,3 +23,5 @@ def test_mapping_creates_baseline_row():
 def test_profiles_define_their_population_reference_year():
     assert PROFILES["current"]["reference_year"] == 2021
     assert PROFILES["historical"]["reference_year"] == 1971
+    assert PROFILES["historical"]["age_bands"] is not None
+    assert PROFILES["historical"]["origin_weights"] is not None

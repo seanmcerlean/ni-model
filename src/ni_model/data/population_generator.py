@@ -145,6 +145,19 @@ _AGE_BANDS = [
     (100, 110, _CENTENARIAN_WEIGHT),
 ]
 
+
+def calibrated_age_bands(targets):
+    """Scale the detailed Census shape to supplied broad-age marginals."""
+    calibrated = []
+    for target_min, target_max, target_weight in targets:
+        members = [band for band in _AGE_BANDS if target_min <= band[0] <= target_max]
+        current_weight = sum(weight for _, _, weight in members)
+        calibrated.extend(
+            (minimum, maximum, weight * target_weight / current_weight)
+            for minimum, maximum, weight in members
+        )
+    return calibrated
+
 # Education weights are scenario assumptions selected by broad age, not
 # observed joint Census distributions.
 _PRE = EducationLevel.PRE_PRIMARY
@@ -173,11 +186,11 @@ def _weighted_choice(choices, rng: random.Random):
     return rng.choices(items, weights=weights, k=1)[0]
 
 
-def _sample_age(rng: random.Random) -> int:
-    """Return an age sampled from the NI Census 2021 age distribution."""
-    band_items = [(i, w) for i, (_, _, w) in enumerate(_AGE_BANDS)]
+def _sample_age(rng: random.Random, age_bands=_AGE_BANDS) -> int:
+    """Return an age sampled from a configured NI age distribution."""
+    band_items = [(i, w) for i, (_, _, w) in enumerate(age_bands)]
     band_idx = _weighted_choice([(i, w) for i, w in band_items], rng)
-    min_age, max_age, _ = _AGE_BANDS[band_idx]
+    min_age, max_age, _ = age_bands[band_idx]
     return rng.randint(min_age, max_age)
 
 
@@ -194,15 +207,19 @@ def iter_population(
     seed: Optional[int] = None,
     religion_weights=None,
     reference_year: int = 2021,
+    age_bands=None,
+    origin_weights=None,
 ) -> Iterator[Person]:
     """Yield residents without retaining a full-scale population in memory."""
     if size < 0:
         raise ValueError("size must be non-negative")
 
     rng = random.Random(seed)
+    age_bands = _AGE_BANDS if age_bands is None else age_bands
+    origin_weights = _ORIGIN_WEIGHTS if origin_weights is None else origin_weights
     regional_background_weights = _regional_background_weights(religion_weights)
     for _ in range(size):
-        age = _sample_age(rng)
+        age = _sample_age(rng, age_bands)
         location = _weighted_choice(_LOCATION_WEIGHTS, rng)
         background_weights = regional_background_weights[location]
         yield Person(
@@ -211,7 +228,7 @@ def iter_population(
             religious_background=_weighted_choice(background_weights, rng),
             gender=_weighted_choice(_GENDER_WEIGHTS, rng),
             location=location,
-            origin=_weighted_choice(_ORIGIN_WEIGHTS, rng),
+            origin=_weighted_choice(origin_weights, rng),
             education_level=_weighted_choice(_education_weights(age), rng),
         )
 
