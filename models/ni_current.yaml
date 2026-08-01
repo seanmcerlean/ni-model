@@ -12,6 +12,17 @@ default_start_year: 2024
 default_end_year: 2035
 rate_jitter: 0
 random_seed: 42
+integration_rates:
+- {rate: 0.35, year_min: 2022, destination: NONE, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 0.65, year_min: 2022, destination: NONE, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 0.03, year_min: 2022, destination: PROTESTANT, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 0.03, year_min: 2022, destination: CATHOLIC, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 3.2, year_min: 2022, destination: CATHOLIC, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 2.8, year_min: 2022, destination: PROTESTANT, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 0.2, year_min: 2022, destination: OTHER, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 4.0, year_min: 2022, destination: CATHOLIC, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 3.5, year_min: 2022, destination: PROTESTANT, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- {rate: 1.0, year_min: 2022, destination: NONE, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
 mortality_age_rates:
 - {age_min: 0, age_max: 0, rate: 4.424556}
 - {age_min: 1, age_max: 4, rate: 0.091557}

@@ -155,3 +155,38 @@ def test_columnar_worker_weights_crude_deaths_by_age():
     }
     assert result["deaths"] == 100
     assert len(death_ids & old_ids) >= 95
+
+
+def test_columnar_worker_applies_competing_integration_flows_simultaneously():
+    integration_config = {
+        "random_seed": 3,
+        "rate_jitter": 0.0,
+        "birth_rates": [],
+        "death_rates": [],
+        "migration_rates": [],
+        "internal_migration_rates": [],
+        "integration_rates": [
+            {
+                "rate": 100.0,
+                "destination": "NONE",
+                "filters": {"religious_background": "CATHOLIC"},
+            },
+            {
+                "rate": 100.0,
+                "destination": "OTHER",
+                "filters": {"religious_background": "CATHOLIC"},
+            },
+        ],
+    }
+    worker = ColumnarSimulationWorker(
+        population(1_000), integration_config, uuid.uuid4()
+    )
+
+    result = worker.run_year(2025)
+
+    assert 50 < result["community_transitions"] < 150
+    assert (
+        sum(result["community_transition_breakdown"].values())
+        == result["community_transitions"]
+    )
+    assert {event.event_type for event in worker.events} == {"integration"}

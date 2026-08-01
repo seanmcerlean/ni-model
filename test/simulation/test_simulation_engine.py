@@ -73,6 +73,8 @@ def test_engine_result_structure(postgres_db_session, initial_population, direct
         "emigration",
         "migration",
         "internal_migration",
+        "community_transitions",
+        "community_transition_breakdown",
         "net_change",
     }
     assert result["year"] == 2025

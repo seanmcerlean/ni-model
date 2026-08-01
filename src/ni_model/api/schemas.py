@@ -40,6 +40,8 @@ class SimulationYearResult(BaseModel):
     emigration: int = 0
     migration: int
     internal_migration: int
+    community_transitions: int = 0
+    community_transition_breakdown: Dict[str, int] = Field(default_factory=dict)
     net_change: int
 
 
@@ -83,11 +85,13 @@ class SimulationModelSummary(BaseModel):
     death_rules: int
     migration_rules: int
     internal_migration_rules: int
+    integration_rules: int = 0
     birth_rate_rules: List[Dict[str, Any]]
     death_rate_rules: List[Dict[str, Any]]
     mortality_age_rates: List[Dict[str, Any]] = Field(default_factory=list)
     migration_rate_rules: List[Dict[str, Any]]
     internal_migration_rate_rules: List[Dict[str, Any]]
+    integration_rate_rules: List[Dict[str, Any]] = Field(default_factory=list)
     year_min: Optional[int]
     year_max: Optional[int]
 
@@ -136,6 +140,7 @@ class CommunityRateAdjustments(BaseModel):
     death_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    integration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
 
 
 class CommunityAdjustments(BaseModel):
@@ -154,6 +159,7 @@ class SimulationAdjustments(BaseModel):
     death_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
+    integration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     random_seed: Optional[int] = None
     community: Optional[CommunityAdjustments] = None
 

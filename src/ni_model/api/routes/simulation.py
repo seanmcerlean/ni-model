@@ -152,6 +152,7 @@ def simulation_models():
             config.get("death_rates", []),
             config.get("migration_rates", []),
             config.get("internal_migration_rates", []),
+            config.get("integration_rates", []),
         ]
         years = [
             rule[key]
@@ -179,11 +180,13 @@ def simulation_models():
                 death_rules=len(rule_groups[1]),
                 migration_rules=len(rule_groups[2]),
                 internal_migration_rules=len(rule_groups[3]),
+                integration_rules=len(rule_groups[4]),
                 birth_rate_rules=rule_groups[0],
                 death_rate_rules=rule_groups[1],
                 mortality_age_rates=config.get("mortality_age_rates", []),
                 migration_rate_rules=rule_groups[2],
                 internal_migration_rate_rules=rule_groups[3],
+                integration_rate_rules=rule_groups[4],
                 year_min=min(years) if years else None,
                 year_max=max(years) if years else None,
             )
@@ -295,10 +298,15 @@ def _scaled_aggregates(aggregates: dict, scale: float) -> dict:
 def _scaled_result(result: dict, scale: float) -> dict:
     if scale == 1.0:
         return result
-    scaled = {
-        key: round(value * scale) if key != "year" else value
-        for key, value in result.items()
-    }
+    scaled = {}
+    for key, value in result.items():
+        if key == "year":
+            scaled[key] = value
+        elif key == "community_transition_breakdown":
+            target = round(result.get("community_transitions", 0) * scale)
+            scaled[key] = _scaled_counts(value, scale, target)
+        else:
+            scaled[key] = round(value * scale)
     scaled["migration"] = scaled["immigration"] - scaled["emigration"]
     scaled["net_change"] = scaled["births"] - scaled["deaths"] + scaled["migration"]
     return scaled
@@ -653,6 +661,7 @@ def stream_simulation(
     death_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     migration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     relocation_multiplier: float = Query(1.0, ge=0.0, le=3.0),
+    integration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     random_seed: Optional[int] = None,
     community_adjustments: Optional[str] = None,
     population_limit: Optional[int] = Query(None, ge=1, le=1_903_175),
@@ -674,6 +683,7 @@ def stream_simulation(
             death_multiplier=death_multiplier,
             migration_multiplier=migration_multiplier,
             relocation_multiplier=relocation_multiplier,
+            integration_multiplier=integration_multiplier,
             random_seed=random_seed,
             community=community if community_adjustments else None,
         ).model_dump(exclude_none=True)

@@ -71,6 +71,8 @@ def test_simulation_models_describes_available_configs(client):
     assert current["birth_rules"] == 53
     assert current["migration_rules"] == 103
     assert current["internal_migration_rules"] == 110
+    assert current["integration_rules"] == 10
+    assert current["integration_rate_rules"][0]["destination"] == "NONE"
     assert current["default_start_year"] == 2024
     assert current["default_end_year"] == 2035
     assert current["migration_rate_rules"][3]["flow"] == "in"
@@ -251,6 +253,7 @@ def test_run_adjustments_are_validated_and_persisted(client):
         "death_multiplier": 0.8,
         "migration_multiplier": 0.5,
         "relocation_multiplier": 1.1,
+        "integration_multiplier": 0.9,
         "random_seed": 99,
     }
     created = client.post(

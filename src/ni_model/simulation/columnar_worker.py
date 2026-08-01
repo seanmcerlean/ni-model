@@ -20,6 +20,7 @@ EVENT_CODES = {
     "arrival": 3,
     "departure": 4,
     "relocation": 5,
+    "integration": 6,
 }
 
 BACKGROUND_TYPE = pl.Enum(["catholic", "protestant", "other", "none"])
@@ -249,7 +250,8 @@ class ColumnarSimulationWorker:
             cohort = self.population.filter(
                 self._filter_expression(rule.get("filters", {}), year)
             )
-            count = int(self._rate(rule, rng) / 1000 * cohort.height)
+            probability = min(self._rate(rule, rng) / 1000, 1.0)
+            count = int(rng.binomial(cohort.height, probability))
             mothers = cohort.filter(
                 (pl.col("gender") == "female")
                 & ((year - pl.col("birth_year")).is_between(15, 49))
@@ -439,6 +441,77 @@ class ColumnarSimulationWorker:
             )
         return len(selected_numbers)
 
+    def _integration(self, year: int) -> tuple[int, dict[str, int]]:
+        """Apply competing community-identification flows simultaneously."""
+        selected_numbers: set[int] = set()
+        plans = []
+        cohorts: dict[tuple, pl.DataFrame] = {}
+        for rule_index, rule in self._active_rules("integration_rates", year):
+            rng = self._rng(year, "integration", rule_index)
+            filters = rule.get("filters", {})
+            cohort_key = tuple(sorted(filters.items()))
+            if cohort_key not in cohorts:
+                cohorts[cohort_key] = self.population.filter(
+                    self._filter_expression(filters, year)
+                )
+            cohort = cohorts[cohort_key]
+            count = int(self._rate(rule, rng) / 1000 * cohort.height)
+            available = cohort
+            if selected_numbers:
+                available = available.filter(
+                    ~pl.col("person_number").is_in(list(selected_numbers))
+                )
+            selected = self._selected_ids(available, count, rng)
+            if selected:
+                numbers = available.filter(pl.col("person_id").is_in(selected))[
+                    "person_number"
+                ].to_list()
+            else:
+                numbers = []
+            selected_numbers.update(numbers)
+            plans.append((numbers, rule["destination"].lower()))
+        changes = [
+            (person_number, destination)
+            for numbers, destination in plans
+            for person_number in numbers
+        ]
+        breakdown: dict[str, int] = {}
+        if changes:
+            change_frame = pl.DataFrame(
+                changes,
+                schema={"person_number": pl.Int64, "new_background": pl.String},
+                orient="row",
+            )
+            previous = self.population.filter(
+                pl.col("person_number").is_in(change_frame["person_number"])
+            ).select("person_number", "person_id", "religious_background")
+            prior = {
+                number: (person_id, background)
+                for number, person_id, background in previous.iter_rows()
+            }
+            self.population = (
+                self.population.join(change_frame, on="person_number", how="left")
+                .with_columns(
+                    pl.coalesce("new_background", "religious_background")
+                    .cast(BACKGROUND_TYPE)
+                    .alias("religious_background")
+                )
+                .drop("new_background")
+            )
+            for person_number, destination in changes:
+                person_id, source = prior[person_number]
+                key = f"{source}_to_{destination}"
+                breakdown[key] = breakdown.get(key, 0) + 1
+                self.events.append(
+                    PopulationEvent(
+                        person_id,
+                        year,
+                        "integration",
+                        {"from": source, "to": destination},
+                    )
+                )
+        return len(selected_numbers), breakdown
+
     def run_year(self, year: int) -> dict:
         """Apply one sequential year without population-wide age updates."""
         with self._stage("births"):
@@ -449,6 +522,8 @@ class ColumnarSimulationWorker:
             immigration, emigration = self._external_migration(year)
         with self._stage("internal_relocation"):
             internal_migration = self._relocations(year)
+        with self._stage("community_integration"):
+            community_transitions, transition_breakdown = self._integration(year)
         migration = immigration - emigration
         return {
             "year": year,
@@ -458,6 +533,8 @@ class ColumnarSimulationWorker:
             "emigration": emigration,
             "migration": migration,
             "internal_migration": internal_migration,
+            "community_transitions": community_transitions,
+            "community_transition_breakdown": transition_breakdown,
             "net_change": births - deaths + migration,
         }
 

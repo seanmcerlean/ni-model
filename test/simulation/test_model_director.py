@@ -160,6 +160,76 @@ def test_internal_migration_rules_are_applied_simultaneously(postgres_db_session
     assert len(repo.get_by_location(Location.LISBURN_CASTLEREAGH)) == 10
 
 
+def test_integration_rules_are_applied_simultaneously(postgres_db_session):
+    repo = PersonRepository(postgres_db_session)
+    repo.bulk_create(
+        [
+            Person(
+                age=30,
+                religious_background=ReligiousBackground.CATHOLIC,
+                gender=Gender.FEMALE,
+                education_level=EducationLevel.TERTIARY,
+                location=Location.BELFAST,
+                origin=Origin.NI,
+            )
+            for _ in range(1_000)
+        ]
+    )
+    director = ModelDirector(
+        postgres_db_session,
+        {
+            "rate_jitter": 0,
+            "random_seed": 7,
+            "integration_rates": [
+                {
+                    "rate": 100,
+                    "destination": "NONE",
+                    "filters": {"religious_background": "CATHOLIC"},
+                },
+                {
+                    "rate": 100,
+                    "destination": "OTHER",
+                    "filters": {"religious_background": "CATHOLIC"},
+                },
+            ],
+        },
+    )
+
+    count, breakdown = director.simulate_integration(2024)
+    postgres_db_session.flush()
+
+    assert 150 < count < 250
+    assert sum(breakdown.values()) == count
+    catholic_count = (
+        postgres_db_session.query(Person)
+        .filter(Person.religious_background == ReligiousBackground.CATHOLIC)
+        .count()
+    )
+    assert catholic_count == 1_000 - count
+
+
+@pytest.mark.parametrize(
+    "rule, message",
+    [
+        (
+            {
+                "rate": 1,
+                "destination": "CATHOLIC",
+                "filters": {"religious_background": "CATHOLIC"},
+            },
+            "source and destination must differ",
+        ),
+        (
+            {"rate": 1001, "destination": "NONE", "filters": {}},
+            "must not exceed 1000",
+        ),
+    ],
+)
+def test_invalid_integration_rules_fail_fast(postgres_db_session, rule, message):
+    with pytest.raises(ValueError, match=message):
+        ModelDirector(postgres_db_session, {"integration_rates": [rule]})
+
+
 def test_year_min_excludes_earlier_years(postgres_db_session, initial_population):
     """Test rate with year_min is not applied before that year"""
     config = {

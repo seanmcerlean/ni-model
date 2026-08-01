@@ -36,6 +36,10 @@ class SimulationEngine:
         migration = immigration - emigration
         with self._stage("internal_relocation"):
             internal_migration = self.director.simulate_internal_migration(year)
+        with self._stage("community_integration"):
+            community_transitions, transition_breakdown = (
+                self.director.simulate_integration(year)
+            )
 
         return {
             "year": year,
@@ -45,5 +49,7 @@ class SimulationEngine:
             "emigration": emigration,
             "migration": migration,
             "internal_migration": internal_migration,
+            "community_transitions": community_transitions,
+            "community_transition_breakdown": transition_breakdown,
             "net_change": births - deaths + migration,
         }

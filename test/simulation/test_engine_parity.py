@@ -74,6 +74,7 @@ def test_vectorized_engine_has_statistical_parity_with_legacy_engine(
         "immigration",
         "emigration",
         "internal_migration",
+        "community_transitions",
     ):
         assert _close(columnar_result[component], legacy_result[component])
     assert _close(

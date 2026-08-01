@@ -138,7 +138,8 @@ describe("useSimulationStream", () => {
     const { result } = renderHook(() => useSimulationStream());
     act(() => result.current.startStream(2024, 2024, "models/ni_current.yaml", {
       birth_multiplier: 1.2, death_multiplier: 0.8,
-      migration_multiplier: 0.5, relocation_multiplier: 1.1, random_seed: 99,
+      migration_multiplier: 0.5, relocation_multiplier: 1.1,
+      integration_multiplier: 0.9, random_seed: 99,
       community: {
         catholic: { birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1, relocation_multiplier: 1 },
         protestant: { birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1, relocation_multiplier: 1 },
@@ -150,6 +151,7 @@ describe("useSimulationStream", () => {
     expect(mockEs.url).toContain("death_multiplier=0.8");
     expect(mockEs.url).toContain("migration_multiplier=0.5");
     expect(mockEs.url).toContain("relocation_multiplier=1.1");
+    expect(mockEs.url).toContain("integration_multiplier=0.9");
     expect(mockEs.url).toContain("random_seed=99");
     expect(mockEs.url).toContain("community_adjustments=");
   });

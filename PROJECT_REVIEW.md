@@ -14,7 +14,8 @@ The useful scientific core is a cohort-component model:
 2. add births;
 3. remove deaths;
 4. apply external and internal migration;
-5. persist and compare a year snapshot.
+5. apply estimated community-category transitions;
+6. persist and compare a year snapshot.
 
 ## Interpretation boundary
 
@@ -75,5 +76,9 @@ Primary references:
 - [x] FastMCP 4.0.0b1 exposes model discovery, demographics, on-demand polling,
   durable simulation control and bounded person inspection over HTTP and stdio;
   destructive deletion is intentionally REST-only.
+- [x] An annual, reversible community-category transition stage prevents None
+  and Other becoming immutable sinks. Rates are explicitly estimated from
+  Census family patterns and longitudinal affiliation trends; NILT is a
+  directional check rather than a raw calibration source.
 
 Performance work is tracked separately in `performance.md`.

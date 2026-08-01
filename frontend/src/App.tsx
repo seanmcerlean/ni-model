@@ -17,10 +17,12 @@ function defaultAdjustments(): SimulationAdjustments {
   const rateDefaults = (): CommunityRateAdjustments => ({
     birth_multiplier: 1, death_multiplier: 1,
     migration_multiplier: 1, relocation_multiplier: 1,
+    integration_multiplier: 1,
   });
   return {
     birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
     relocation_multiplier: 1, random_seed: randomSeed(),
+    integration_multiplier: 1,
     community: {
       catholic: rateDefaults(), protestant: rateDefaults(),
       other: rateDefaults(), none: rateDefaults(),
@@ -230,6 +232,10 @@ export default function App() {
                     ...selectedModel.internal_migration_rate_rules,
                   ]}
                 />
+                <RuleGroup
+                  title="Community integration rules"
+                  rules={selectedModel.integration_rate_rules ?? []}
+                />
               </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
               <label className="population-toggle">
@@ -305,6 +311,7 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   const fields: Array<[keyof CommunityRateAdjustments, string]> = [
     ["birth_multiplier", "Birth rates"], ["death_multiplier", "Mortality rates"],
     ["migration_multiplier", "External migration"], ["relocation_multiplier", "Internal relocation"],
+    ["integration_multiplier", "Community integration"],
   ];
   return <details className="adjustment-editor">
     <summary>Adjust this run</summary>
@@ -418,6 +425,7 @@ function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
     ["Net annual change", result ? signed(result.net_change) : "—"],
     ["Births / deaths", result ? `${result.births.toLocaleString()} / ${result.deaths.toLocaleString()}` : "—"],
     ["Immigration / emigration", result ? `${result.immigration.toLocaleString()} / ${result.emigration.toLocaleString()}` : "—"],
+    ["Community transitions", result ? (result.community_transitions ?? 0).toLocaleString() : "—"],
   ];
   return (
     <div className="stats-strip">

@@ -9,7 +9,7 @@ durable restart, and aggregate-only browser streaming.
 
 PostgreSQL remains authoritative. A separate worker loads the immutable
 baseline into compact Polars/Arrow columns, applies each year vectorially,
-persists append-only lifecycle and relocation events, writes yearly aggregate
+persists append-only lifecycle, relocation and community-transition events, writes yearly aggregate
 snapshots, and creates periodic full-population Parquet checkpoints.
 
 ## Verified budgets
@@ -56,7 +56,7 @@ storage measurements, source validation, and limitations are recorded in
 - Residents have stable UUID identity and `BIGINT` person numbers. The worker
   stores `birth_year`, derives age for the requested year, and uses typed
   categorical columns for community, gender, LGD, origin, and education.
-- Birth, death, arrival, departure, and relocation events are append-only and
+- Birth, death, arrival, departure, relocation, and community-transition events are append-only and
   include their effective year. This event log is the canonical lifecycle and
   location-history representation; separate mutable lifecycle columns and a
   duplicate location table were intentionally avoided.
@@ -64,7 +64,7 @@ storage measurements, source validation, and limitations are recorded in
   event/rule identity, and stable resident identity. Process-global randomness
   is not used.
 - Sequential semantics remain ageing-by-year, births, deaths, external
-  migration, internal relocation, then aggregation.
+  migration, internal relocation, community transition, then aggregation.
 - Flat rules, community-specific rules, and global/per-community multipliers
   all execute through the same production worker.
 

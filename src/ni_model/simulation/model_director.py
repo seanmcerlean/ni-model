@@ -16,6 +16,7 @@ from ..core.models import (
 from .demographic_calculators import (
     AgeWeightedDeathCalculator,
     BirthCalculator,
+    CommunityTransitionCalculator,
     DeathCalculator,
     InternalMigrationCalculator,
     MigrationCalculator,
@@ -30,6 +31,7 @@ class ModelDirector:
         "death_rates",
         "migration_rates",
         "internal_migration_rates",
+        "integration_rates",
     )
 
     def __init__(
@@ -90,6 +92,8 @@ class ModelDirector:
                     raise ValueError(f"{label}.rate must be numeric")
                 if section != "migration_rates" and rate < 0:
                     raise ValueError(f"{label}.rate must be non-negative")
+                if section == "integration_rates" and rate > 1000:
+                    raise ValueError(f"{label}.rate must not exceed 1000")
                 year_min = item.get("year_min", 0)
                 year_max = item.get("year_max", 9999)
                 if not isinstance(year_min, int) or not isinstance(year_max, int):
@@ -119,6 +123,19 @@ class ModelDirector:
                         Location[item["destination"]]
                     except (KeyError, TypeError) as exc:
                         raise ValueError(f"{label} has invalid destination") from exc
+                if section == "integration_rates":
+                    if "destination" not in item:
+                        raise ValueError(f"{label} must contain a destination")
+                    try:
+                        destination = ReligiousBackground[item["destination"]]
+                    except (KeyError, TypeError) as exc:
+                        raise ValueError(f"{label} has invalid destination") from exc
+                    source_name = filters.get("religious_background")
+                    if source_name is None:
+                        raise ValueError(f"{label} must filter by religious_background")
+                    source = ReligiousBackground[source_name]
+                    if source == destination:
+                        raise ValueError(f"{label} source and destination must differ")
         self._validate_mortality_age_rates()
 
     def _validate_mortality_age_rates(self) -> None:
@@ -276,6 +293,43 @@ class ModelDirector:
             calculator.apply_movers(movers)
         return len(selected_ids)
 
+    def simulate_integration(self, year: int) -> tuple[int, Dict[str, int]]:
+        """Apply simultaneous community-identification transitions."""
+        calculators = []
+        for config in self.config.get("integration_rates", []):
+            if not self._is_active(config, year):
+                continue
+            calculators.append(
+                CommunityTransitionCalculator(
+                    self.db_session,
+                    rate=self._jittered_rate(config["rate"]),
+                    destination=ReligiousBackground[config["destination"]],
+                    query_filters=self._parse_filters(config.get("filters", {})),
+                    rng=self.rng,
+                    run_id=self.run_id,
+                )
+            )
+        selected_ids = set()
+        plans = []
+        cohorts = {}
+        for calculator in calculators:
+            cohort_key = tuple(sorted(calculator.query_filters.items()))
+            if cohort_key not in cohorts:
+                cohorts[cohort_key] = calculator._get_cohort()
+            people = calculator.select_people(selected_ids, cohort=cohorts[cohort_key])
+            selected_ids.update(person.id for person in people)
+            plans.append((calculator, people))
+        breakdown = {}
+        for calculator, people in plans:
+            if not people:
+                continue
+            source = people[0].religious_background.value
+            destination = calculator.destination.value
+            key = f"{source}_to_{destination}"
+            breakdown[key] = breakdown.get(key, 0) + len(people)
+            calculator.apply_transitions(people)
+        return len(selected_ids), breakdown
+
     @classmethod
     def from_yaml(
         cls,
@@ -296,6 +350,7 @@ class ModelDirector:
             "death_rates": adjustments.get("death_multiplier", 1.0),
             "migration_rates": adjustments.get("migration_multiplier", 1.0),
             "internal_migration_rates": adjustments.get("relocation_multiplier", 1.0),
+            "integration_rates": adjustments.get("integration_multiplier", 1.0),
         }
         community = adjustments.get("community") or {}
         section_fields = {
@@ -303,6 +358,7 @@ class ModelDirector:
             "death_rates": "death_multiplier",
             "migration_rates": "migration_multiplier",
             "internal_migration_rates": "relocation_multiplier",
+            "integration_rates": "integration_multiplier",
         }
         for section, multiplier in section_multipliers.items():
             rules = config.get(section, [])

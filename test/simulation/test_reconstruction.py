@@ -50,6 +50,13 @@ def test_apply_events_reconstructs_birth_death_and_relocation():
         ),
         SimulationPersonEvent(
             id=3,
+            person_id=first_id,
+            year=2025,
+            event_type="integration",
+            data={"from": "catholic", "to": "none"},
+        ),
+        SimulationPersonEvent(
+            id=4,
             person_id=second_id,
             year=2026,
             event_type="death",
@@ -62,3 +69,4 @@ def test_apply_events_reconstructs_birth_death_and_relocation():
     assert reconstructed.height == 1
     assert reconstructed.row(0, named=True)["person_id"] == first_id.bytes
     assert reconstructed.row(0, named=True)["location"] == "belfast"
+    assert reconstructed.row(0, named=True)["religious_background"] == "none"

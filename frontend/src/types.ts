@@ -6,6 +6,8 @@ export interface SimulationYearResult {
   emigration: number;
   migration: number;
   internal_migration: number;
+  community_transitions?: number;
+  community_transition_breakdown?: Record<string, number>;
   net_change: number;
 }
 
@@ -69,11 +71,13 @@ export interface SimulationModel {
   death_rules: number;
   migration_rules: number;
   internal_migration_rules: number;
+  integration_rules?: number;
   birth_rate_rules: ModelRule[];
   death_rate_rules: ModelRule[];
   mortality_age_rates?: ModelRule[];
   migration_rate_rules: ModelRule[];
   internal_migration_rate_rules: ModelRule[];
+  integration_rate_rules?: ModelRule[];
   year_min: number | null;
   year_max: number | null;
 }
@@ -85,7 +89,7 @@ export interface ModelRule {
   year_min?: number;
   year_max?: number;
   destination?: string;
-  evidence?: "observed" | "observed_net_only" | "principal_projection" | "census_2021_origin_destination" | "estimated_community_differential";
+  evidence?: "observed" | "observed_net_only" | "principal_projection" | "census_2021_origin_destination" | "estimated_community_differential" | "estimated_identity_transition";
   flow?: "in" | "out";
   filters?: Record<string, string | number>;
 }
@@ -99,6 +103,7 @@ export interface SimulationAdjustments {
   death_multiplier: number;
   migration_multiplier: number;
   relocation_multiplier: number;
+  integration_multiplier?: number;
   random_seed: number | null;
   community: Record<CommunityBackground, CommunityRateAdjustments>;
 }
@@ -110,6 +115,7 @@ export interface CommunityRateAdjustments {
   death_multiplier: number;
   migration_multiplier: number;
   relocation_multiplier: number;
+  integration_multiplier?: number;
 }
 
 export const LOCATION_KEYS: Record<string, string> = {

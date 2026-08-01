@@ -104,6 +104,26 @@ class PopulationReconstructor:
                     )
                     .drop("new_location")
                 )
+            transitions = [
+                (event.person_id.bytes, event.data["to"])
+                for event in yearly
+                if event.event_type == "integration"
+            ]
+            if transitions:
+                transition_frame = pl.DataFrame(
+                    transitions,
+                    schema={"person_id": pl.Binary, "new_background": pl.String},
+                    orient="row",
+                )
+                population = (
+                    population.join(transition_frame, on="person_id", how="left")
+                    .with_columns(
+                        pl.coalesce("new_background", "religious_background").alias(
+                            "religious_background"
+                        )
+                    )
+                    .drop("new_background")
+                )
         return population.cast(COLUMN_TYPES)
 
     def page(

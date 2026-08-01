@@ -224,3 +224,40 @@ class InternalMigrationCalculator(DemographicCalculator):
     def apply_movers(self, movers: List[Person]) -> None:
         for person in movers:
             person.location = self.destination
+
+
+class CommunityTransitionCalculator(DemographicCalculator):
+    """Select people whose modelled community identification changes."""
+
+    def __init__(
+        self,
+        db_session: Session,
+        rate: float,
+        destination: ReligiousBackground,
+        query_filters: Optional[Dict[str, Any]] = None,
+        rng: Optional[random.Random] = None,
+        run_id: Optional[uuid.UUID] = None,
+    ):
+        super().__init__(db_session, rate, query_filters, rng, run_id)
+        self.destination = destination
+
+    def calculate(self) -> int:
+        transitions = self.select_people()
+        self.apply_transitions(transitions)
+        return len(transitions)
+
+    def select_people(self, excluded_ids=None, cohort=None) -> List[Person]:
+        """Select transitions before mutation so competing flows are simultaneous."""
+        excluded_ids = excluded_ids or set()
+        full_cohort = self._get_cohort() if cohort is None else cohort
+        available = [person for person in full_cohort if person.id not in excluded_ids]
+        probability = min(self.rate / 1000.0, 1.0)
+        count = min(
+            sum(self.rng.random() < probability for _ in full_cohort),
+            len(available),
+        )
+        return self.rng.sample(available, count) if count > 0 else []
+
+    def apply_transitions(self, people: List[Person]) -> None:
+        for person in people:
+            person.religious_background = self.destination

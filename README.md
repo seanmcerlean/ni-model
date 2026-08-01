@@ -2,7 +2,7 @@
 
 A demographic simulation system that models Northern Ireland's ~2 million
 population at individual person level. Runs iterative year-by-year simulations
-(ageing → births → deaths → migration) and generates voting scenarios from the
+(ageing → births → deaths → migration → community transition) and generates voting scenarios from the
 resulting population state.
 
 ## What it does
@@ -12,6 +12,7 @@ resulting population state.
 - Simulates demographic change year-by-year using configurable, era-specific rates
 - Applies different rates to different cohorts (e.g. community-background birth rates and age-specific mortality)
 - Tracks internal migration between NI locations and external migration in/out
+- Models estimated adult transitions between community-background categories
 - Generates border poll voting predictions (Unite/Remain/Undecided) from the simulated population
 - Validates model output against NISRA census benchmarks (1971–2021)
 - Streams simulation results in real time via SSE to a React/Leaflet map visualisation
@@ -36,7 +37,8 @@ Parquet checkpoints support restart and reconstruction. The simulation follows
 the same sequential semantics per year:
 
 ```
-derive age → generate births → remove deaths → apply migration → snapshot
+derive age → generate births → remove deaths → apply migration → relocate →
+apply community transition → snapshot
 ```
 
 Model assumptions are defined in YAML and loaded at runtime via
@@ -51,7 +53,7 @@ retention, and checkpoint storage are controlled by
 `MAX_CHECKPOINT_BYTES_PER_RUN`.
 
 The run editor supports global and per-community multipliers for births,
-deaths, external migration and internal relocation. These are sensitivity
+deaths, external migration, internal relocation and community transition. These are sensitivity
 controls: they alter an isolated run and do not rewrite the sourced model.
 
 ## Quick start
@@ -188,6 +190,12 @@ internal_migration_rates:
 ```
 
 Rates are per 1,000 of the matching cohort. Filters can combine `religious_background`, `age_min`, `age_max`, `location`, and `gender`.
+
+`integration_rates` use the same filters and add a destination community. They
+represent an estimated change in the modelled category, are applied
+simultaneously after migration, and do not change population. They are not a
+claim that upbringing literally changes. The assumptions and evidence boundary
+are documented in [the community-transition methodology](docs/community-transitions.md).
 
 ## Frontend
 
