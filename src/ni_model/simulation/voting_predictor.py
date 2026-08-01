@@ -118,6 +118,7 @@ class VotingPredictor:
         calibration: str = "lucidtalk_winter_2025",
         aggregate_rows: Optional[Sequence[Any]] = None,
         total_population: Optional[int] = None,
+        custom_baseline: Optional[Sequence[float]] = None,
     ):
         if calibration not in CALIBRATIONS:
             raise ValueError(f"unknown voting calibration: {calibration}")
@@ -127,6 +128,59 @@ class VotingPredictor:
         self.aggregate_rows = aggregate_rows
         self.total_population = total_population
         self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
+        if custom_baseline is not None:
+            self._apply_custom_baseline(custom_baseline)
+
+    def _apply_custom_baseline(self, baseline: Sequence[float]) -> None:
+        """Rake LucidTalk response odds to a user-supplied overall baseline."""
+        if len(baseline) != 3 or any(value < 0 or value > 1 for value in baseline):
+            raise ValueError("custom baseline must contain three shares from 0 to 1")
+        if not math.isclose(sum(baseline), 1.0, abs_tol=1e-6):
+            raise ValueError("custom baseline shares must sum to 1")
+        rows = self._rows()
+        multipliers = [1.0, 1.0, 1.0]
+        for _ in range(100):
+            totals = [0.0, 0.0, 0.0]
+            for row in rows:
+                base = self.responses[row.religious_background][:3]
+                adjusted = [base[index] * multipliers[index] for index in range(3)]
+                denominator = sum(adjusted)
+                turnout = self._turnout(row.age, row.religious_background)
+                weight = row.count * turnout
+                for index in range(3):
+                    totals[index] += weight * adjusted[index] / denominator
+            total = sum(totals)
+            if total == 0:
+                break
+            shares = [value / total for value in totals]
+            if max(abs(shares[index] - baseline[index]) for index in range(3)) < 1e-9:
+                break
+            for index in range(3):
+                if shares[index] > 0:
+                    multipliers[index] *= baseline[index] / shares[index]
+
+        adjusted_responses = {}
+        for background, response in self.responses.items():
+            adjusted = [response[index] * multipliers[index] for index in range(3)]
+            denominator = sum(adjusted)
+            adjusted_responses[background] = (
+                adjusted[0] / denominator,
+                adjusted[1] / denominator,
+                adjusted[2] / denominator,
+                response[3],
+            )
+        self.responses = adjusted_responses
+        self.calibration = "custom_lucidtalk"
+        self.source = {
+            **self.source,
+            "id": "custom_lucidtalk",
+            "name": "Custom baseline over LucidTalk Winter 2025",
+            "custom_baseline": {
+                "unite": baseline[0],
+                "remain": baseline[1],
+                "undecided": baseline[2],
+            },
+        }
 
     def _turnout(self, age: int, background: ReligiousBackground) -> float:
         age_non_vote = next(
@@ -283,6 +337,12 @@ class VotingPredictor:
             "limitations": (
                 "Adult resident eligibility proxy; community-background and age "
                 "marginals are not causal predictors or a joint poll model."
+                + (
+                    " Custom values shift LucidTalk subgroup odds and inherit its "
+                    "sampling interval; they are a user scenario, not a new poll."
+                    if self.calibration == "custom_lucidtalk"
+                    else ""
+                )
             ),
         }
 

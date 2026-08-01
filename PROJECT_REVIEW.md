@@ -69,7 +69,9 @@ Primary references:
   the 1971 Census broad-age marginals are used as a clearly labelled proxy.
 - [x] Frontend has a single toggle to select a representative sample or all
   available baseline rows, while reported totals retain real population scale.
-- [ ] There should be an option to add in custom baseline polling values; sub values should adjust based on difference from LucidTalk
+- [x] Custom overall polling baselines reweight LucidTalk subgroup odds on
+  demand, preserving demographic and area differences without stored
+  person-level political scores.
 - [ ] Add MCP functionality in addition to the APIs so an AI could interact if desired. Use FastMCP 4
 
 Performance work is tracked separately in `performance.md`.

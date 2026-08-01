@@ -1,7 +1,8 @@
+import math
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -107,10 +108,26 @@ def voting_prediction(
     run_id: Optional[UUID] = None,
     calibration: str = "lucidtalk_winter_2025",
     include_locations: bool = True,
+    custom_unite: Optional[float] = Query(None, ge=0, le=100),
+    custom_remain: Optional[float] = Query(None, ge=0, le=100),
+    custom_undecided: Optional[float] = Query(None, ge=0, le=100),
     db: Session = Depends(get_db),
 ):
     try:
-        predictor = VotingPredictor(db, run_id=run_id, calibration=calibration)
+        custom_values = (custom_unite, custom_remain, custom_undecided)
+        custom_baseline = None
+        if any(value is not None for value in custom_values):
+            if any(value is None for value in custom_values):
+                raise ValueError("all custom baseline values are required")
+            if not math.isclose(sum(custom_values), 100.0, abs_tol=0.01):
+                raise ValueError("custom baseline values must sum to 100")
+            custom_baseline = tuple(value / 100 for value in custom_values)
+        predictor = VotingPredictor(
+            db,
+            run_id=run_id,
+            calibration=calibration,
+            custom_baseline=custom_baseline,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     result = predictor.predict()

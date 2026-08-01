@@ -69,6 +69,9 @@ button, input, select { font: inherit; }
 .calibration-status.loading { color: #fcd34d; }
 .voting-headline { transition: opacity .15s; }
 .calibration-status.loading + .voting-headline { opacity: .45; }
+.custom-polling { border: 0; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.custom-polling label { display: grid; gap: 3px; color: var(--muted); font-size: 9px; }
+.custom-polling input { width: 100%; min-width: 0; box-sizing: border-box; }
 .adjustment-editor { margin: 12px 0; padding: 9px; border: 1px solid #334b68; border-radius: 6px; }
 .adjustment-editor summary { color: #7dd3fc; font-size: 11px; font-weight: 650; cursor: pointer; }
 .adjustment-editor p { color: #94a3b8; font-size: 9px; line-height: 1.4; }

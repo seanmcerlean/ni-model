@@ -117,3 +117,47 @@ def test_uncertainty_and_scenarios_are_ordered(db_session):
     assert interval["low"] < interval["estimate"] < interval["high"]
     shares = [scenario["unite_share"] for scenario in result["scenarios"]]
     assert shares == sorted(shares)
+
+
+def test_custom_baseline_rakes_lucidtalk_without_flattening_areas(db_session):
+    for _ in range(100):
+        _make_person(
+            db_session,
+            ReligiousBackground.CATHOLIC,
+            Origin.NI,
+            40,
+            Location.BELFAST,
+        )
+        _make_person(
+            db_session,
+            ReligiousBackground.PROTESTANT,
+            Origin.NI,
+            40,
+            Location.DERRY_STRABANE,
+        )
+    predictor = VotingPredictor(db_session, custom_baseline=(0.50, 0.40, 0.10))
+
+    result = predictor.predict()
+    by_location = predictor.predict_by_location()
+
+    assert result["source"]["id"] == "custom_lucidtalk"
+    assert result["unite_share"] == pytest.approx(0.50, abs=0.001)
+    assert result["remain_share"] == pytest.approx(0.40, abs=0.001)
+    assert result["undecided_share"] == pytest.approx(0.10, abs=0.001)
+    assert (
+        by_location["belfast"]["unite_share"]
+        > by_location["derry_strabane"]["unite_share"]
+    )
+
+
+@pytest.mark.parametrize(
+    "baseline,message",
+    [
+        ((0.5, 0.5), "three shares"),
+        ((0.5, 0.4, 0.2), "sum to 1"),
+        ((1.1, 0.0, -0.1), "from 0 to 1"),
+    ],
+)
+def test_custom_baseline_rejects_invalid_shares(db_session, baseline, message):
+    with pytest.raises(ValueError, match=message):
+        VotingPredictor(db_session, custom_baseline=baseline)

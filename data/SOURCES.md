@@ -163,6 +163,21 @@ that migration outputs may have been affected. The simulation selects all
 origin–destination moves from the pre-move population and applies them
 simultaneously, preventing rule order from moving a person twice.
 
+## Border-poll scenarios
+
+The primary political calibration uses LucidTalk's Winter 2025 weighted NI
+Tracker, including its published community cross-breaks. Its NI-wide result was
+41% united Ireland, 48% remain in the UK, 10% unsure but intending to vote, and
+1% would not vote or spoil. Custom baselines are entered across the first three
+categories and must total 100%; iterative proportional fitting shifts the
+LucidTalk subgroup odds until the simulated NI-wide adult population matches
+the custom values. This preserves relative community and LGD differences and
+does not turn the custom inputs into flat area values. It remains a user-defined
+scenario and inherits LucidTalk's sampling interval rather than representing a
+new poll.
+
+- [LucidTalk Winter 2025 NI Tracker and data tables](https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/)
+
 ## Assumptions not yet replaced
 
 - education is conditionally sampled from hand-authored age assumptions.

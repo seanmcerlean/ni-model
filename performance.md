@@ -38,16 +38,16 @@ storage measurements, source validation, and limitations are recorded in
   PostgreSQL benchmark.
 - Deterministic tests cover historical, flat-current, and
   community-differentiated paths. Engine parity covers totals, events,
-  community cohorts, LGDs, and polling output.
+  community cohorts, and LGDs; polling recalculation is tested independently
+  against the persisted joint aggregates.
 
 ### Aggregate boundary
 
 - One grouped demographic query produces NI and every LGD snapshot.
-- One shared location/community/exact-age dataset produces LucidTalk and NILT
-  results; both calibrations do not rescan the population.
-- Yearly snapshots retain private joint polling inputs so a future custom
-  baseline can be calculated on demand without storing person-level political
-  scores or rerunning the simulation.
+- Yearly snapshots retain one private location/community/exact-age aggregate.
+  LucidTalk, NILT, and custom LucidTalk-relative baselines are calculated on
+  demand from it without storing person-level political scores, rerunning the
+  simulation, or sending those private inputs over SSE.
 - SSE messages contain only aggregate yearly data. They never contain resident
   rows or individual events.
 
@@ -113,9 +113,9 @@ individual history uses `(run_id, person_id, year)` and measured 3.15 ms.
 - A 26-year full run occupies approximately 1.05 GB after proportional event
   index storage, so a public deployment must enforce retention and storage
   quotas and monitor PostgreSQL growth.
-- Current-model mortality is presently flat across ages within each community
-  group. Historical rules contain age bands. Improving current age-specific
-  mortality is model-calibration work and remains visible as a limitation.
+- Current models preserve projected annual death totals while selecting deaths
+  using NISRA 2024 age-specific mortality and the Census MS-B31 joint
+  age/community baseline.
 - Internal relocation and community differentials are documented estimates,
   not observed individual transitions.
 - Polling projections are scenario estimates based on simulated adult

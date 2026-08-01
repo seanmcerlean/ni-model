@@ -7,6 +7,7 @@ import pytest
 
 from src.ni_model.api.routes.simulation import _columnar_years, _load_director
 from src.ni_model.core.models import (
+    Location,
     Person,
     ReligiousBackground,
     SimulationCheckpoint,
@@ -406,6 +407,26 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
     assert "_polling_inputs" not in response
 
 
+def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+    ).json()
+    _wait_for_run(client, created["run_id"])
+
+    response = client.get(
+        f"/api/simulation/runs/{created['run_id']}/years/2024/voting-prediction",
+        params={"custom_unite": 50, "custom_remain": 40, "custom_undecided": 10},
+    )
+
+    assert response.status_code == 200
+    prediction = response.json()
+    assert prediction["source"]["id"] == "custom_lucidtalk"
+    assert prediction["unite_share"] == pytest.approx(0.50, abs=0.001)
+    assert prediction["by_location"]["derry_strabane"]["unite_share"] != pytest.approx(
+        prediction["by_location"]["belfast"]["unite_share"]
+    )
+
+
 def test_run_exposes_paginated_people_and_individual_history(client):
     created = client.post(
         "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
@@ -550,24 +571,13 @@ def test_stream_persists_run_and_emits_run_id(client, populated_db):
     assert len(events) == 4
     assert events[0]["event"] == "started"
     assert events[0]["data"]["run_id"] == str(run_id)
-    predictions = events[1]["data"]["voting_predictions"]
-    assert set(predictions) == {"lucidtalk_winter_2025", "nilt_2024"}
-    assert predictions["lucidtalk_winter_2025"]["source"]["id"] == (
-        "lucidtalk_winter_2025"
-    )
-    assert set(predictions["lucidtalk_winter_2025"]["by_location"]) == {
-        "antrim_and_newtownabbey",
-        "armagh_banbridge_craigavon",
-        "belfast",
-        "causeway_coast_glens",
-        "derry_strabane",
-        "fermanagh_omagh",
-        "lisburn_castlereagh",
-        "mid_east_antrim",
-        "mid_ulster",
-        "newry_mourne_down",
-        "ards_north_down",
-    }
+    assert events[1]["data"]["voting_predictions"] == {}
+    prediction = client.get(
+        f"/api/simulation/runs/{run_id}/years/2024/voting-prediction",
+        params={"calibration": "nilt_2024"},
+    ).json()
+    assert prediction["source"]["id"] == "nilt_2024"
+    assert set(prediction["by_location"]) == {location.value for location in Location}
     assert events[-1]["event"] == "complete"
     run = populated_db.get(SimulationRun, run_id)
     assert run.status == "complete"

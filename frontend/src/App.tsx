@@ -50,6 +50,7 @@ export default function App() {
   const [votingLoading, setVotingLoading] = useState(true);
   const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
+  const [customPolling, setCustomPolling] = useState({ unite: 41.4, remain: 48.5, undecided: 10.1 });
   const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
 
@@ -76,11 +77,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const simulatedPrediction = snapshot?.voting_predictions?.[votingCalibration];
-    if (simulatedPrediction) {
-      setVoting(simulatedPrediction);
+    const isCustom = votingCalibration === "custom_lucidtalk";
+    const customTotal = customPolling.unite + customPolling.remain + customPolling.undecided;
+    if (isCustom && Math.abs(customTotal - 100) > 0.01) {
+      setVotingError(`Custom baseline totals ${customTotal.toFixed(1)}%; it must total 100%.`);
       setVotingLoading(false);
-      setVotingError(null);
       return;
     }
 
@@ -88,11 +89,18 @@ export default function App() {
     setVotingLoading(true);
     setVotingError(null);
     const params = new URLSearchParams({
-      calibration: votingCalibration,
+      calibration: isCustom ? "lucidtalk_winter_2025" : votingCalibration,
       include_locations: "false",
     });
-    if (snapshot?.run_id) params.set("run_id", snapshot.run_id);
-    fetch(`/api/population/voting-prediction?${params}`, { signal: controller.signal })
+    if (isCustom) {
+      params.set("custom_unite", String(customPolling.unite));
+      params.set("custom_remain", String(customPolling.remain));
+      params.set("custom_undecided", String(customPolling.undecided));
+    }
+    const endpoint = snapshot?.run_id
+      ? `/api/simulation/runs/${snapshot.run_id}/years/${snapshot.year}/voting-prediction?${params}`
+      : `/api/population/voting-prediction?${params}`;
+    fetch(endpoint, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Voting scenario unavailable");
         return response.json();
@@ -108,7 +116,7 @@ export default function App() {
         }
       });
     return () => controller.abort();
-  }, [snapshot, votingCalibration]);
+  }, [snapshot, votingCalibration, customPolling]);
 
   // Auto-advance to first buffered year when stream starts
   useEffect(() => {
@@ -245,6 +253,7 @@ export default function App() {
             </>
           )}
           <VotingPanel prediction={voting} calibration={votingCalibration}
+            customPolling={customPolling} onCustomPollingChange={setCustomPolling}
             loading={votingLoading} error={votingError}
             projectionYear={snapshot?.year ?? null}
             onCalibrationChange={setVotingCalibration} />
@@ -336,13 +345,15 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   </details>;
 }
 
-function VotingPanel({ prediction, calibration, loading, error, projectionYear, onCalibrationChange }: {
+function VotingPanel({ prediction, calibration, customPolling, loading, error, projectionYear, onCalibrationChange, onCustomPollingChange }: {
   prediction: VotingPrediction | null;
   calibration: string;
+  customPolling: { unite: number; remain: number; undecided: number };
   loading: boolean;
   error: string | null;
   projectionYear: number | null;
   onCalibrationChange: (value: string) => void;
+  onCustomPollingChange: (value: { unite: number; remain: number; undecided: number }) => void;
 }) {
   if (!prediction) return null;
   const interval = prediction.intervals.unite_share;
@@ -354,7 +365,22 @@ function VotingPanel({ prediction, calibration, loading, error, projectionYear, 
         onChange={(event) => onCalibrationChange(event.target.value)}>
         <option value="lucidtalk_winter_2025">LucidTalk Winter 2025</option>
         <option value="nilt_2024">NILT 2024</option>
+        <option value="custom_lucidtalk">Custom baseline (LucidTalk-relative)</option>
       </select>
+      {calibration === "custom_lucidtalk" && (
+        <fieldset className="custom-polling" aria-label="Custom polling baseline">
+          {(["unite", "remain", "undecided"] as const).map((key) => (
+            <label key={key}>
+              <span>{friendly(key)} %</span>
+              <input type="number" min="0" max="100" step="0.1"
+                value={customPolling[key]}
+                onChange={(event) => onCustomPollingChange({
+                  ...customPolling, [key]: Number(event.target.value),
+                })} />
+            </label>
+          ))}
+        </fieldset>
+      )}
       <div className={`calibration-status ${loading ? "loading" : ""}`} aria-live="polite">
         {loading ? "Updating calibration…" : `Showing ${prediction.source.name}`}
       </div>

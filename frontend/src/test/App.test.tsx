@@ -211,7 +211,7 @@ describe("App", () => {
   it("shows the evidence-calibrated voting scenario", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce({ ok: true, json: async () => [] } as Response)
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         ok: true,
         json: async () => ({
           eligible_population: 80,
@@ -243,5 +243,21 @@ describe("App", () => {
       "href",
       "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",
     );
+
+    fireEvent.change(screen.getByLabelText("Polling calibration"), {
+      target: { value: "custom_lucidtalk" },
+    });
+    const custom = screen.getByRole("group", { name: "Custom polling baseline" });
+    expect(within(custom).getByLabelText("Unite %")).toHaveValue(41.4);
+    await waitFor(() =>
+      expect(fetch).toHaveBeenLastCalledWith(
+        expect.stringContaining("custom_unite=41.4"),
+        expect.anything(),
+      ),
+    );
+    fireEvent.change(within(custom).getByLabelText("Unite %"), {
+      target: { value: "50" },
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent("must total 100%");
   });
 });

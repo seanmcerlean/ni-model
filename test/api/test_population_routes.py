@@ -122,6 +122,34 @@ def test_voting_prediction_rejects_unknown_calibration(client):
     assert response.status_code == 422
 
 
+def test_voting_prediction_accepts_custom_lucidtalk_baseline(client):
+    response = client.get(
+        "/api/population/voting-prediction"
+        "?custom_unite=50&custom_remain=40&custom_undecided=10"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source"]["id"] == "custom_lucidtalk"
+    assert data["unite_share"] == pytest.approx(0.50, abs=0.001)
+    assert data["by_location"]["derry_strabane"]["unite_share"] != pytest.approx(
+        data["by_location"]["belfast"]["unite_share"]
+    )
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "custom_unite=50&custom_remain=40",
+        "custom_unite=50&custom_remain=50&custom_undecided=10",
+    ],
+)
+def test_voting_prediction_rejects_incomplete_or_unbalanced_custom_baseline(
+    client, query
+):
+    assert client.get(f"/api/population/voting-prediction?{query}").status_code == 422
+
+
 def test_voting_prediction_total_matches_population(client):
     data = client.get("/api/population/voting-prediction").json()
     assert data["total_population"] == 100

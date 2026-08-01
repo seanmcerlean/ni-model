@@ -17,6 +17,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ...core.models import (
+    Location,
+    ReligiousBackground,
     SimulationCheckpoint,
     SimulationPersonEvent,
     SimulationRun,
@@ -28,7 +30,7 @@ from ...simulation.jobs import submit_run
 from ...simulation.model_director import ModelDirector
 from ...simulation.population_manager import PopulationManager
 from ...simulation.reconstruction import PopulationReconstructor
-from ...simulation.voting_predictor import CALIBRATIONS, VotingPredictor
+from ...simulation.voting_predictor import VotingPredictor
 from ..queries import snapshot_aggregates
 from ..routes.population import get_db
 from ..schemas import (
@@ -43,6 +45,7 @@ from ..schemas import (
     SimulationYearResult,
     SimulationYearsList,
     SimulationYearSnapshot,
+    VotingPrediction,
 )
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
@@ -202,13 +205,6 @@ def _capture_snapshot(
         )
         for location_id, detail in aggregates.locations.items()
     }
-    voting_rows = VotingPredictor.aggregate_population(db, run_id)
-    voting_predictions = {
-        calibration: _snapshot_voting_prediction(
-            db, run_id, calibration, voting_rows, aggregates.total
-        )
-        for calibration in CALIBRATIONS
-    }
     return SimulationYearSnapshot(
         run_id=run_id,
         year=year,
@@ -221,7 +217,7 @@ def _capture_snapshot(
             if detail.total
         },
         locations=locations,
-        voting_predictions=voting_predictions,
+        voting_predictions={},
         simulation_result=SimulationYearResult(**result),
     )
 
@@ -232,6 +228,7 @@ def _snapshot_voting_prediction(
     calibration: str,
     aggregate_rows=None,
     total_population=None,
+    custom_baseline=None,
 ) -> dict:
     predictor = VotingPredictor(
         db,
@@ -239,6 +236,7 @@ def _snapshot_voting_prediction(
         calibration=calibration,
         aggregate_rows=aggregate_rows,
         total_population=total_population,
+        custom_baseline=custom_baseline,
     )
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
@@ -340,25 +338,13 @@ def _capture_columnar_snapshot(
     population_scale: float = 1.0,
 ) -> SimulationYearSnapshot:
     aggregates = _scaled_aggregates(worker.demographic_summary(year), population_scale)
-    voting_rows = worker.voting_rows(year) if voting_rows is None else voting_rows
-    voting_rows = _scaled_voting_rows(voting_rows, population_scale)
-    voting_predictions = {
-        calibration: _snapshot_voting_prediction(
-            db,
-            run_id,
-            calibration,
-            voting_rows,
-            aggregates["total_population"],
-        )
-        for calibration in CALIBRATIONS
-    }
     return SimulationYearSnapshot(
         run_id=run_id,
         year=year,
         sample_population=worker.population.height,
         population_scale=population_scale,
         **aggregates,
-        voting_predictions=voting_predictions,
+        voting_predictions={},
         simulation_result=SimulationYearResult(
             **_scaled_result(result, population_scale)
         ),
@@ -510,6 +496,66 @@ def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_
     if not snapshot:
         raise HTTPException(status_code=404, detail=f"No snapshot for year {year}")
     return SimulationYearSnapshot.model_validate(snapshot.data)
+
+
+@router.get(
+    "/runs/{run_id}/years/{year}/voting-prediction",
+    response_model=VotingPrediction,
+)
+def simulation_year_voting_prediction(
+    run_id: UUID,
+    year: int,
+    calibration: str = "lucidtalk_winter_2025",
+    custom_unite: Optional[float] = Query(None, ge=0, le=100),
+    custom_remain: Optional[float] = Query(None, ge=0, le=100),
+    custom_undecided: Optional[float] = Query(None, ge=0, le=100),
+    db: Session = Depends(get_db),
+):
+    _get_run(db, run_id)
+    snapshot = (
+        db.query(SimulationSnapshot)
+        .filter(SimulationSnapshot.run_id == run_id, SimulationSnapshot.year == year)
+        .one_or_none()
+    )
+    if not snapshot:
+        raise HTTPException(status_code=404, detail=f"No snapshot for year {year}")
+    stored_rows = snapshot.data.get("_polling_inputs")
+    if not stored_rows:
+        raise HTTPException(status_code=409, detail="Polling inputs are unavailable")
+    custom_values = (custom_unite, custom_remain, custom_undecided)
+    custom_baseline = None
+    if any(value is not None for value in custom_values):
+        if any(value is None for value in custom_values):
+            raise HTTPException(
+                status_code=422, detail="All custom baseline values are required"
+            )
+        if not math.isclose(sum(custom_values), 100.0, abs_tol=0.01):
+            raise HTTPException(
+                status_code=422, detail="Custom baseline values must sum to 100"
+            )
+        custom_baseline = tuple(value / 100 for value in custom_values)
+    rows = [
+        SimpleNamespace(
+            location=Location(location),
+            religious_background=ReligiousBackground(background),
+            age=age,
+            count=count,
+        )
+        for location, background, age, count in stored_rows
+    ]
+    try:
+        return VotingPrediction(
+            **_snapshot_voting_prediction(
+                db,
+                run_id,
+                calibration,
+                rows,
+                snapshot.data["total_population"],
+                custom_baseline,
+            )
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/runs/{run_id}/years/{year}/checkpoint")
