@@ -387,7 +387,11 @@ class ColumnarSimulationWorker:
             }
             self.population = (
                 self.population.join(move_frame, on="person_number", how="left")
-                .with_columns(pl.coalesce("new_location", "location").alias("location"))
+                .with_columns(
+                    pl.coalesce("new_location", "location")
+                    .cast(LOCATION_TYPE)
+                    .alias("location")
+                )
                 .drop("new_location")
             )
             self.events.extend(

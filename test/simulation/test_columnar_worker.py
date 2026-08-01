@@ -90,6 +90,15 @@ def test_columnar_worker_is_deterministic_for_seed_run_and_year():
     assert first.events == second.events
 
 
+def test_columnar_worker_preserves_compact_schema_across_years():
+    worker = ColumnarSimulationWorker(population(), config(), uuid.UUID(int=102))
+
+    worker.run_year(2025)
+    worker.run_year(2026)
+
+    assert worker.population.schema == COLUMN_TYPES
+
+
 def test_columnar_worker_applies_community_and_age_filters():
     filtered_config = {
         "random_seed": 7,
