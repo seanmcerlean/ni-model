@@ -26,12 +26,16 @@ class DemographicCalculator(ABC):
         query_filters: Optional[Dict[str, Any]] = None,
         rng: Optional[random.Random] = None,
         run_id: Optional[uuid.UUID] = None,
+        child_background_probabilities: Optional[
+            Dict[ReligiousBackground, List[tuple[ReligiousBackground, float]]]
+        ] = None,
     ):
         self.db_session = db_session
         self.rate = rate
         self.query_filters = query_filters or {}
         self.rng = rng or random.Random()
         self.run_id = run_id
+        self.child_background_probabilities = child_background_probabilities or {}
 
     def _get_cohort(self) -> List[Person]:
         """Get population cohort matching query filters"""
@@ -93,7 +97,7 @@ class BirthCalculator(DemographicCalculator):
             Person(
                 run_id=self.run_id,
                 age=0,
-                religious_background=parent.religious_background,
+                religious_background=self._child_background(parent),
                 gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
                 education_level=EducationLevel.PRE_PRIMARY,
                 location=parent.location,
@@ -101,6 +105,13 @@ class BirthCalculator(DemographicCalculator):
             )
             for parent in self.rng.choices(parents, k=count)
         ]
+
+    def _child_background(self, parent: Person) -> ReligiousBackground:
+        choices = self.child_background_probabilities.get(parent.religious_background)
+        if not choices:
+            return parent.religious_background
+        backgrounds, weights = zip(*choices)
+        return self.rng.choices(backgrounds, weights=weights, k=1)[0]
 
 
 class DeathCalculator(DemographicCalculator):

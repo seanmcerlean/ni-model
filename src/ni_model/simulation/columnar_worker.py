@@ -1,6 +1,7 @@
 """Vectorised individual-level population simulation using Polars columns."""
 
 import hashlib
+import math
 import uuid
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -73,6 +74,15 @@ class ColumnarSimulationWorker:
         self.recorder = recorder
         self.events: list[PopulationEvent] = []
         self._next_person_number = (self.population["person_number"].max() or 0) + 1
+        baseline = self.config.get("component_baseline_population")
+        self._component_scale = self.config.get(
+            "_simulation_scale", self.population.height / baseline if baseline else 1.0
+        )
+        if self.config.get("annual_demographic_components"):
+            for section in ("birth_rates", "death_rates", "migration_rates"):
+                for rule in self.config.get(section, []):
+                    rule["_component_weight"] = abs(float(rule["rate"]))
+                    rule["_component_rate"] = float(rule["rate"])
 
     @classmethod
     def baseline_frame(
@@ -190,6 +200,64 @@ class ColumnarSimulationWorker:
                 continue
             yield index, rule
 
+    def _apply_component_controls(self, year: int, section: str | None = None) -> None:
+        """Turn observed annual totals into stochastic, group-weighted rates."""
+        sections = (
+            ("birth_rates", "death_rates", "migration_rates")
+            if section is None
+            else (section,)
+        )
+        components = self.config.get("annual_demographic_components", {})
+        component = components.get(year) or components.get(str(year))
+        if component is None:
+            for section_name in sections:
+                for rule in self.config.get(section_name, []):
+                    if "_component_rate" in rule:
+                        rule["rate"] = rule["_component_rate"]
+            return
+        targets = {
+            "birth_rates": component["births"] * self._component_scale,
+            "death_rates": component["deaths"] * self._component_scale,
+            "migration_rates": component["population_adjustment"]
+            * self._component_scale,
+        }
+        target_multipliers = self.config.get("_component_target_multipliers", {})
+        for section_name, target in targets.items():
+            if section_name not in sections:
+                continue
+            target *= target_multipliers.get(section_name, 1.0)
+            active = list(self._active_rules(section_name, year))
+            weighted_population = 0.0
+            cohorts = []
+            for _index, rule in active:
+                cohort_size = self.population.filter(
+                    self._filter_expression(rule.get("filters", {}), year)
+                ).height
+                weight = rule.get("_component_weight", abs(float(rule["rate"])))
+                weighted_population += weight * cohort_size
+                cohorts.append((rule, weight, cohort_size))
+            if not weighted_population:
+                continue
+            desired = int(round(abs(target)))
+            exact = [
+                desired * weight * cohort_size / weighted_population
+                for _rule, weight, cohort_size in cohorts
+            ]
+            allocated = [math.floor(value) for value in exact]
+            remainder = desired - sum(allocated)
+            order = sorted(
+                range(len(exact)),
+                key=lambda index: exact[index] - allocated[index],
+                reverse=True,
+            )
+            for index in order[:remainder]:
+                allocated[index] += 1
+            sign = -1 if target < 0 else 1
+            for (rule, _weight, cohort_size), count in zip(cohorts, allocated):
+                rule["rate"] = (
+                    (count + 1e-9) * 1000 / cohort_size * sign if cohort_size else 0
+                )
+
     @staticmethod
     def _filter_expression(filters: dict, year: int) -> pl.Expr:
         expression = pl.lit(True)
@@ -261,6 +329,7 @@ class ColumnarSimulationWorker:
             parents = mothers[
                 rng.choice(mothers.height, size=count, replace=True).tolist()
             ]
+            backgrounds = self._child_backgrounds(parents, year, rng)
             ids = self._new_ids(year, "birth", count)
             numbers = list(
                 range(self._next_person_number, self._next_person_number + count)
@@ -271,7 +340,7 @@ class ColumnarSimulationWorker:
                     "person_id": ids,
                     "person_number": numbers,
                     "birth_year": [year] * count,
-                    "religious_background": parents["religious_background"],
+                    "religious_background": backgrounds,
                     "gender": rng.choice(["male", "female"], size=count),
                     "education_level": ["pre_primary"] * count,
                     "location": parents["location"],
@@ -286,6 +355,26 @@ class ColumnarSimulationWorker:
                 )
             total += count
         return total
+
+    def _child_backgrounds(
+        self, parents: pl.DataFrame, year: int, rng: np.random.Generator
+    ) -> list[str]:
+        active = {
+            rule["source"].lower(): rule["probabilities"]
+            for rule in self.config.get("child_background_rules", [])
+            if rule.get("year_min", 0) <= year <= rule.get("year_max", 9999)
+        }
+        backgrounds = []
+        for source in parents["religious_background"].to_list():
+            probabilities = active.get(source)
+            if not probabilities:
+                backgrounds.append(source)
+                continue
+            destinations = [key.lower() for key in probabilities]
+            backgrounds.append(
+                str(rng.choice(destinations, p=list(probabilities.values())))
+            )
+        return backgrounds
 
     def _deaths(self, year: int) -> int:
         total = 0
@@ -514,10 +603,13 @@ class ColumnarSimulationWorker:
 
     def run_year(self, year: int) -> dict:
         """Apply one sequential year without population-wide age updates."""
+        self._apply_component_controls(year, "birth_rates")
         with self._stage("births"):
             births = self._births(year)
+        self._apply_component_controls(year, "death_rates")
         with self._stage("deaths"):
             deaths = self._deaths(year)
+        self._apply_component_controls(year, "migration_rates")
         with self._stage("external_migration"):
             immigration, emigration = self._external_migration(year)
         with self._stage("internal_relocation"):

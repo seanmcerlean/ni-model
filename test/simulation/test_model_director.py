@@ -230,6 +230,21 @@ def test_invalid_integration_rules_fail_fast(postgres_db_session, rule, message)
         ModelDirector(postgres_db_session, {"integration_rates": [rule]})
 
 
+def test_child_background_probabilities_must_sum_to_one(postgres_db_session):
+    with pytest.raises(ValueError, match="must sum to 1"):
+        ModelDirector(
+            postgres_db_session,
+            {
+                "child_background_rules": [
+                    {
+                        "source": "CATHOLIC",
+                        "probabilities": {"CATHOLIC": 0.8, "NONE": 0.3},
+                    }
+                ]
+            },
+        )
+
+
 def test_year_min_excludes_earlier_years(postgres_db_session, initial_population):
     """Test rate with year_min is not applied before that year"""
     config = {

@@ -21,6 +21,7 @@ from .demographic_calculators import (
     InternalMigrationCalculator,
     MigrationCalculator,
 )
+from .historical_configuration import configure_historical_model_from_file
 
 
 class ModelDirector:
@@ -137,6 +138,65 @@ class ModelDirector:
                     if source == destination:
                         raise ValueError(f"{label} source and destination must differ")
         self._validate_mortality_age_rates()
+        self._validate_child_background_rules()
+
+    def _validate_child_background_rules(self) -> None:
+        rules = self.config.get("child_background_rules", [])
+        if not isinstance(rules, list):
+            raise ValueError("child_background_rules must be a list")
+        ranges: Dict[str, List[tuple[int, int]]] = {}
+        for index, rule in enumerate(rules):
+            label = f"child_background_rules[{index}]"
+            if not isinstance(rule, dict):
+                raise ValueError(f"{label} must be a mapping")
+            try:
+                source = ReligiousBackground[rule["source"]]
+            except (KeyError, TypeError) as exc:
+                raise ValueError(f"{label} has invalid source") from exc
+            probabilities = rule.get("probabilities")
+            if not isinstance(probabilities, dict) or not probabilities:
+                raise ValueError(f"{label}.probabilities must be a mapping")
+            try:
+                parsed = {
+                    ReligiousBackground[key]: value
+                    for key, value in probabilities.items()
+                }
+            except (KeyError, TypeError) as exc:
+                raise ValueError(f"{label} has invalid destination") from exc
+            if (
+                any(
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not isfinite(value)
+                    or value < 0
+                    for value in parsed.values()
+                )
+                or abs(sum(parsed.values()) - 1.0) > 1e-6
+            ):
+                raise ValueError(f"{label}.probabilities must sum to 1")
+            year_min = rule.get("year_min", 0)
+            year_max = rule.get("year_max", 9999)
+            if not isinstance(year_min, int) or not isinstance(year_max, int):
+                raise ValueError(f"{label} year bounds must be integers")
+            if year_min > year_max:
+                raise ValueError(f"{label} has year_min after year_max")
+            for prior_min, prior_max in ranges.setdefault(source.name, []):
+                if year_min <= prior_max and year_max >= prior_min:
+                    raise ValueError(f"{label} overlaps another source rule")
+            ranges[source.name].append((year_min, year_max))
+
+    def _child_background_probabilities(
+        self, year: int
+    ) -> Dict[ReligiousBackground, List[tuple[ReligiousBackground, float]]]:
+        probabilities = {}
+        for rule in self.config.get("child_background_rules", []):
+            if not self._is_active(rule, year):
+                continue
+            probabilities[ReligiousBackground[rule["source"]]] = [
+                (ReligiousBackground[destination], probability)
+                for destination, probability in rule["probabilities"].items()
+            ]
+        return probabilities
 
     def _validate_mortality_age_rates(self) -> None:
         profile = self.config.get("mortality_age_rates")
@@ -241,6 +301,9 @@ class ModelDirector:
         calcs = self._build_calculators(
             self.config.get("birth_rates", []), BirthCalculator, year
         )
+        child_probabilities = self._child_background_probabilities(year)
+        for calc in calcs:
+            calc.child_background_probabilities = child_probabilities
         return sum(c.calculate() for c in calcs)
 
     def simulate_deaths(self, year: int) -> int:
@@ -344,6 +407,7 @@ class ModelDirector:
                 config = yaml.safe_load(f)
             except yaml.YAMLError as exc:
                 raise ValueError(f"invalid YAML: {exc}") from exc
+        config = configure_historical_model_from_file(config, yaml_path)
         adjustments = adjustments or {}
         section_multipliers = {
             "birth_rates": adjustments.get("birth_multiplier", 1.0),
@@ -391,6 +455,12 @@ class ModelDirector:
                                 }
                             )
                 config[section] = expanded
+        if config.get("annual_demographic_components"):
+            config["_component_target_multipliers"] = {
+                "birth_rates": section_multipliers["birth_rates"],
+                "death_rates": section_multipliers["death_rates"],
+                "migration_rates": section_multipliers["migration_rates"],
+            }
         if adjustments.get("random_seed") is not None:
             config["random_seed"] = adjustments["random_seed"]
         return cls(db_session, config, run_id=run_id)

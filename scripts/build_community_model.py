@@ -76,8 +76,9 @@ def build_model(source):
                 "NISRA 2024 principal totals split by community background using "
                 "conservative estimated differentials calibrated to Census "
                 "2011–2021 change. Annual component rates are normalized to the "
-                "official starting total. This sensitivity scenario is not an "
-                "official projection and does not model background switching."
+                "official starting total. Estimated two-way community-identification "
+                "transitions are included. This sensitivity scenario is not an "
+                "official projection."
             ),
             "projection_version": (
                 "Estimated community differential over NISRA/ONS 2024 principal"

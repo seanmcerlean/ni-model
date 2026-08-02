@@ -72,14 +72,23 @@ export interface SimulationModel {
   migration_rules: number;
   internal_migration_rules: number;
   integration_rules?: number;
+  child_background_rules?: number;
   birth_rate_rules: ModelRule[];
   death_rate_rules: ModelRule[];
   mortality_age_rates?: ModelRule[];
   migration_rate_rules: ModelRule[];
   internal_migration_rate_rules: ModelRule[];
   integration_rate_rules?: ModelRule[];
+  child_background_rule_details?: ChildBackgroundRule[];
   year_min: number | null;
   year_max: number | null;
+}
+
+export interface ChildBackgroundRule {
+  year_min?: number;
+  year_max?: number;
+  source: string;
+  probabilities: Record<string, number>;
 }
 
 export interface ModelRule {

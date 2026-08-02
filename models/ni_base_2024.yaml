@@ -13,19 +13,21 @@ default_end_year: 2024
 rate_jitter: 0.05  # ±5% random variation applied to each rate per simulation year
 random_seed: 42    # same population + model + seed produces the same run
 
-# Estimated modern identity transitions. Affiliation switching is not treated
-# as equivalent to community background, so these rates are deliberately low.
-integration_rates:
-  - {rate: 0.35, year_min: 2001, destination: NONE, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 0.65, year_min: 2001, destination: NONE, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 0.03, year_min: 2001, destination: PROTESTANT, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 0.03, year_min: 2001, destination: CATHOLIC, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 3.2, year_min: 2001, destination: CATHOLIC, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 2.8, year_min: 2001, destination: PROTESTANT, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 0.2, year_min: 2001, destination: OTHER, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 4.0, year_min: 2001, destination: CATHOLIC, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 3.5, year_min: 2001, destination: PROTESTANT, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-  - {rate: 1.0, year_min: 2001, destination: NONE, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+# The harness selects a central parameter set from the candidates that meet
+# 2001/2011 tolerances across multiple seeds. 2021 is a held-out check and is
+# never used for selection or output reconciliation.
+historical_calibration:
+  component_file: ../data/historical_demographic_components.yaml
+  parameter_file: ../data/historical_calibration_result.yaml
+  fit_years: [2001, 2011]
+  holdout_year: 2021
+  sample_size: 1500
+  replicate_seeds: [48, 49, 50]
+  accepted_candidates: 3
+  searched_candidates: 32
+
+# Replaced at load time by the calibrated, provenance-labelled response rules.
+integration_rates: []
 
 # ---------------------------------------------------------------------------
 # BIRTH RATES (per 1000 of cohort)

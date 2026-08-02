@@ -67,24 +67,25 @@ PROFILES = {
         "size": 1_512_500,
         "reference_year": 1969,
         "religion_weights": [
-            (ReligiousBackground.CATHOLIC, 0.311),
-            (ReligiousBackground.PROTESTANT, 0.649),
-            (ReligiousBackground.OTHER, 0.020),
-            (ReligiousBackground.NONE, 0.020),
+            (ReligiousBackground.CATHOLIC, 0.33830865933327126),
+            (ReligiousBackground.PROTESTANT, 0.6451932760847402),
+            (ReligiousBackground.OTHER, 0.007642683798507095),
+            (ReligiousBackground.NONE, 0.008855380783481519),
         ],
         "age_bands": _HISTORICAL_AGE_BANDS,
         "origin_weights": _HISTORICAL_ORIGIN_WEIGHTS,
         "status": (
             "Best-effort 1969 baseline: exact NISRA total and 1971 Census broad-age "
             "marginals; "
-            "community and origin are documented estimates; modern LGD spatial "
+            "community is a causally calibrated estimate (fit to 2001/2011, with "
+            "2021 held out) and origin is estimated; modern LGD spatial "
             "patterns are retained because equivalent 1971 LGDs did not exist"
         ),
         "community_shares": {
-            ReligiousBackground.CATHOLIC: 0.311,
-            ReligiousBackground.PROTESTANT: 0.649,
-            ReligiousBackground.OTHER: 0.020,
-            ReligiousBackground.NONE: 0.020,
+            ReligiousBackground.CATHOLIC: 0.33830865933327126,
+            ReligiousBackground.PROTESTANT: 0.6451932760847402,
+            ReligiousBackground.OTHER: 0.007642683798507095,
+            ReligiousBackground.NONE: 0.008855380783481519,
         },
         "age_shares": (
             (0, 14, 456_997 / _HISTORICAL_TOTAL),
@@ -125,7 +126,8 @@ def validate_baseline(session, profile_name: str, expected_size: int) -> None:
     )
     if inconsistent_birth_years:
         raise RuntimeError(
-            f"{profile_name} baseline has {inconsistent_birth_years:,} inconsistent birth years"
+            f"{profile_name} baseline has {inconsistent_birth_years:,} "
+            "inconsistent birth years"
         )
 
     community_counts = dict(

@@ -40,11 +40,37 @@ band to those exact 1971 age shares and treats them as a documented 1969 proxy.
 - [CSO historical NI population table sourced from NISRA](https://www.cso.ie/en/releasesandpublications/ep/p-syi/psyi2018/appendix1-northernireland/northernirelandpeoplesociety/)
 
 There is no equivalent 1971 joint table on current LGD boundaries. Iterative
-proportional fitting preserves the documented estimated NI-wide community
-shares while borrowing only the relative 2021 LGD pattern. Country-of-birth
+proportional fitting preserves the causally calibrated estimated NI-wide
+community shares while borrowing only the relative 2021 LGD pattern. The
+community starting point is not a 1969 observation: it is selected by the
+historical calibration described below. Country-of-birth
 shares are a conservative historical estimate (94% NI, 2.5% Ireland, 3% GB,
 0.5% elsewhere). These spatial, community and origin distributions are clearly
 labelled estimates rather than observed 1971 microdata.
+
+## Historical components and community calibration, 1969–2021
+
+`historical_demographic_components.yaml` uses NISRA registration-year births
+and deaths and annual mid-year population estimates. From 2001 its population
+adjustment is NISRA's published migration-and-other-changes component. Before
+2001 it is the explicit accounting residual, so it is labelled as an estimate
+and not as observed migration.
+
+- [NISRA births 1887–2021](https://www.nisra.gov.uk/publications/birth-statistics)
+- [NISRA deaths 1887–2021](https://www.nisra.gov.uk/publications/death-statistics)
+- [NISRA 2024 mid-year population estimates and components](https://www.nisra.gov.uk/publications/2024-mid-year-population-estimates-northern-ireland-and-estimates-population-aged-85)
+
+`historical_calibration_result.yaml` records the bounded causal parameters,
+fit years, untouched holdout, tolerances, searched and accepted candidate
+counts, seed dispersion, and independent validation. Aggregate components are
+expected rates, not checkpoint corrections, and different seeds retain
+stochastic variation. Newborn transmission from 2011 is anchored to:
+
+- [NISRA Census 2021 commissioned table CT0156](https://www.nisra.gov.uk/publications/ct0156-religion-or-religion-brought-combination-family)
+
+The four-category child matrix is a reduced-form, one-sampled-parent estimate
+derived from family combinations. Adult movement to None represents effective
+change in Census response category and is not an observed change of upbringing.
 
 ## Population components, 2002–2024
 
@@ -181,7 +207,8 @@ new poll.
 ## Assumptions not yet replaced
 
 - education is conditionally sampled from hand-authored age assumptions.
-- mortality by age, community-specific fertility, and internal migration rates
-  in `models/ni_base_2024.yaml` remain assumptions.
+- historical mortality by age, community-specific component multipliers, and
+  internal migration rates remain bounded or hand-authored assumptions even
+  where aggregate annual totals are observed.
 - voting propensities remain scenario parameters, not observed vote-intention
   estimates.

@@ -1,34 +1,27 @@
-name: NI community-identification transition estimate
+name: NI community-background transition assumptions
 definition: >
-  Annual changes in modelled religion-or-religion-brought-up-in category. These
-  are sensitivity assumptions, not observed annual community-background flows.
-  They deliberately use only a fraction of observed religious-affiliation
-  switching because current affiliation and community background differ.
-unit: transitions per 1,000 people in the matching source cohort per year
-age_range: [18, 44]
-rates:
-  catholic_to_none: 0.35
-  protestant_to_none: 0.65
-  catholic_to_protestant: 0.03
-  protestant_to_catholic: 0.03
-  none_to_catholic: 3.2
-  none_to_protestant: 2.8
-  none_to_other: 0.2
-  other_to_catholic: 4.0
-  other_to_protestant: 3.5
-  other_to_none: 1.0
-provenance:
-  - source: NISRA Census 2021 commissioned table CT0156
+  Time-varying effective changes in the Census religion-or-religion-brought-up-in
+  proxy. These are model inputs, not observed annual conversions.
+newborn_model:
+  household_approximation: one sampled parent
+  modern_anchor:
+    source: NISRA Census 2021 commissioned table CT0156
     url: https://www.nisra.gov.uk/publications/ct0156-religion-or-religion-brought-combination-family
-    use: Direction and scale of child backgrounds in mixed, none and other families.
-  - source: Doebler and Shuttleworth 2018, NILS 2001-2011
-    url: https://doi.org/10.1111/jssr.12554
-    use: Direction, relative Catholic/Protestant difference, age concentration and rarity of direct cross-community switching.
-  - source: NISRA Census 2011 and 2021 religion/background totals
-    url: https://www.nisra.gov.uk/statistics/census/2021-census/results/main-statistics
-    use: Plausibility boundary for aggregate category change.
+  effective_2011_plus_probabilities:
+    catholic: {catholic: 0.87869, protestant: 0.03076, other: 0.00182, none: 0.08873}
+    protestant: {catholic: 0.05421, protestant: 0.75799, other: 0.00309, none: 0.18471}
+    other: {catholic: 0.07504, protestant: 0.06600, other: 0.64523, none: 0.21373}
+    none: {catholic: 0.08447, protestant: 0.07440, other: 0.00481, none: 0.83632}
+adult_response_model:
+  start_year: 2001
+  age_range: [18, 44]
+  destinations: [none]
+  interpretation: effective Census response-category change
+  fitted_rates_per_1000:
+    catholic_to_none: 1.8803650914440153
+    protestant_to_none: 4.531752551498318
 limitations:
-  - No published annual longitudinal transition matrix exists for the four model categories.
-  - Family combinations are cross-sectional and do not directly measure adult switching.
-  - NILS measures current affiliation rather than the combined upbringing measure.
-  - NILT is used only as a directional cross-check, not as a rate calibration.
+  - CT0156 is cross-sectional and contains two-parent household combinations.
+  - Reducing a household to one sampled parent loses assortative-partnership information.
+  - Adult rates are inferred within bounds from aggregate trends and are not observed transitions.
+  - NILT is not used to set levels or rates.

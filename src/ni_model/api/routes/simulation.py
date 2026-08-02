@@ -26,6 +26,9 @@ from ...core.models import (
 )
 from ...simulation.columnar_worker import ColumnarSimulationWorker
 from ...simulation.event_store import EventStore
+from ...simulation.historical_configuration import (
+    configure_historical_model_from_file,
+)
 from ...simulation.jobs import submit_run
 from ...simulation.model_director import ModelDirector
 from ...simulation.population_manager import PopulationManager
@@ -129,6 +132,7 @@ def _baseline_settings(model_path: str) -> tuple[str, int]:
     try:
         with path.open(encoding="utf-8") as model_file:
             config = yaml.safe_load(model_file) or {}
+        config = configure_historical_model_from_file(config, path)
         profile = config.get("baseline_profile", "current")
         population = int(config["baseline_population"])
     except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as exc:
@@ -147,12 +151,14 @@ def simulation_models():
     for path in sorted(MODELS_DIR.glob("*.y*ml")):
         with path.open() as model_file:
             config = yaml.safe_load(model_file) or {}
+        config = configure_historical_model_from_file(config, path)
         rule_groups = [
             config.get("birth_rates", []),
             config.get("death_rates", []),
             config.get("migration_rates", []),
             config.get("internal_migration_rates", []),
             config.get("integration_rates", []),
+            config.get("child_background_rules", []),
         ]
         years = [
             rule[key]
@@ -181,12 +187,14 @@ def simulation_models():
                 migration_rules=len(rule_groups[2]),
                 internal_migration_rules=len(rule_groups[3]),
                 integration_rules=len(rule_groups[4]),
+                child_background_rules=len(rule_groups[5]),
                 birth_rate_rules=rule_groups[0],
                 death_rate_rules=rule_groups[1],
                 mortality_age_rates=config.get("mortality_age_rates", []),
                 migration_rate_rules=rule_groups[2],
                 internal_migration_rate_rules=rule_groups[3],
                 integration_rate_rules=rule_groups[4],
+                child_background_rule_details=rule_groups[5],
                 year_min=min(years) if years else None,
                 year_max=max(years) if years else None,
             )
@@ -373,6 +381,7 @@ def _columnar_years(
     run: SimulationRun,
     director: ModelDirector,
 ):
+    director.config["_simulation_scale"] = 1 / run.population_scale
     event_store = EventStore(db)
     checkpoint = (
         db.query(SimulationCheckpoint)

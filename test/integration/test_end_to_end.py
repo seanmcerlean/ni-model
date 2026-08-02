@@ -122,6 +122,8 @@ def test_simulation_all_result_keys_present(populated_db, orchestrator):
         "emigration",
         "migration",
         "internal_migration",
+        "community_transitions",
+        "community_transition_breakdown",
         "net_change",
     }
 

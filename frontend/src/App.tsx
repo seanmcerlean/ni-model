@@ -5,7 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+import { ChildBackgroundRule, CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
 
@@ -235,6 +235,10 @@ export default function App() {
                 <RuleGroup
                   title="Community integration rules"
                   rules={selectedModel.integration_rate_rules ?? []}
+                />
+                <ChildRuleGroup
+                  title="Newborn background rules"
+                  rules={selectedModel.child_background_rule_details ?? []}
                 />
               </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
@@ -496,7 +500,31 @@ function RuleGroup({ title, rules }: { title: string; rules: ModelRule[] }) {
   );
 }
 
-function yearRange(rule: ModelRule) {
+function ChildRuleGroup({ title, rules }: { title: string; rules: ChildBackgroundRule[] }) {
+  return (
+    <details className="rule-group">
+      <summary><span>{title}</span><b>{rules.length}</b></summary>
+      <div className="rule-list">
+        {rules.length === 0 && <div className="empty-rules">No active rules</div>}
+        {rules.map((rule, index) => (
+          <div className="rule-item" key={`${title}-${index}`}>
+            <div className="rule-heading">
+              <strong>{friendly(rule.source)} parent proxy</strong>
+              <span>{yearRange(rule)}</span>
+            </div>
+            <div className="rule-filters">
+              {Object.entries(rule.probabilities).map(([background, probability]) => (
+                <span key={background}>{friendly(background)}: <b>{(probability * 100).toFixed(1)}%</b></span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function yearRange(rule: Pick<ModelRule, "year_min" | "year_max">) {
   if (rule.year_min && rule.year_max) return `${rule.year_min}–${rule.year_max}`;
   if (rule.year_min) return `${rule.year_min}+`;
   if (rule.year_max) return `to ${rule.year_max}`;

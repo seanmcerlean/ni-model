@@ -122,6 +122,12 @@ describe("App", () => {
           death_rate_rules: [],
           migration_rate_rules: [],
           internal_migration_rate_rules: [],
+          child_background_rules: 1,
+          child_background_rule_details: [{
+            year_min: 2011,
+            source: "PROTESTANT",
+            probabilities: { PROTESTANT: 0.8, NONE: 0.2 },
+          }],
           year_min: 1969,
           year_max: null,
         },
@@ -203,6 +209,9 @@ describe("App", () => {
     fireEvent.change(select, { target: { value: "models/ni_base_2024.yaml" } });
     expect(screen.getByLabelText("Start")).toHaveValue(1969);
     expect(screen.getByLabelText("End")).toHaveValue(2024);
+    fireEvent.click(screen.getByText("Newborn background rules"));
+    expect(screen.getByText("Protestant parent proxy")).toBeInTheDocument();
+    expect(screen.getByText("20.0%")).toBeInTheDocument();
     fireEvent.change(select, { target: { value: "models/ni_current_community.yaml" } });
     expect(screen.getByLabelText("Start")).toHaveValue(2024);
     expect(screen.getByLabelText("End")).toHaveValue(2050);

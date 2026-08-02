@@ -1,4 +1,5 @@
 import uuid
+from copy import deepcopy
 
 import polars as pl
 
@@ -56,12 +57,19 @@ def test_columnar_worker_runs_full_individual_population_without_age_updates():
     )
 
     result = worker.run_year(2025)
+    same_seed = ColumnarSimulationWorker(
+        population(), config(), uuid.UUID(int=99)
+    ).run_year(2025)
+    different_seed = ColumnarSimulationWorker(
+        population(), config(), uuid.UUID(int=99), seed=44
+    ).run_year(2025)
 
-    assert result["births"] == 20
+    assert result == same_seed
+    assert result["births"] != different_seed["births"]
     assert result["deaths"] == 10
     assert result["immigration"] == 10
     assert result["emigration"] == 5
-    assert worker.population.height == 1_015
+    assert worker.population.height == 1_000 + result["net_change"]
     survivors = worker.population.filter(
         pl.col("person_id").is_in(list(original_birth_years))
     )
@@ -190,3 +198,65 @@ def test_columnar_worker_applies_competing_integration_flows_simultaneously():
         == result["community_transitions"]
     )
     assert {event.event_type for event in worker.events} == {"integration"}
+
+
+def test_columnar_worker_assigns_child_background_from_parent_rule():
+    child_config = {
+        "random_seed": 7,
+        "rate_jitter": 0.0,
+        "birth_rates": [
+            {
+                "rate": 1000,
+                "filters": {"religious_background": "CATHOLIC"},
+            }
+        ],
+        "death_rates": [],
+        "migration_rates": [],
+        "internal_migration_rates": [],
+        "integration_rates": [],
+        "child_background_rules": [
+            {
+                "year_min": 2025,
+                "source": "CATHOLIC",
+                "probabilities": {"NONE": 1.0},
+            }
+        ],
+    }
+    worker = ColumnarSimulationWorker(population(100), child_config, uuid.uuid4())
+
+    result = worker.run_year(2025)
+    newborns = worker.population.filter(pl.col("birth_year") == 2025)
+
+    assert result["births"] == 50
+    assert set(newborns["religious_background"].to_list()) == {"none"}
+
+
+def test_historical_component_controls_are_expected_rates_not_exact_outputs():
+    controlled = {
+        "birth_rates": [{"rate": 100.0, "filters": {}}],
+        "death_rates": [{"rate": 50.0, "filters": {}}],
+        "migration_rates": [{"rate": -20.0, "filters": {}}],
+        "component_baseline_population": 1_000,
+        "annual_demographic_components": {
+            2025: {
+                "births": 100,
+                "deaths": 50,
+                "population_adjustment": -20,
+            }
+        },
+    }
+    first = ColumnarSimulationWorker(
+        population(), deepcopy(controlled), uuid.UUID(int=1), seed=42
+    )
+    second = ColumnarSimulationWorker(
+        population(), deepcopy(controlled), uuid.UUID(int=2), seed=44
+    )
+
+    first_result = first.run_year(2025)
+    second_result = second.run_year(2025)
+
+    assert first_result["deaths"] == second_result["deaths"] == 50
+    assert first_result["emigration"] == second_result["emigration"] == 20
+    assert first_result["births"] != second_result["births"]
+    first._apply_component_controls(2026)
+    assert first.config["birth_rates"][0]["rate"] == 100.0

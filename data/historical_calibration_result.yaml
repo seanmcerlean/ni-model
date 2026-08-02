@@ -1,0 +1,67 @@
+name: NI historical causal calibration result
+status: estimate
+method:
+  fit_years: [2001, 2011]
+  holdout_year: 2021
+  checkpoint_use: validation_only
+  output_reconciliation: false
+  searched_candidates: 32
+  accepted_candidates: 4
+  selection: central_parameter_set_within_fit_tolerance
+  sample_size: 1500
+  replicate_seeds: [48, 49, 50]
+  tolerances:
+    population_percent: 5.0
+    community_share_percentage_points: 2.5
+parameters:
+  baseline_catholic: 0.33830865933327126
+  baseline_none: 0.008855380783481519
+  baseline_other: 0.007642683798507095
+  early_catholic_birth: 1.30772030511102
+  early_protestant_birth: 0.9900896841404747
+  protestant_mortality: 1.2748007379467226
+  catholic_mortality: 0.8493592557828237
+  protestant_migration: 0.8853339656242007
+  catholic_migration: 0.8385472861531555
+  other_migration: 3.393578974794973
+  none_migration: 1.9522021042374054
+  protestant_adult_none: 4.531752551498318
+  catholic_adult_none: 1.8803650914440153
+  protestant_child_none_1981: 0.09277666266982477
+  catholic_child_none_1981: 0.05895886813013638
+ensemble_mean_errors:
+  2001:
+    population_percent: 1.555
+    share_percentage_points: {catholic: -0.517, protestant: -1.296, other: 0.138, none: 1.673}
+  2011:
+    population_percent: 1.398
+    share_percentage_points: {catholic: -0.664, protestant: -0.465, other: -0.423, none: 1.549}
+  2021:
+    population_percent: 0.965
+    share_percentage_points: {catholic: 0.358, protestant: 0.493, other: -0.992, none: 0.141}
+score_dispersion:
+  fit_score_mean: 0.00757597865643074
+  fit_score_sd: 0.0011118780149759612
+  holdout_score_mean: 0.004574281034383532
+  holdout_score_sd: 0.002282487706949742
+independent_validation:
+  sample_size: 5000
+  replicate_seeds: [100, 101, 102]
+  selected_after_validation: false
+  all_checkpoints_within_tolerance: true
+  ensemble_mean_errors:
+    2001:
+      population_percent: 1.164
+      share_percentage_points: {catholic: 0.415, protestant: -2.274, other: 0.195, none: 1.663}
+    2011:
+      population_percent: 1.214
+      share_percentage_points: {catholic: 0.350, protestant: -1.548, other: -0.327, none: 1.523}
+    2021:
+      population_percent: 0.745
+      share_percentage_points: {catholic: 0.871, protestant: -0.539, other: -0.888, none: 0.557}
+limitations:
+  - This is one central accepted estimate, not a uniquely identified optimum.
+  - Seed-level trajectories vary around the ensemble mean.
+  - Adult transitions represent effective Census response-category change, not observed conversions.
+  - The single sampled parent is a reduced-form approximation to household background transmission.
+  - The 2021 holdout result is reported but was not used to choose the parameters.

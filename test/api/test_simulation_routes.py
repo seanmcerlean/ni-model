@@ -53,7 +53,12 @@ def test_simulation_models_describes_available_configs(client):
     assert models[0]["path"] == "models/ni_base_2024.yaml"
     assert models[0]["name"] == "NI Historical Model"
     assert models[0]["birth_rules"] == 12
-    assert models[0]["birth_rate_rules"][0]["rate"] == 26.0
+    assert models[0]["birth_rate_rules"][0]["rate"] == pytest.approx(34.0007)
+    assert models[0]["death_rules"] == 60
+    assert models[0]["migration_rules"] == 12
+    assert models[0]["integration_rules"] == 2
+    assert models[0]["child_background_rules"] == 10
+    assert models[0]["child_background_rule_details"][-1]["source"] == "NONE"
     assert models[0]["default_start_year"] == 1969
     assert models[0]["default_end_year"] == 2024
     assert models[0]["baseline_profile"] == "historical"

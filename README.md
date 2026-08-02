@@ -192,10 +192,13 @@ internal_migration_rates:
 Rates are per 1,000 of the matching cohort. Filters can combine `religious_background`, `age_min`, `age_max`, `location`, and `gender`.
 
 `integration_rates` use the same filters and add a destination community. They
-represent an estimated change in the modelled category, are applied
-simultaneously after migration, and do not change population. They are not a
-claim that upbringing literally changes. The assumptions and evidence boundary
-are documented in [the community-transition methodology](docs/community-transitions.md).
+represent an estimated change in the reported model category, are applied
+simultaneously after migration, and do not change population.
+`child_background_rules` provide a time-varying probability distribution for a
+newborn conditional on one sampled parent's background. Neither mechanism is a
+claim that upbringing literally changes. The causal calibration, evidence
+boundary, and one-parent approximation are documented in
+[the community-transition methodology](docs/community-transitions.md).
 
 ## Frontend
 
@@ -278,9 +281,10 @@ print(result.within_threshold) # True if MARE <= 10%
 - NISRA only provides this comparable combined measure from 2001. The 1971–1991
   benchmark entries remain legacy estimates and are explicitly flagged in the
   YAML pending reconstruction from historical source tables.
-- Geographic location and education weights and most demographic rates remain
-  model assumptions, not fully sourced observations. They must be calibrated
-  before interpreting forecasts as estimates.
+- Historical aggregate births and deaths are sourced observations; pre-2001
+  population adjustment and community-specific differentials remain clearly
+  labelled estimates. Geographic location and education weights are also model
+  assumptions.
 - Official births, deaths, net migration, and population reconciliation for
   2002–2024 are checked in for calibration and back-testing. See
   [`data/SOURCES.md`](data/SOURCES.md) for definitions and direct source files.

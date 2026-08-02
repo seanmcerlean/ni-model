@@ -86,12 +86,14 @@ class SimulationModelSummary(BaseModel):
     migration_rules: int
     internal_migration_rules: int
     integration_rules: int = 0
+    child_background_rules: int = 0
     birth_rate_rules: List[Dict[str, Any]]
     death_rate_rules: List[Dict[str, Any]]
     mortality_age_rates: List[Dict[str, Any]] = Field(default_factory=list)
     migration_rate_rules: List[Dict[str, Any]]
     internal_migration_rate_rules: List[Dict[str, Any]]
     integration_rate_rules: List[Dict[str, Any]] = Field(default_factory=list)
+    child_background_rule_details: List[Dict[str, Any]] = Field(default_factory=list)
     year_min: Optional[int]
     year_max: Optional[int]
 

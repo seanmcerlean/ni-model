@@ -1,0 +1,81 @@
+name: Northern Ireland historical demographic components
+definition: >
+  Annual aggregate controls used by the historical calibration harness. Births
+  and deaths are observed registrations. From 2001, migration and other changes
+  are NISRA mid-year population components. Before 2001, net population adjustment
+  is the transparent residual: next population minus current population minus
+  births plus deaths; it therefore includes migration, timing differences and
+  population-estimate revisions and must not be interpreted as observed migration.
+baseline_population: 1512500
+baseline_year: 1969
+sources:
+  births_1969_2000:
+    title: NISRA Live Births 1887-2021
+    url: https://www.nisra.gov.uk/publications/birth-statistics
+  deaths_1969_2000:
+    title: NISRA Deaths 1887-2021
+    url: https://www.nisra.gov.uk/publications/death-statistics
+  population:
+    title: NISRA 2024 Mid-Year Population Estimates - population totals
+    url: https://www.nisra.gov.uk/publications/2024-mid-year-population-estimates-northern-ireland-and-estimates-population-aged-85
+  components_2001_2021:
+    title: NISRA 2024 Mid-Year Population Estimates - components of change
+    url: https://www.nisra.gov.uk/publications/2024-mid-year-population-estimates-northern-ireland-and-estimates-population-aged-85
+annual:
+  1969: {births: 32428, deaths: 16338, population_adjustment: -4590, population: 1512500, adjustment_status: estimated_residual}
+  1970: {births: 32086, deaths: 16551, population_adjustment: 878, population: 1524000, adjustment_status: estimated_residual}
+  1971: {births: 31765, deaths: 16202, population_adjustment: -16999, population: 1540413, adjustment_status: estimated_residual}
+  1972: {births: 29994, deaths: 17032, population_adjustment: -21946, population: 1538977, adjustment_status: estimated_residual}
+  1973: {births: 29200, deaths: 17669, population_adjustment: -14582, population: 1529993, adjustment_status: estimated_residual}
+  1974: {births: 27160, deaths: 17327, population_adjustment: -13257, population: 1526942, adjustment_status: estimated_residual}
+  1975: {births: 26130, deaths: 16511, population_adjustment: -9616, population: 1523518, adjustment_status: estimated_residual}
+  1976: {births: 26361, deaths: 17030, population_adjustment: -9542, population: 1523521, adjustment_status: estimated_residual}
+  1977: {births: 25437, deaths: 16921, population_adjustment: -8601, population: 1523310, adjustment_status: estimated_residual}
+  1978: {births: 26239, deaths: 16153, population_adjustment: -5058, population: 1523225, adjustment_status: estimated_residual}
+  1979: {births: 28178, deaths: 16811, population_adjustment: -6847, population: 1528253, adjustment_status: estimated_residual}
+  1980: {births: 28582, deaths: 16835, population_adjustment: -1556, population: 1532773, adjustment_status: estimated_residual}
+  1981: {births: 27166, deaths: 16256, population_adjustment: -9329, population: 1542964, adjustment_status: estimated_residual}
+  1982: {births: 26872, deaths: 15918, population_adjustment: -4939, population: 1544545, adjustment_status: estimated_residual}
+  1983: {births: 27026, deaths: 16039, population_adjustment: -4230, population: 1550560, adjustment_status: estimated_residual}
+  1984: {births: 27477, deaths: 15692, population_adjustment: -3750, population: 1557317, adjustment_status: estimated_residual}
+  1985: {births: 27427, deaths: 15955, population_adjustment: -3323, population: 1565352, adjustment_status: estimated_residual}
+  1986: {births: 27975, deaths: 16065, population_adjustment: -3457, population: 1573501, adjustment_status: estimated_residual}
+  1987: {births: 27653, deaths: 15334, population_adjustment: -8833, population: 1581954, adjustment_status: estimated_residual}
+  1988: {births: 27514, deaths: 15813, population_adjustment: -6706, population: 1585440, adjustment_status: estimated_residual}
+  1989: {births: 25831, deaths: 15844, population_adjustment: -4827, population: 1590435, adjustment_status: estimated_residual}
+  1990: {births: 26251, deaths: 15426, population_adjustment: 875, population: 1595595, adjustment_status: estimated_residual}
+  1991: {births: 26028, deaths: 15096, population_adjustment: 5036, population: 1607295, adjustment_status: estimated_residual}
+  1992: {births: 25354, deaths: 14988, population_adjustment: 1923, population: 1623263, adjustment_status: estimated_residual}
+  1993: {births: 24722, deaths: 15633, population_adjustment: -934, population: 1635552, adjustment_status: estimated_residual}
+  1994: {births: 24098, deaths: 15114, population_adjustment: -3560, population: 1643707, adjustment_status: estimated_residual}
+  1995: {births: 23693, deaths: 15310, population_adjustment: 4237, population: 1649131, adjustment_status: estimated_residual}
+  1996: {births: 24382, deaths: 15218, population_adjustment: 346, population: 1661751, adjustment_status: estimated_residual}
+  1997: {births: 24087, deaths: 14971, population_adjustment: -2608, population: 1671261, adjustment_status: estimated_residual}
+  1998: {births: 23668, deaths: 14993, population_adjustment: -7438, population: 1677769, adjustment_status: estimated_residual}
+  1999: {births: 22957, deaths: 15663, population_adjustment: -3356, population: 1679006, adjustment_status: estimated_residual}
+  2000: {births: 21512, deaths: 14903, population_adjustment: -715, population: 1682944, adjustment_status: estimated_residual}
+  2001: {births: 21460, deaths: 14432, population_adjustment: 1668, population: 1688838, adjustment_status: observed_components}
+  2002: {births: 21433, deaths: 14648, population_adjustment: 605, population: 1697534, adjustment_status: observed_components}
+  2003: {births: 22049, deaths: 14736, population_adjustment: 1805, population: 1704924, adjustment_status: observed_components}
+  2004: {births: 22549, deaths: 14390, population_adjustment: 5532, population: 1714042, adjustment_status: observed_components}
+  2005: {births: 22714, deaths: 14211, population_adjustment: 6877, population: 1727733, adjustment_status: observed_components}
+  2006: {births: 23850, deaths: 14555, population_adjustment: 9275, population: 1743113, adjustment_status: observed_components}
+  2007: {births: 25227, deaths: 14462, population_adjustment: 6704, population: 1761683, adjustment_status: observed_components}
+  2008: {births: 25276, deaths: 14566, population_adjustment: 3471, population: 1779152, adjustment_status: observed_components}
+  2009: {births: 24981, deaths: 14006, population_adjustment: 525, population: 1793333, adjustment_status: observed_components}
+  2010: {births: 25424, deaths: 14184, population_adjustment: -1755, population: 1804833, adjustment_status: observed_components}
+  2011: {births: 25324, deaths: 14235, population_adjustment: -804, population: 1814318, adjustment_status: observed_components}
+  2012: {births: 24527, deaths: 14968, population_adjustment: -2485, population: 1824603, adjustment_status: observed_components}
+  2013: {births: 24185, deaths: 14337, population_adjustment: 1661, population: 1831677, adjustment_status: observed_components}
+  2014: {births: 24187, deaths: 15403, population_adjustment: 2973, population: 1843186, adjustment_status: observed_components}
+  2015: {births: 24379, deaths: 15341, population_adjustment: 2061, population: 1854943, adjustment_status: observed_components}
+  2016: {births: 23598, deaths: 15901, population_adjustment: 1439, population: 1866042, adjustment_status: observed_components}
+  2017: {births: 23056, deaths: 16365, population_adjustment: 4390, population: 1875178, adjustment_status: observed_components}
+  2018: {births: 22647, deaths: 15349, population_adjustment: 4962, population: 1886259, adjustment_status: observed_components}
+  2019: {births: 21899, deaths: 16691, population_adjustment: -3204, population: 1898519, adjustment_status: observed_components}
+  2020: {births: 21524, deaths: 17155, population_adjustment: -328, population: 1900523, adjustment_status: observed_components}
+  2021: {births: 21468, deaths: 17712, population_adjustment: 2223, population: 1904564, adjustment_status: observed_components}
+limitations:
+  - Registration-year births and deaths are used before 2001 and do not align exactly with mid-year intervals.
+  - Pre-2001 population adjustment is an accounting residual, not an observed migration series.
+  - Post-2001 population adjustment combines NISRA total net migration and other changes so the accounting identity remains explicit.
