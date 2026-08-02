@@ -1,10 +1,14 @@
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer } from "react-leaflet";
 import { Layer, PathOptions } from "leaflet";
 
 import niGeoJsonRaw from "../geo/ni.geojson?raw";
 import { LOCATION_CODES, YearSnapshot } from "../types";
 
 const niGeoJson = JSON.parse(niGeoJsonRaw) as GeoJSON.FeatureCollection;
+const NI_BOUNDS: [[number, number], [number, number]] = [
+  [53.95, -8.35],
+  [55.35, -5.25],
+];
 
 function featureId(feature: GeoJSON.Feature): string {
   return LOCATION_CODES[feature.properties?.LAD24CD ?? ""] ?? "";
@@ -53,15 +57,19 @@ export function NiMap({ snapshot, onLocationClick }: Props) {
 
   return (
     <MapContainer
-      center={[54.66, -6.72]}
-      zoom={8}
+      bounds={NI_BOUNDS}
+      boundsOptions={{ padding: [18, 18] }}
+      maxBounds={NI_BOUNDS}
+      maxBoundsViscosity={1}
       style={{ height: "100%", width: "100%", background: "#1a1a2e" }}
-      zoomControl={true}
+      zoomControl={false}
+      dragging={false}
+      scrollWheelZoom={false}
+      doubleClickZoom={false}
+      boxZoom={false}
+      keyboard={false}
+      touchZoom={false}
     >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-      />
       <GeoJSON
         key={snapshot?.year ?? "empty"}
         data={niGeoJson}

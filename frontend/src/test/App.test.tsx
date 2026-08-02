@@ -3,8 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock react-leaflet to avoid DOM/canvas issues in jsdom
 vi.mock("react-leaflet", () => ({
-  MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map">{children}</div>,
-  TileLayer: () => null,
+  MapContainer: ({ children, zoomControl, dragging, scrollWheelZoom, bounds }: {
+    children: React.ReactNode;
+    zoomControl: boolean;
+    dragging: boolean;
+    scrollWheelZoom: boolean;
+    bounds: unknown;
+  }) => <div data-testid="map" data-zoom-control={String(zoomControl)}
+    data-dragging={String(dragging)} data-scroll-wheel={String(scrollWheelZoom)}
+    data-bounds={JSON.stringify(bounds)}>{children}</div>,
+  TileLayer: () => <div data-testid="tile-layer" />,
   GeoJSON: () => null,
 }));
 
@@ -30,12 +38,31 @@ describe("App", () => {
 
   it("renders map container", () => {
     render(<App />);
-    expect(screen.getByTestId("map")).toBeInTheDocument();
+    const map = screen.getByTestId("map");
+    expect(map).toHaveAttribute("data-zoom-control", "false");
+    expect(map).toHaveAttribute("data-dragging", "false");
+    expect(map).toHaveAttribute("data-scroll-wheel", "false");
+    expect(map).toHaveAttribute("data-bounds", JSON.stringify([[53.95, -8.35], [55.35, -5.25]]));
+    expect(screen.queryByTestId("tile-layer")).not.toBeInTheDocument();
   });
 
   it("renders Run button", () => {
     render(<App />);
     expect(screen.getByText("Run")).toBeInTheDocument();
+  });
+
+  it("separates setup, model information, and polling into keyboard tabs", () => {
+    render(<App />);
+    const setup = screen.getByRole("tab", { name: "Run setup" });
+    expect(setup).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.keyDown(setup, { key: "ArrowRight" });
+
+    const model = screen.getByRole("tab", { name: "Model info" });
+    expect(model).toHaveAttribute("aria-selected", "true");
+    expect(model).toHaveFocus();
+    fireEvent.keyDown(model, { key: "End" });
+    expect(screen.getByRole("tab", { name: "Polling" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("starts with an explicit random seed that can be changed or regenerated", async () => {
@@ -75,14 +102,12 @@ describe("App", () => {
 
   it("defaults to the current model start year", () => {
     render(<App />);
-    const inputs = screen.getAllByRole("spinbutton");
-    expect(inputs[0]).toHaveValue(2024);
+    expect(screen.getByLabelText("Start")).toHaveValue(2024);
   });
 
   it("defaults to a useful current projection horizon", () => {
     render(<App />);
-    const inputs = screen.getAllByRole("spinbutton");
-    expect(inputs[1]).toHaveValue(2035);
+    expect(screen.getByLabelText("End")).toHaveValue(2035);
   });
 
   it("speed buttons are rendered", () => {
@@ -93,9 +118,9 @@ describe("App", () => {
 
   it("updates start year on input change", () => {
     render(<App />);
-    const inputs = screen.getAllByRole("spinbutton");
-    fireEvent.change(inputs[0], { target: { value: "2000" } });
-    expect(inputs[0]).toHaveValue(2000);
+    const start = screen.getByLabelText("Start");
+    fireEvent.change(start, { target: { value: "2000" } });
+    expect(start).toHaveValue(2000);
   });
 
   it("lists and describes the sourced current model", async () => {
@@ -188,11 +213,7 @@ describe("App", () => {
     await waitFor(() => expect(select).toHaveTextContent("NI Current"));
     fireEvent.change(select, { target: { value: "models/ni_current.yaml" } });
 
-    expect(screen.getByText("2021")).toBeInTheDocument();
-    expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Mortality age profile"));
-    expect(screen.getByText("149.379433 per 1,000")).toBeInTheDocument();
-    expect(screen.getByText("85–130")).toBeInTheDocument();
+    expect(screen.queryByText("Observed components followed by the principal projection.")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("Adjust this run"));
     const community = screen.getByRole("group", { name: "Community-specific multipliers" });
     expect(within(community).getByLabelText("Background")).toHaveValue("catholic");
@@ -205,6 +226,13 @@ describe("App", () => {
       target: { value: "protestant" },
     });
     expect(within(community).getByLabelText("Background")).toHaveValue("protestant");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Model info" }));
+    expect(screen.getByText("2021")).toBeInTheDocument();
+    expect(screen.getByText("NISRA/ONS 2024-based principal projection")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Mortality age profile"));
+    expect(screen.getByText("149.379433 per 1,000")).toBeInTheDocument();
+    expect(screen.getByText("85–130")).toBeInTheDocument();
 
     fireEvent.change(select, { target: { value: "models/ni_base_2024.yaml" } });
     expect(screen.getByLabelText("Start")).toHaveValue(1969);
@@ -244,6 +272,7 @@ describe("App", () => {
       } as Response);
 
     render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "Polling" }));
     expect(await screen.findByText("BORDER POLL SCENARIO")).toBeInTheDocument();
     expect(screen.getByText("Showing LucidTalk")).toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();

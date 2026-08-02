@@ -8,6 +8,8 @@ import { useSimulationStream } from "./hooks/useSimulationStream";
 import { ChildBackgroundRule, CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
+type PanelTab = "setup" | "model" | "polling";
+const PANEL_TABS: PanelTab[] = ["setup", "model", "polling"];
 
 function isCommunityBackground(value: string): value is CommunityBackground {
   return BACKGROUNDS.some((background) => background === value);
@@ -55,6 +57,7 @@ export default function App() {
   const [customPolling, setCustomPolling] = useState({ unite: 41.4, remain: 48.5, undecided: 10.1 });
   const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
+  const [panelTab, setPanelTab] = useState<PanelTab>("setup");
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -205,8 +208,38 @@ export default function App() {
             {models.map((model) => <option key={model.id} value={model.path}>{model.name}</option>)}
           </select>
           {modelError && <p className="inline-error" role="alert">{modelError}</p>}
-          {selectedModel && (
-            <>
+          <div className="panel-tabs" role="tablist" aria-label="Simulation options">
+            <PanelTabButton id="setup" label="Run setup" selected={panelTab} onSelect={setPanelTab} />
+            <PanelTabButton id="model" label="Model info" selected={panelTab} onSelect={setPanelTab} />
+            <PanelTabButton id="polling" label="Polling" selected={panelTab} onSelect={setPanelTab} />
+          </div>
+          {panelTab === "setup" && (
+            <section className="panel-tab-content" role="tabpanel" id="setup-panel" aria-labelledby="setup-tab">
+              <p className="panel-intro">Choose the population size and assumptions for the next run.</p>
+              <label className="population-toggle">
+                <span><b>Full population</b><small>{populationMode === "full" ? "Every resident in the selected baseline" : "Off — representative 25,000-person sample"}</small></span>
+                <input type="checkbox" role="switch" checked={populationMode === "full"}
+                  disabled={status === "streaming"}
+                  onChange={(event) => setPopulationMode(event.target.checked ? "full" : "sample")} />
+              </label>
+              <div className="seed-control">
+                <label htmlFor="random-seed">Simulation seed</label>
+                <input id="random-seed" type="number" min="0" max="4294967295"
+                  disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
+                  onChange={(event) => setAdjustments({
+                    ...adjustments,
+                    random_seed: event.target.value === "" ? null : Number(event.target.value),
+                  })} />
+                <button type="button" className="control-button" disabled={status === "streaming"}
+                  onClick={() => setAdjustments({ ...adjustments, random_seed: randomSeed() })}>New seed</button>
+              </div>
+              <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
+            </section>
+          )}
+          {panelTab === "model" && (
+            <section className="panel-tab-content" role="tabpanel" id="model-panel" aria-labelledby="model-tab">
+              {!selectedModel && <p className="panel-intro">Model details are loading from the API.</p>}
+              {selectedModel && <>
               <p className="model-description">{selectedModel.description}</p>
               <dl className="model-facts">
                 <div><dt>Seed</dt><dd>{selectedModel.random_seed ?? "Random"}</dd></div>
@@ -242,31 +275,18 @@ export default function App() {
                 />
               </div>
               <div className="model-note">Rates are scenario assumptions per 1,000, not an official forecast.</div>
-              <label className="population-toggle">
-                <span><b>Full population</b><small>{populationMode === "full" ? "Every resident in the selected baseline" : "Off — representative 25,000-person sample"}</small></span>
-                <input type="checkbox" role="switch" checked={populationMode === "full"}
-                  disabled={status === "streaming"}
-                  onChange={(event) => setPopulationMode(event.target.checked ? "full" : "sample")} />
-              </label>
-              <div className="seed-control">
-                <label htmlFor="random-seed">Simulation seed</label>
-                <input id="random-seed" type="number" min="0" max="4294967295"
-                  disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
-                  onChange={(event) => setAdjustments({
-                    ...adjustments,
-                    random_seed: event.target.value === "" ? null : Number(event.target.value),
-                  })} />
-                <button type="button" className="control-button" disabled={status === "streaming"}
-                  onClick={() => setAdjustments({ ...adjustments, random_seed: randomSeed() })}>New seed</button>
-              </div>
-              <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
-            </>
+              </>}
+            </section>
           )}
-          <VotingPanel prediction={voting} calibration={votingCalibration}
-            customPolling={customPolling} onCustomPollingChange={setCustomPolling}
-            loading={votingLoading} error={votingError}
-            projectionYear={snapshot?.year ?? null}
-            onCalibrationChange={setVotingCalibration} />
+          {panelTab === "polling" && (
+            <div className="panel-tab-content" role="tabpanel" id="polling-panel" aria-labelledby="polling-tab">
+              <VotingPanel prediction={voting} calibration={votingCalibration}
+                customPolling={customPolling} onCustomPollingChange={setCustomPolling}
+                loading={votingLoading} error={votingError}
+                projectionYear={snapshot?.year ?? null}
+                onCalibrationChange={setVotingCalibration} />
+            </div>
+          )}
         </aside>
 
         <main className="map-column">
@@ -303,6 +323,40 @@ export default function App() {
         onEndYearChange={setEndYear}
       />
     </div>
+  );
+}
+
+function PanelTabButton({ id, label, selected, onSelect }: {
+  id: PanelTab;
+  label: string;
+  selected: PanelTab;
+  onSelect: (tab: PanelTab) => void;
+}) {
+  const active = selected === id;
+  const moveFocus = (tab: PanelTab) => {
+    onSelect(tab);
+    document.getElementById(`${tab}-tab`)?.focus();
+  };
+  return (
+    <button type="button" role="tab" id={`${id}-tab`} aria-controls={`${id}-panel`}
+      aria-selected={active} tabIndex={active ? 0 : -1}
+      onKeyDown={(event) => {
+        const index = PANEL_TABS.indexOf(id);
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          moveFocus(PANEL_TABS[(index + 1) % PANEL_TABS.length]);
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveFocus(PANEL_TABS[(index - 1 + PANEL_TABS.length) % PANEL_TABS.length]);
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          moveFocus(PANEL_TABS[0]);
+        } else if (event.key === "End") {
+          event.preventDefault();
+          moveFocus(PANEL_TABS[PANEL_TABS.length - 1]);
+        }
+      }}
+      onClick={() => onSelect(id)}>{label}</button>
   );
 }
 
@@ -366,7 +420,14 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
   onCalibrationChange: (value: string) => void;
   onCustomPollingChange: (value: { unite: number; remain: number; undecided: number }) => void;
 }) {
-  if (!prediction) return null;
+  if (!prediction) return (
+    <section className="voting-panel" aria-labelledby="voting-heading">
+      <div className="panel-kicker" id="voting-heading">BORDER POLL SCENARIO</div>
+      <p className="panel-intro" aria-live="polite">
+        {error ?? (loading ? "Loading polling calibration…" : "No polling estimate is available.")}
+      </p>
+    </section>
+  );
   const interval = prediction.intervals.unite_share;
   return (
     <section className="voting-panel" aria-labelledby="voting-heading">

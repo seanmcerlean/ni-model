@@ -25,10 +25,16 @@ button, input, select { font: inherit; }
 .year-badge { padding: 5px 12px; border-radius: 999px; background: #0ea5e9; color: #fff; font-weight: 700; }
 .stop-button { margin-left: auto; padding: 7px 12px; border: 1px solid #f87171; border-radius: 6px; color: #fecaca; background: #7f1d1d55; cursor: pointer; }
 
-.workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: 260px 1fr; }
+.workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: 290px 1fr; }
 .model-panel { padding: 18px; background: #0d1a2b; border-right: 1px solid #23364f; overflow-y: auto; }
 .field-label { display: block; margin: 16px 0 6px; color: #94a3b8; font-size: 11px; }
 .model-select { width: 100%; padding: 9px 10px; border: 1px solid #334b68; border-radius: 6px; background: #13263e; color: #f8fafc; }
+.panel-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 14px 0 10px; padding: 3px; border-radius: 7px; background: #081421; }
+.panel-tabs button { min-width: 0; padding: 7px 4px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #94a3b8; font-size: 10px; cursor: pointer; }
+.panel-tabs button[aria-selected="true"] { border-color: #0ea5e9; background: #123653; color: #f8fafc; }
+.panel-tabs button:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+.panel-tab-content { min-width: 0; }
+.panel-intro { margin: 4px 0 10px; color: #94a3b8; font-size: 10px; line-height: 1.45; }
 .model-description { color: #cbd5e1; font-size: 12px; line-height: 1.55; }
 .model-facts { margin: 16px 0; }
 .model-facts div { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #20344d; }
@@ -56,7 +62,7 @@ button, input, select { font: inherit; }
 .population-toggle input { width: 34px; height: 18px; accent-color: #38bdf8; cursor: pointer; }
 .seed-control { display: grid; grid-template-columns: 1fr 88px auto; align-items: center; gap: 7px; margin: 12px 0; color: #cbd5e1; font-size: 10px; }
 .seed-control input { min-width: 0; padding: 5px; border: 1px solid #334b68; border-radius: 4px; background: #13263e; color: #f8fafc; }
-.voting-panel { margin-top: 20px; padding-top: 16px; border-top: 1px solid #334b68; }
+.voting-panel { margin-top: 4px; }
 .voting-headline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
 .voting-headline span { padding: 7px 4px; border-radius: 4px; background: #13263e; color: #94a3b8; font-size: 8px; text-align: center; text-transform: uppercase; }
 .voting-headline b { display: block; color: #f8fafc; font-size: 13px; }
