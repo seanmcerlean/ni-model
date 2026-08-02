@@ -23,7 +23,7 @@ historical_calibration:
   holdout_year: 2021
   sample_size: 1500
   replicate_seeds: [48, 49, 50]
-  accepted_candidates: 3
+  accepted_candidates: 4
   searched_candidates: 32
 
 # Replaced at load time by the calibrated, provenance-labelled response rules.
