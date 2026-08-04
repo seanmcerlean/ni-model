@@ -26,18 +26,21 @@ type Rgb = readonly [number, number, number];
 
 const COLOURS: Record<string, Rgb> = {
   unite: [22, 163, 74],
-  remain: [37, 99, 235],
+  remain: [249, 115, 22],
   catholic: [34, 197, 94],
   protestant: [14, 165, 233],
   other: [168, 85, 247],
   none: [148, 163, 184],
 };
 
-export function blendedColour(parts: Array<[number, Rgb]>): string {
-  const total = parts.reduce((sum, [weight]) => sum + weight, 0);
+export function blendedColour(parts: Array<[number, Rgb]>, contrast = 1): string {
+  const adjusted = parts.map(([weight, colour]) => [
+    Math.pow(Math.max(weight, 0), contrast), colour,
+  ] as [number, Rgb]);
+  const total = adjusted.reduce((sum, [weight]) => sum + weight, 0);
   if (total <= 0) return "#475569";
   const channels = [0, 1, 2].map((channel) => Math.round(
-    parts.reduce((sum, [weight, colour]) => sum + weight * colour[channel], 0) / total,
+    adjusted.reduce((sum, [weight, colour]) => sum + weight * colour[channel], 0) / total,
   ));
   return `rgb(${channels.join(", ")})`;
 }
@@ -48,7 +51,7 @@ function voteColour(voting: VotingPrediction | null, locationId: string): string
   return blendedColour([
     [prediction.unite_share, COLOURS.unite],
     [prediction.remain_share, COLOURS.remain],
-  ]);
+  ], 1.65);
 }
 
 function communityColour(snapshot: YearSnapshot | null, locationId: string): string {
@@ -56,7 +59,7 @@ function communityColour(snapshot: YearSnapshot | null, locationId: string): str
   if (!breakdown) return "#475569";
   return blendedColour(([
     "catholic", "protestant", "other", "none",
-  ] as const).map((background) => [breakdown[background] ?? 0, COLOURS[background]]));
+  ] as const).map((background) => [breakdown[background] ?? 0, COLOURS[background]]), 2.4);
 }
 
 export function NiMap({ snapshot, voting, onLocationClick }: Props) {

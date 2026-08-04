@@ -147,8 +147,8 @@ button, input, select { font: inherit; }
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .swatch { width: 10px; height: 10px; border-radius: 2px; }
 .swatch.unite { background: #16a34a; }
-.swatch.remain { background: #2563eb; }
-.swatch.vote-blend { background: linear-gradient(90deg, #16a34a, #2563eb); }
+.swatch.remain { background: #f97316; }
+.swatch.vote-blend { background: linear-gradient(90deg, #16a34a, #f97316); }
 .swatch.catholic { background: #22c55e; }
 .swatch.protestant { background: #0ea5e9; }
 .swatch.other { background: #a855f7; }
