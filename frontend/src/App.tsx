@@ -5,6 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
+import { allocateUndecided, UndecidedAllocation } from "./polling";
 import { ChildBackgroundRule, CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
@@ -54,6 +55,7 @@ export default function App() {
   const [votingLoading, setVotingLoading] = useState(true);
   const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
+  const [undecidedAllocation, setUndecidedAllocation] = useState<UndecidedAllocation>("reported");
   const [customPolling, setCustomPolling] = useState({ unite: 41.4, remain: 48.5, undecided: 10.1 });
   const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
@@ -284,6 +286,8 @@ export default function App() {
                 customPolling={customPolling} onCustomPollingChange={setCustomPolling}
                 loading={votingLoading} error={votingError}
                 projectionYear={snapshot?.year ?? null}
+                undecidedAllocation={undecidedAllocation}
+                onUndecidedAllocationChange={setUndecidedAllocation}
                 onCalibrationChange={setVotingCalibration} />
             </div>
           )}
@@ -299,6 +303,7 @@ export default function App() {
               detail={selectedLocation && snapshot ? snapshot.locations?.[selectedLocation] ?? null : null}
               voting={selectedLocation ? voting?.by_location?.[selectedLocation] ?? null : null}
               pollingSource={voting?.source.name ?? null}
+              undecidedAllocation={undecidedAllocation}
               onClose={() => setSelectedLocation(null)}
             />
           </div>
@@ -410,15 +415,17 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   </details>;
 }
 
-function VotingPanel({ prediction, calibration, customPolling, loading, error, projectionYear, onCalibrationChange, onCustomPollingChange }: {
+function VotingPanel({ prediction, calibration, customPolling, loading, error, projectionYear, undecidedAllocation, onCalibrationChange, onCustomPollingChange, onUndecidedAllocationChange }: {
   prediction: VotingPrediction | null;
   calibration: string;
   customPolling: { unite: number; remain: number; undecided: number };
   loading: boolean;
   error: string | null;
   projectionYear: number | null;
+  undecidedAllocation: UndecidedAllocation;
   onCalibrationChange: (value: string) => void;
   onCustomPollingChange: (value: { unite: number; remain: number; undecided: number }) => void;
+  onUndecidedAllocationChange: (value: UndecidedAllocation) => void;
 }) {
   if (!prediction) return (
     <section className="voting-panel" aria-labelledby="voting-heading">
@@ -429,6 +436,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
     </section>
   );
   const interval = prediction.intervals.unite_share;
+  const displayed = allocateUndecided(prediction, undecidedAllocation);
   return (
     <section className="voting-panel" aria-labelledby="voting-heading">
       <div className="panel-kicker" id="voting-heading">BORDER POLL SCENARIO</div>
@@ -458,10 +466,28 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
         {loading ? "Updating calibration…" : `Showing ${prediction.source.name}`}
       </div>
       {error && <p className="inline-error" role="alert">{error}</p>}
+      <fieldset className="undecided-allocation">
+        <legend>Undecided treatment</legend>
+        {([
+          ["reported", "As reported"],
+          ["remain", "Force to Remain"],
+          ["unite", "Force to Unite"],
+        ] as Array<[UndecidedAllocation, string]>).map(([value, label]) => (
+          <label key={value}>
+            <input type="radio" name="undecided-allocation" value={value}
+              checked={undecidedAllocation === value}
+              onChange={() => onUndecidedAllocationChange(value)} />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+      <p className="allocation-note">
+        The undecided share comes from the selected poll. Forcing it to one side is a sensitivity assumption, not observed voter movement.
+      </p>
       <div className="voting-headline">
-        <span><b>{percentage(prediction.unite_share, 1)}</b> Unite</span>
-        <span><b>{percentage(prediction.remain_share, 1)}</b> Remain</span>
-        <span><b>{percentage(prediction.undecided_share, 1)}</b> Undecided</span>
+        <span><b>{percentage(displayed.unite_share, 1)}</b> Unite</span>
+        <span><b>{percentage(displayed.remain_share, 1)}</b> Remain</span>
+        <span><b>{percentage(displayed.undecided_share, 1)}</b> Undecided</span>
       </div>
       <dl className="model-facts">
         <div><dt>Adult proxy</dt><dd>{prediction.eligible_population.toLocaleString()}</dd></div>

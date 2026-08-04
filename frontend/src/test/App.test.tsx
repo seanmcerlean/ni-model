@@ -277,6 +277,14 @@ describe("App", () => {
     expect(screen.getByText("Showing LucidTalk")).toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();
     expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
+    expect(screen.getByLabelText("As reported")).toBeChecked();
+    fireEvent.click(screen.getByLabelText("Force to Unite"));
+    const votingHeadline = document.querySelector(".voting-headline");
+    expect(votingHeadline).not.toBeNull();
+    expect(within(votingHeadline as HTMLElement).getByText("58.0%")).toBeInTheDocument();
+    expect(within(votingHeadline as HTMLElement).getByText("0.0%")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Force to Remain"));
+    expect(within(votingHeadline as HTMLElement).getByText("64.0%")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "LucidTalk" })).toHaveAttribute(
       "href",
       "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",

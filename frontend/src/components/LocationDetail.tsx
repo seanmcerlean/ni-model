@@ -1,4 +1,5 @@
 import { LOCATION_KEYS, LocationVotingPrediction, SimulationLocationSnapshot } from "../types";
+import { allocateUndecided, UndecidedAllocation } from "../polling";
 
 const DETAIL_ORDERS = {
   community: ["catholic", "protestant", "other", "none"],
@@ -13,10 +14,11 @@ interface Props {
   detail: SimulationLocationSnapshot | null;
   voting: LocationVotingPrediction | null;
   pollingSource: string | null;
+  undecidedAllocation: UndecidedAllocation;
   onClose: () => void;
 }
 
-export function LocationDetail({ locationId, year, detail, voting, pollingSource, onClose }: Props) {
+export function LocationDetail({ locationId, year, detail, voting, pollingSource, undecidedAllocation, onClose }: Props) {
   if (!locationId) return null;
   return (
     <aside className="location-panel" aria-labelledby="location-title">
@@ -27,7 +29,7 @@ export function LocationDetail({ locationId, year, detail, voting, pollingSource
       {detail && <>
         <div className="location-population">{detail.total.toLocaleString()}</div>
         <div className="location-population-label">simulated residents</div>
-        {voting && <AreaVoting prediction={voting} source={pollingSource} />}
+        {voting && <AreaVoting prediction={voting} source={pollingSource} undecidedAllocation={undecidedAllocation} />}
         <Section title="Community background" data={detail.religious_breakdown} order={DETAIL_ORDERS.community} />
         <Section title="Gender" data={detail.gender_breakdown} order={DETAIL_ORDERS.gender} />
         <Section title="Origin" data={detail.origin_breakdown} order={DETAIL_ORDERS.origin} />
@@ -37,16 +39,18 @@ export function LocationDetail({ locationId, year, detail, voting, pollingSource
   );
 }
 
-function AreaVoting({ prediction, source }: {
+function AreaVoting({ prediction, source, undecidedAllocation }: {
   prediction: LocationVotingPrediction;
   source: string | null;
+  undecidedAllocation: UndecidedAllocation;
 }) {
+  const displayed = allocateUndecided(prediction, undecidedAllocation);
   return <section className="area-voting" aria-labelledby="area-voting-title">
     <h3 id="area-voting-title">Estimated border-poll response</h3>
     <div className="area-voting-results">
-      <span><b>{percent(prediction.unite_share)}</b> Unite</span>
-      <span><b>{percent(prediction.remain_share)}</b> Remain</span>
-      <span><b>{percent(prediction.undecided_share)}</b> Undecided</span>
+      <span><b>{percent(displayed.unite_share)}</b> Unite</span>
+      <span><b>{percent(displayed.remain_share)}</b> Remain</span>
+      <span><b>{percent(displayed.undecided_share)}</b> Undecided</span>
     </div>
     <p>Estimated from this area's simulated adult age and community-background mix using {source ?? "the selected poll"} cross-tabs. Not area-level polling.</p>
   </section>;
