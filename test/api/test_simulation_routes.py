@@ -417,7 +417,7 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
 
 def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
     ).json()
     _wait_for_run(client, created["run_id"])
 
@@ -429,10 +429,16 @@ def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
     assert response.status_code == 200
     prediction = response.json()
     assert prediction["source"]["id"] == "custom_lucidtalk"
+    assert prediction["source"]["baseline_definition"] == "current_reference_population"
     assert prediction["unite_share"] == pytest.approx(0.50, abs=0.001)
     assert prediction["by_location"]["derry_strabane"]["unite_share"] != pytest.approx(
         prediction["by_location"]["belfast"]["unite_share"]
     )
+    later = client.get(
+        f"/api/simulation/runs/{created['run_id']}/years/2025/voting-prediction",
+        params={"custom_unite": 50, "custom_remain": 40, "custom_undecided": 10},
+    ).json()
+    assert later["unite_share"] != prediction["unite_share"]
 
 
 def test_run_exposes_paginated_people_and_individual_history(client):

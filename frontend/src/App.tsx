@@ -440,7 +440,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
         <option value="custom_lucidtalk">Custom baseline (LucidTalk-relative)</option>
       </select>
       {calibration === "custom_lucidtalk" && (
-        <fieldset className="custom-polling" aria-label="Custom polling baseline">
+        <><fieldset className="custom-polling" aria-label="Custom polling baseline">
           {(["unite", "remain", "undecided"] as const).map((key) => (
             <label key={key}>
               <span>{friendly(key)} %</span>
@@ -452,6 +452,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
             </label>
           ))}
         </fieldset>
+        <p className="custom-polling-note">This is the present-day baseline. Projected figures update as each simulation year's demographics change.</p></>
       )}
       <div className={`calibration-status ${loading ? "loading" : ""}`} aria-live="polite">
         {loading ? "Updating calibration…" : `Showing ${prediction.source.name}`}

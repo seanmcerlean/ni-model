@@ -119,6 +119,7 @@ class VotingPredictor:
         aggregate_rows: Optional[Sequence[Any]] = None,
         total_population: Optional[int] = None,
         custom_baseline: Optional[Sequence[float]] = None,
+        custom_reference_rows: Optional[Sequence[Any]] = None,
     ):
         if calibration not in CALIBRATIONS:
             raise ValueError(f"unknown voting calibration: {calibration}")
@@ -127,6 +128,7 @@ class VotingPredictor:
         self.calibration = calibration
         self.aggregate_rows = aggregate_rows
         self.total_population = total_population
+        self.custom_reference_rows = custom_reference_rows
         self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
         if custom_baseline is not None:
             self._apply_custom_baseline(custom_baseline)
@@ -137,7 +139,11 @@ class VotingPredictor:
             raise ValueError("custom baseline must contain three shares from 0 to 1")
         if not math.isclose(sum(baseline), 1.0, abs_tol=1e-6):
             raise ValueError("custom baseline shares must sum to 1")
-        rows = self._rows()
+        rows = (
+            self.custom_reference_rows
+            if self.custom_reference_rows is not None
+            else self._rows()
+        )
         multipliers = [1.0, 1.0, 1.0]
         for _ in range(100):
             totals = [0.0, 0.0, 0.0]
@@ -180,6 +186,7 @@ class VotingPredictor:
                 "remain": baseline[1],
                 "undecided": baseline[2],
             },
+            "baseline_definition": "current_reference_population",
         }
 
     def _turnout(self, age: int, background: ReligiousBackground) -> float:
@@ -338,8 +345,10 @@ class VotingPredictor:
                 "Adult resident eligibility proxy; community-background and age "
                 "marginals are not causal predictors or a joint poll model."
                 + (
-                    " Custom values shift LucidTalk subgroup odds and inherit its "
-                    "sampling interval; they are a user scenario, not a new poll."
+                    " Custom values calibrate LucidTalk subgroup odds against the "
+                    "current reference population, then hold those odds fixed as "
+                    "simulated demographics change. They inherit the LucidTalk "
+                    "sampling interval and are a user scenario, not a new poll."
                     if self.calibration == "custom_lucidtalk"
                     else ""
                 )

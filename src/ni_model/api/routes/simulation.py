@@ -240,6 +240,7 @@ def _snapshot_voting_prediction(
     aggregate_rows=None,
     total_population=None,
     custom_baseline=None,
+    custom_reference_rows=None,
 ) -> dict:
     predictor = VotingPredictor(
         db,
@@ -248,6 +249,7 @@ def _snapshot_voting_prediction(
         aggregate_rows=aggregate_rows,
         total_population=total_population,
         custom_baseline=custom_baseline,
+        custom_reference_rows=custom_reference_rows,
     )
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
@@ -560,6 +562,9 @@ def simulation_year_voting_prediction(
         )
         for location, background, age, count in stored_rows
     ]
+    custom_reference_rows = (
+        VotingPredictor.aggregate_population(db) if custom_baseline else None
+    )
     try:
         return VotingPrediction(
             **_snapshot_voting_prediction(
@@ -569,6 +574,7 @@ def simulation_year_voting_prediction(
                 rows,
                 snapshot.data["total_population"],
                 custom_baseline,
+                custom_reference_rows,
             )
         )
     except ValueError as exc:

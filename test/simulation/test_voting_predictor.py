@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 
 from src.ni_model.core.models import (
@@ -147,6 +149,46 @@ def test_custom_baseline_rakes_lucidtalk_without_flattening_areas(db_session):
     assert (
         by_location["belfast"]["unite_share"]
         > by_location["derry_strabane"]["unite_share"]
+    )
+
+
+def test_custom_baseline_uses_fixed_reference_as_demographics_change(db_session):
+    def row(background, count):
+        return SimpleNamespace(
+            location=Location.BELFAST,
+            religious_background=background,
+            age=40,
+            count=count,
+        )
+
+    reference = [
+        row(ReligiousBackground.CATHOLIC, 100),
+        row(ReligiousBackground.PROTESTANT, 100),
+    ]
+    later_year = [
+        row(ReligiousBackground.CATHOLIC, 150),
+        row(ReligiousBackground.PROTESTANT, 50),
+    ]
+    baseline = (0.50, 0.40, 0.10)
+
+    reference_result = VotingPredictor(
+        db_session,
+        aggregate_rows=reference,
+        custom_baseline=baseline,
+        custom_reference_rows=reference,
+    ).predict()
+    later_result = VotingPredictor(
+        db_session,
+        aggregate_rows=later_year,
+        custom_baseline=baseline,
+        custom_reference_rows=reference,
+    ).predict()
+
+    assert reference_result["unite_share"] == pytest.approx(0.50, abs=0.001)
+    assert later_result["unite_share"] > reference_result["unite_share"]
+    assert later_result["source"]["custom_baseline"]["unite"] == 0.50
+    assert (
+        later_result["source"]["baseline_definition"] == "current_reference_population"
     )
 
 
