@@ -231,6 +231,34 @@ def test_columnar_worker_assigns_child_background_from_parent_rule():
     assert set(newborns["religious_background"].to_list()) == {"none"}
 
 
+def test_columnar_worker_uses_explicit_immigration_profiles():
+    profile_config = {
+        "random_seed": 7,
+        "rate_jitter": 0.0,
+        "birth_rates": [],
+        "death_rates": [],
+        "migration_rates": [{"rate": 100.0, "filters": {}}],
+        "internal_migration_rates": [],
+        "immigration_profiles": [
+            {
+                "origin": "ROI",
+                "location": "DERRY_STRABANE",
+                "religious_background": "CATHOLIC",
+                "weight": 1,
+            }
+        ],
+    }
+    worker = ColumnarSimulationWorker(population(1_000), profile_config, uuid.uuid4())
+
+    result = worker.run_year(2025)
+    arrivals = worker.population.tail(result["immigration"])
+
+    assert result["immigration"] == 100
+    assert set(arrivals["origin"]) == {"roi"}
+    assert set(arrivals["location"]) == {"derry_strabane"}
+    assert set(arrivals["religious_background"]) == {"catholic"}
+
+
 def test_historical_component_controls_are_expected_rates_not_exact_outputs():
     controlled = {
         "birth_rates": [{"rate": 100.0, "filters": {}}],

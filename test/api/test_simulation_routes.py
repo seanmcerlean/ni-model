@@ -95,7 +95,7 @@ def test_simulation_models_describes_available_configs(client):
     community = next(model for model in models if model["id"] == "ni_current_community")
     assert community["birth_rules"] == current["birth_rules"] * 4
     assert community["death_rules"] == current["death_rules"] * 4
-    assert community["migration_rules"] == current["migration_rules"] * 4
+    assert community["migration_rules"] == 253
     assert community["default_start_year"] == 2024
     assert community["default_end_year"] == 2050
     assert "not an official projection" in community["description"]

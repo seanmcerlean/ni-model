@@ -7,6 +7,7 @@ conservative relative multipliers. Multipliers are normalized against Census
 rate. They are scenario assumptions, not observed component estimates.
 """
 
+import csv
 from copy import deepcopy
 from pathlib import Path
 
@@ -15,6 +16,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "models" / "ni_current.yaml"
 TARGET_PATH = ROOT / "models" / "ni_current_community.yaml"
+ARRIVAL_PROFILE_PATH = ROOT / "data" / "ni_external_arrivals_lgd_2021_by_religion.csv"
 
 SHARES = {
     "CATHOLIC": 869_753 / 1_903_172,
@@ -75,10 +77,12 @@ def build_model(source):
             "description": (
                 "NISRA 2024 principal totals split by community background using "
                 "conservative estimated differentials calibrated to Census "
-                "2011–2021 change. Annual component rates are normalized to the "
-                "official starting total. Estimated two-way community-identification "
-                "transitions are included. This sensitivity scenario is not an "
-                "official projection."
+                "2011–2021 change. External arrivals follow the Census 2021 joint "
+                "origin, destination-LGD and current-religion profile; emigration "
+                "differentials remain estimated. Annual component rates are "
+                "normalized to the official starting total. Estimated two-way "
+                "community-identification transitions are included. This sensitivity "
+                "scenario is not an official projection."
             ),
             "projection_version": (
                 "Estimated community differential over NISRA/ONS 2024 principal"
@@ -93,14 +97,30 @@ def build_model(source):
             for rule in source[section]
             for split in _split_rule(rule, MULTIPLIERS[section])
         ]
-    model["migration_rates"] = [
-        split
-        for rule in source["migration_rates"]
-        for split in _split_rule(
-            rule,
-            MULTIPLIERS["migration_out" if rule["rate"] < 0 else "migration_in"],
-        )
-    ]
+    model["migration_rates"] = []
+    for rule in source["migration_rates"]:
+        if rule["rate"] >= 0:
+            model["migration_rates"].append(
+                {
+                    **deepcopy(rule),
+                    "evidence": "census_2021_arrival_profile_scaled_to_annual_total",
+                }
+            )
+        else:
+            model["migration_rates"].extend(
+                _split_rule(rule, MULTIPLIERS["migration_out"])
+            )
+    if ARRIVAL_PROFILE_PATH.exists():
+        with ARRIVAL_PROFILE_PATH.open(encoding="utf-8", newline="") as source_file:
+            model["immigration_profiles"] = [
+                {
+                    "origin": row["origin"].upper(),
+                    "location": row["destination"].upper(),
+                    "religious_background": row["religious_background"].upper(),
+                    "weight": int(row["count"]),
+                }
+                for row in csv.DictReader(source_file)
+            ]
     return model
 
 

@@ -158,6 +158,26 @@ community shares so their starting weighted rate equals the corresponding
 official NI-wide rate. As cohort shares diverge later, small differences from
 the aggregate principal total are an intentional scenario outcome.
 
+External arrivals in this variant use
+`ni_external_arrivals_lgd_2021_by_religion.csv`, extracted from Census 2021
+ODMG20NI-UK and ODMG20NI-ROI. The 27,257 people represented were living in GB,
+the Republic of Ireland, or elsewhere outside the UK one year before Census
+day and living in an NI LGD on Census day. Each simulated year's official
+NI-wide inflow (or observed net addition where separate flows are unavailable)
+is allocated using that observed joint origin, destination-LGD and
+current-religion distribution. ROI is separated from the UK table's aggregate
+Outside UK category using the dedicated ROI table.
+
+This is an arrival-composition baseline, not evidence that the 2021 pattern
+will remain unchanged. Current religion is again a proxy for community
+background. Equivalent destination-LGD-by-religion evidence is not available
+for people leaving NI, so emigration retains the conservative estimated
+community differentials above and remains spatially proportional within each
+community cohort.
+
+- [Census 2021 migration origin-destination tables (UK)](https://www.nisra.gov.uk/publications/census-2021-origin-destination-migration-tables-uk)
+- [Census 2021 migration origin-destination tables (ROI)](https://www.nisra.gov.uk/publications/census-2021-origin-destination-migration-tables-roi)
+
 ## Map boundaries
 
 - **Producer:** Office for National Statistics, using OSNI boundary data.

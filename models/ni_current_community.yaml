@@ -2,9 +2,11 @@ name: NI Current – community-differentiated estimate
 baseline_profile: current
 baseline_population: 1903175
 description: NISRA 2024 principal totals split by community background using conservative
-  estimated differentials calibrated to Census 2011–2021 change. Annual component rates are
-  normalized to the official starting total. Estimated two-way community-identification transitions
-  are included. This sensitivity scenario is not an official projection.
+  estimated differentials calibrated to Census 2011–2021 change. External arrivals follow
+  the Census 2021 joint origin, destination-LGD and current-religion profile; emigration differentials
+  remain estimated. Annual component rates are normalized to the official starting total.
+  Estimated two-way community-identification transitions are included. This sensitivity scenario
+  is not an official projection.
 baseline_year: 2021
 data_through: 2024
 projection_version: Estimated community differential over NISRA/ONS 2024 principal
@@ -2677,105 +2679,26 @@ death_rates:
     religious_background: NONE
   evidence: estimated_community_differential
 migration_rates:
-- rate: 1.126451
+- rate: 1.212585
   year_min: 2022
   year_max: 2022
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-- rate: 0.901161
-  year_min: 2022
-  year_max: 2022
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-- rate: 3.604643
-  year_min: 2022
-  year_max: 2022
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-- rate: 2.703483
-  year_min: 2022
-  year_max: 2022
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
-- rate: 3.653197
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
+- rate: 3.932538
   year_min: 2023
   year_max: 2023
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-- rate: 2.922557
-  year_min: 2023
-  year_max: 2023
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-- rate: 11.69023
-  year_min: 2023
-  year_max: 2023
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-- rate: 8.767672
-  year_min: 2023
-  year_max: 2023
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
-- rate: 2.787898
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
+- rate: 3.001074
   year_min: 2024
   year_max: 2024
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-- rate: 2.230318
-  year_min: 2024
-  year_max: 2024
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-- rate: 8.921273
-  year_min: 2024
-  year_max: 2024
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-- rate: 6.690955
-  year_min: 2024
-  year_max: 2024
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
-- rate: 11.540535
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
+- rate: 12.422981
   year_min: 2025
   year_max: 2025
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.232428
-  year_min: 2025
-  year_max: 2025
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.929713
-  year_min: 2025
-  year_max: 2025
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.697285
-  year_min: 2025
-  year_max: 2025
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.939132
   year_min: 2025
@@ -2805,33 +2728,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.491358
+- rate: 12.370043
   year_min: 2026
   year_max: 2026
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.193086
-  year_min: 2026
-  year_max: 2026
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.772345
-  year_min: 2026
-  year_max: 2026
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.579259
-  year_min: 2026
-  year_max: 2026
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.911586
   year_min: 2026
@@ -2861,33 +2762,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.461008
+- rate: 12.337372
   year_min: 2027
   year_max: 2027
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.168806
-  year_min: 2027
-  year_max: 2027
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.675224
-  year_min: 2027
-  year_max: 2027
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.506418
-  year_min: 2027
-  year_max: 2027
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.922979
   year_min: 2027
@@ -2917,33 +2796,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.437196
+- rate: 12.31174
   year_min: 2028
   year_max: 2028
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.149757
-  year_min: 2028
-  year_max: 2028
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.599028
-  year_min: 2028
-  year_max: 2028
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.449271
-  year_min: 2028
-  year_max: 2028
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.969364
   year_min: 2028
@@ -2973,33 +2830,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.427437
+- rate: 12.301235
   year_min: 2029
   year_max: 2029
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.14195
-  year_min: 2029
-  year_max: 2029
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.5678
-  year_min: 2029
-  year_max: 2029
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.42585
-  year_min: 2029
-  year_max: 2029
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.993654
   year_min: 2029
@@ -3029,33 +2864,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.415922
+- rate: 12.288839
   year_min: 2030
   year_max: 2030
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.132738
-  year_min: 2030
-  year_max: 2030
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.53095
-  year_min: 2030
-  year_max: 2030
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.398213
-  year_min: 2030
-  year_max: 2030
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.009442
   year_min: 2030
@@ -3085,33 +2898,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.422081
+- rate: 12.295469
   year_min: 2031
   year_max: 2031
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.137665
-  year_min: 2031
-  year_max: 2031
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.550659
-  year_min: 2031
-  year_max: 2031
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.412995
-  year_min: 2031
-  year_max: 2031
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.043344
   year_min: 2031
@@ -3141,33 +2932,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.425171
+- rate: 12.298795
   year_min: 2032
   year_max: 2032
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.140137
-  year_min: 2032
-  year_max: 2032
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.560547
-  year_min: 2032
-  year_max: 2032
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.42041
-  year_min: 2032
-  year_max: 2032
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.07427
   year_min: 2032
@@ -3197,33 +2966,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.433244
+- rate: 12.307486
   year_min: 2033
   year_max: 2033
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.146596
-  year_min: 2033
-  year_max: 2033
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.586382
-  year_min: 2033
-  year_max: 2033
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.439787
-  year_min: 2033
-  year_max: 2033
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.071799
   year_min: 2033
@@ -3253,33 +3000,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.439968
+- rate: 12.314724
   year_min: 2034
   year_max: 2034
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.151975
-  year_min: 2034
-  year_max: 2034
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.607899
-  year_min: 2034
-  year_max: 2034
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.455924
-  year_min: 2034
-  year_max: 2034
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.070394
   year_min: 2034
@@ -3309,33 +3034,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.446933
+- rate: 12.322221
   year_min: 2035
   year_max: 2035
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.157546
-  year_min: 2035
-  year_max: 2035
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.630185
-  year_min: 2035
-  year_max: 2035
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.472639
-  year_min: 2035
-  year_max: 2035
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.07659
   year_min: 2035
@@ -3365,33 +3068,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.451089
+- rate: 12.326695
   year_min: 2036
   year_max: 2036
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.160871
-  year_min: 2036
-  year_max: 2036
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.643485
-  year_min: 2036
-  year_max: 2036
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.482614
-  year_min: 2036
-  year_max: 2036
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.086009
   year_min: 2036
@@ -3421,33 +3102,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.452722
+- rate: 12.328453
   year_min: 2037
   year_max: 2037
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.162178
-  year_min: 2037
-  year_max: 2037
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.648711
-  year_min: 2037
-  year_max: 2037
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.486533
-  year_min: 2037
-  year_max: 2037
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.063884
   year_min: 2037
@@ -3477,33 +3136,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.457949
+- rate: 12.33408
   year_min: 2038
   year_max: 2038
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.16636
-  year_min: 2038
-  year_max: 2038
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.665438
-  year_min: 2038
-  year_max: 2038
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.499079
-  year_min: 2038
-  year_max: 2038
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.03922
   year_min: 2038
@@ -3533,33 +3170,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.460263
+- rate: 12.33657
   year_min: 2039
   year_max: 2039
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.16821
-  year_min: 2039
-  year_max: 2039
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.67284
-  year_min: 2039
-  year_max: 2039
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.50463
-  year_min: 2039
-  year_max: 2039
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -12.009154
   year_min: 2039
@@ -3589,33 +3204,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.449833
+- rate: 12.325343
   year_min: 2040
   year_max: 2040
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.159866
-  year_min: 2040
-  year_max: 2040
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.639466
-  year_min: 2040
-  year_max: 2040
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.479599
-  year_min: 2040
-  year_max: 2040
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.964527
   year_min: 2040
@@ -3645,33 +3238,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.445438
+- rate: 12.320612
   year_min: 2041
   year_max: 2041
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.15635
-  year_min: 2041
-  year_max: 2041
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.625402
-  year_min: 2041
-  year_max: 2041
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.469051
-  year_min: 2041
-  year_max: 2041
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.913072
   year_min: 2041
@@ -3701,33 +3272,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.432964
+- rate: 12.307184
   year_min: 2042
   year_max: 2042
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.146371
-  year_min: 2042
-  year_max: 2042
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.585484
-  year_min: 2042
-  year_max: 2042
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.439113
-  year_min: 2042
-  year_max: 2042
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.893296
   year_min: 2042
@@ -3757,33 +3306,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.412477
+- rate: 12.285131
   year_min: 2043
   year_max: 2043
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.129982
-  year_min: 2043
-  year_max: 2043
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.519928
-  year_min: 2043
-  year_max: 2043
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.389946
-  year_min: 2043
-  year_max: 2043
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.810101
   year_min: 2043
@@ -3813,33 +3340,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.391211
+- rate: 12.262238
   year_min: 2044
   year_max: 2044
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.112968
-  year_min: 2044
-  year_max: 2044
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.451874
-  year_min: 2044
-  year_max: 2044
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.338905
-  year_min: 2044
-  year_max: 2044
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.743043
   year_min: 2044
@@ -3869,33 +3374,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.37007
+- rate: 12.239481
   year_min: 2045
   year_max: 2045
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.096056
-  year_min: 2045
-  year_max: 2045
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.384224
-  year_min: 2045
-  year_max: 2045
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.288168
-  year_min: 2045
-  year_max: 2045
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.671143
   year_min: 2045
@@ -3925,33 +3408,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.345535
+- rate: 12.21307
   year_min: 2046
   year_max: 2046
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.076428
-  year_min: 2046
-  year_max: 2046
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.305712
-  year_min: 2046
-  year_max: 2046
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.229284
-  year_min: 2046
-  year_max: 2046
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.61412
   year_min: 2046
@@ -3981,33 +3442,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.313445
+- rate: 12.178526
   year_min: 2047
   year_max: 2047
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.050756
-  year_min: 2047
-  year_max: 2047
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.203024
-  year_min: 2047
-  year_max: 2047
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.152268
-  year_min: 2047
-  year_max: 2047
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.564233
   year_min: 2047
@@ -4037,33 +3476,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.285241
+- rate: 12.148166
   year_min: 2048
   year_max: 2048
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.028193
-  year_min: 2048
-  year_max: 2048
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.112773
-  year_min: 2048
-  year_max: 2048
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.08458
-  year_min: 2048
-  year_max: 2048
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.510883
   year_min: 2048
@@ -4093,33 +3510,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.261094
+- rate: 12.122172
   year_min: 2049
   year_max: 2049
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.008875
-  year_min: 2049
-  year_max: 2049
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.035501
-  year_min: 2049
-  year_max: 2049
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.026625
-  year_min: 2049
-  year_max: 2049
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.467149
   year_min: 2049
@@ -4149,33 +3544,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.237845
+- rate: 12.097145
   year_min: 2050
   year_max: 2050
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.990276
-  year_min: 2050
-  year_max: 2050
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.961103
-  year_min: 2050
-  year_max: 2050
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.970827
-  year_min: 2050
-  year_max: 2050
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.426864
   year_min: 2050
@@ -4205,33 +3578,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.219729
+- rate: 12.077644
   year_min: 2051
   year_max: 2051
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.975783
-  year_min: 2051
-  year_max: 2051
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.903132
-  year_min: 2051
-  year_max: 2051
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.927349
-  year_min: 2051
-  year_max: 2051
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.395727
   year_min: 2051
@@ -4261,33 +3612,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.197083
+- rate: 12.053266
   year_min: 2052
   year_max: 2052
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.957666
-  year_min: 2052
-  year_max: 2052
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.830664
-  year_min: 2052
-  year_max: 2052
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.872998
-  year_min: 2052
-  year_max: 2052
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.364785
   year_min: 2052
@@ -4317,33 +3646,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.176307
+- rate: 12.030902
   year_min: 2053
   year_max: 2053
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.941046
-  year_min: 2053
-  year_max: 2053
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.764183
-  year_min: 2053
-  year_max: 2053
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.823137
-  year_min: 2053
-  year_max: 2053
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.343798
   year_min: 2053
@@ -4373,33 +3680,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.167803
+- rate: 12.021748
   year_min: 2054
   year_max: 2054
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.934243
-  year_min: 2054
-  year_max: 2054
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.736971
-  year_min: 2054
-  year_max: 2054
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.802728
-  year_min: 2054
-  year_max: 2054
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.327843
   year_min: 2054
@@ -4429,33 +3714,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.155215
+- rate: 12.008197
   year_min: 2055
   year_max: 2055
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.924172
-  year_min: 2055
-  year_max: 2055
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.696688
-  year_min: 2055
-  year_max: 2055
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.772516
-  year_min: 2055
-  year_max: 2055
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.323027
   year_min: 2055
@@ -4485,33 +3748,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.148007
+- rate: 12.000438
   year_min: 2056
   year_max: 2056
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.918406
-  year_min: 2056
-  year_max: 2056
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.673623
-  year_min: 2056
-  year_max: 2056
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.755217
-  year_min: 2056
-  year_max: 2056
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.311299
   year_min: 2056
@@ -4541,33 +3782,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.143308
+- rate: 11.99538
   year_min: 2057
   year_max: 2057
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.914647
-  year_min: 2057
-  year_max: 2057
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.658587
-  year_min: 2057
-  year_max: 2057
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.74394
-  year_min: 2057
-  year_max: 2057
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.325798
   year_min: 2057
@@ -4597,33 +3816,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.149617
+- rate: 12.002171
   year_min: 2058
   year_max: 2058
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.919694
-  year_min: 2058
-  year_max: 2058
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.678774
-  year_min: 2058
-  year_max: 2058
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.759081
-  year_min: 2058
-  year_max: 2058
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.339588
   year_min: 2058
@@ -4653,33 +3850,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.157173
+- rate: 12.010305
   year_min: 2059
   year_max: 2059
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.925739
-  year_min: 2059
-  year_max: 2059
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.702954
-  year_min: 2059
-  year_max: 2059
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.777216
-  year_min: 2059
-  year_max: 2059
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.357969
   year_min: 2059
@@ -4709,33 +3884,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.170866
+- rate: 12.025045
   year_min: 2060
   year_max: 2060
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.936693
-  year_min: 2060
-  year_max: 2060
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.746772
-  year_min: 2060
-  year_max: 2060
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.810079
-  year_min: 2060
-  year_max: 2060
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.390812
   year_min: 2060
@@ -4765,33 +3918,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.190082
+- rate: 12.04573
   year_min: 2061
   year_max: 2061
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.952065
-  year_min: 2061
-  year_max: 2061
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.808262
-  year_min: 2061
-  year_max: 2061
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.856196
-  year_min: 2061
-  year_max: 2061
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.423571
   year_min: 2061
@@ -4821,33 +3952,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.208458
+- rate: 12.065511
   year_min: 2062
   year_max: 2062
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.966766
-  year_min: 2062
-  year_max: 2062
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.867065
-  year_min: 2062
-  year_max: 2062
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.900299
-  year_min: 2062
-  year_max: 2062
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.459909
   year_min: 2062
@@ -4877,33 +3986,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.229904
+- rate: 12.088597
   year_min: 2063
   year_max: 2063
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 8.983923
-  year_min: 2063
-  year_max: 2063
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 35.935692
-  year_min: 2063
-  year_max: 2063
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 26.951769
-  year_min: 2063
-  year_max: 2063
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.503054
   year_min: 2063
@@ -4933,33 +4020,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.257946
+- rate: 12.118783
   year_min: 2064
   year_max: 2064
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.006357
-  year_min: 2064
-  year_max: 2064
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.025426
-  year_min: 2064
-  year_max: 2064
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.01907
-  year_min: 2064
-  year_max: 2064
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.54276
   year_min: 2064
@@ -4989,33 +4054,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.291303
+- rate: 12.154691
   year_min: 2065
   year_max: 2065
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.033042
-  year_min: 2065
-  year_max: 2065
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.13217
-  year_min: 2065
-  year_max: 2065
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.099127
-  year_min: 2065
-  year_max: 2065
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.5815
   year_min: 2065
@@ -5045,33 +4088,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.326288
+- rate: 12.192351
   year_min: 2066
   year_max: 2066
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.06103
-  year_min: 2066
-  year_max: 2066
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.244121
-  year_min: 2066
-  year_max: 2066
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.183091
-  year_min: 2066
-  year_max: 2066
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.618014
   year_min: 2066
@@ -5101,33 +4122,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.357034
+- rate: 12.225448
   year_min: 2067
   year_max: 2067
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.085627
-  year_min: 2067
-  year_max: 2067
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.342508
-  year_min: 2067
-  year_max: 2067
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.256881
-  year_min: 2067
-  year_max: 2067
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.660763
   year_min: 2067
@@ -5157,33 +4156,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.391331
+- rate: 12.262368
   year_min: 2068
   year_max: 2068
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.113065
-  year_min: 2068
-  year_max: 2068
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.45226
-  year_min: 2068
-  year_max: 2068
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.339195
-  year_min: 2068
-  year_max: 2068
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.691901
   year_min: 2068
@@ -5213,33 +4190,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.423317
+- rate: 12.296799
   year_min: 2069
   year_max: 2069
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.138653
-  year_min: 2069
-  year_max: 2069
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.554613
-  year_min: 2069
-  year_max: 2069
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.41596
-  year_min: 2069
-  year_max: 2069
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.717553
   year_min: 2069
@@ -5269,33 +4224,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.45971
+- rate: 12.335975
   year_min: 2070
   year_max: 2070
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.167768
-  year_min: 2070
-  year_max: 2070
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.671071
-  year_min: 2070
-  year_max: 2070
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.503303
-  year_min: 2070
-  year_max: 2070
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.745042
   year_min: 2070
@@ -5325,33 +4258,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.486387
+- rate: 12.364692
   year_min: 2071
   year_max: 2071
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.18911
-  year_min: 2071
-  year_max: 2071
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.756438
-  year_min: 2071
-  year_max: 2071
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.567329
-  year_min: 2071
-  year_max: 2071
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.765873
   year_min: 2071
@@ -5381,33 +4292,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.522797
+- rate: 12.403886
   year_min: 2072
   year_max: 2072
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.218237
-  year_min: 2072
-  year_max: 2072
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.87295
-  year_min: 2072
-  year_max: 2072
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.654712
-  year_min: 2072
-  year_max: 2072
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.786719
   year_min: 2072
@@ -5437,33 +4326,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.553077
+- rate: 12.436482
   year_min: 2073
   year_max: 2073
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.242462
-  year_min: 2073
-  year_max: 2073
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 36.969848
-  year_min: 2073
-  year_max: 2073
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.727386
-  year_min: 2073
-  year_max: 2073
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.800097
   year_min: 2073
@@ -5493,33 +4360,11 @@ migration_rates:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
-- rate: 11.578238
+- rate: 12.463567
   year_min: 2074
   year_max: 2074
-  filters:
-    religious_background: CATHOLIC
-  evidence: estimated_community_differential
-  flow: in
-- rate: 9.262591
-  year_min: 2074
-  year_max: 2074
-  filters:
-    religious_background: PROTESTANT
-  evidence: estimated_community_differential
-  flow: in
-- rate: 37.050363
-  year_min: 2074
-  year_max: 2074
-  filters:
-    religious_background: OTHER
-  evidence: estimated_community_differential
-  flow: in
-- rate: 27.787772
-  year_min: 2074
-  year_max: 2074
-  filters:
-    religious_background: NONE
-  evidence: estimated_community_differential
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
 - rate: -11.813024
   year_min: 2074
@@ -8476,3 +7321,528 @@ internal_migration_rates:
     location: ARDS_NORTH_DOWN
     religious_background: NONE
   evidence: census_2021_origin_destination_by_religion
+immigration_profiles:
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 183
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: NONE
+  weight: 544
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 39
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 254
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 328
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: NONE
+  weight: 330
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 35
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 339
+- origin: GB
+  location: BELFAST
+  religious_background: CATHOLIC
+  weight: 737
+- origin: GB
+  location: BELFAST
+  religious_background: NONE
+  weight: 1607
+- origin: GB
+  location: BELFAST
+  religious_background: OTHER
+  weight: 274
+- origin: GB
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 554
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 225
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: NONE
+  weight: 319
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 26
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 318
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 480
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: NONE
+  weight: 288
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 34
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 120
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 324
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: NONE
+  weight: 230
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 24
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 159
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 235
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: NONE
+  weight: 534
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 51
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 374
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 117
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: NONE
+  weight: 328
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 26
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 296
+- origin: GB
+  location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 312
+- origin: GB
+  location: MID_ULSTER
+  religious_background: NONE
+  weight: 186
+- origin: GB
+  location: MID_ULSTER
+  religious_background: OTHER
+  weight: 9
+- origin: GB
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 115
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 484
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: NONE
+  weight: 352
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 27
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 189
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 123
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: NONE
+  weight: 710
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 15
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 470
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 143
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: NONE
+  weight: 219
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 67
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 167
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 359
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: NONE
+  weight: 321
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 69
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 283
+- origin: OTHER
+  location: BELFAST
+  religious_background: CATHOLIC
+  weight: 809
+- origin: OTHER
+  location: BELFAST
+  religious_background: NONE
+  weight: 2211
+- origin: OTHER
+  location: BELFAST
+  religious_background: OTHER
+  weight: 1035
+- origin: OTHER
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 655
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 166
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: NONE
+  weight: 132
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 19
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 136
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 243
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: NONE
+  weight: 118
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 52
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 69
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 256
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: NONE
+  weight: 116
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 48
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 114
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 153
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: NONE
+  weight: 223
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 39
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 201
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 82
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: NONE
+  weight: 165
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 20
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 178
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 406
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: NONE
+  weight: 181
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: OTHER
+  weight: 21
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 114
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 436
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: NONE
+  weight: 154
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 32
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 160
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 98
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: NONE
+  weight: 270
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 26
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 243
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 37
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: NONE
+  weight: 23
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 5
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 15
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 152
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: NONE
+  weight: 65
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 5
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 57
+- origin: ROI
+  location: BELFAST
+  religious_background: CATHOLIC
+  weight: 517
+- origin: ROI
+  location: BELFAST
+  religious_background: NONE
+  weight: 404
+- origin: ROI
+  location: BELFAST
+  religious_background: OTHER
+  weight: 44
+- origin: ROI
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 117
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 105
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: NONE
+  weight: 39
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 10
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 24
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 332
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: NONE
+  weight: 90
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 10
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 51
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 269
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: NONE
+  weight: 92
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 21
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 40
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 69
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: NONE
+  weight: 54
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 7
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 30
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 26
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: NONE
+  weight: 25
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 2
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 26
+- origin: ROI
+  location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 138
+- origin: ROI
+  location: MID_ULSTER
+  religious_background: NONE
+  weight: 19
+- origin: ROI
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 20
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 311
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: NONE
+  weight: 106
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 16
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 32
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 25
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: NONE
+  weight: 55
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 8
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 31

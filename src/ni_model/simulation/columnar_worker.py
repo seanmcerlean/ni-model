@@ -419,17 +419,37 @@ class ColumnarSimulationWorker:
                 continue
             if change == 0:
                 continue
-            if cohort.height:
+            profiles = self.config.get("immigration_profiles", [])
+            if profiles:
+                weights = np.array(
+                    [profile["weight"] for profile in profiles], dtype=np.float64
+                )
+                selected_profiles = rng.choice(
+                    len(profiles), size=change, replace=True, p=weights / weights.sum()
+                )
+                backgrounds = [
+                    profiles[index]["religious_background"].lower()
+                    for index in selected_profiles
+                ]
+                locations = [
+                    profiles[index]["location"].lower() for index in selected_profiles
+                ]
+                origins = [
+                    profiles[index]["origin"].lower() for index in selected_profiles
+                ]
+            elif cohort.height:
                 templates = cohort[
                     rng.choice(cohort.height, size=change, replace=True).tolist()
                 ]
                 backgrounds = templates["religious_background"]
                 locations = templates["location"]
+                origins = ["other"] * change
             else:
                 backgrounds = rng.choice(
                     ["catholic", "protestant", "other", "none"], size=change
                 )
                 locations = ["belfast"] * change
+                origins = ["other"] * change
             ids = self._new_ids(year, "arrival", change)
             numbers = list(
                 range(self._next_person_number, self._next_person_number + change)
@@ -453,7 +473,7 @@ class ColumnarSimulationWorker:
                         size=change,
                     ),
                     "location": locations,
-                    "origin": ["other"] * change,
+                    "origin": origins,
                 },
                 schema=COLUMN_TYPES,
             )

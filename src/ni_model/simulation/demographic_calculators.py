@@ -166,6 +166,10 @@ class AgeWeightedDeathCalculator(DeathCalculator):
 class MigrationCalculator(DemographicCalculator):
     """Calculate and apply migration to population cohort"""
 
+    def __init__(self, *args, arrival_profiles=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.arrival_profiles = arrival_profiles or []
+
     def calculate(self) -> int:
         """Calculate net migration based on rate for cohort"""
         cohort = self._get_cohort()
@@ -185,20 +189,35 @@ class MigrationCalculator(DemographicCalculator):
         """Generate immigrants sampling cohort characteristics per arrival."""
         immigrants = []
         for _ in range(count):
-            template = self.rng.choice(cohort) if cohort else None
+            profile = None
+            if self.arrival_profiles:
+                profile = self.rng.choices(
+                    self.arrival_profiles,
+                    weights=[item["weight"] for item in self.arrival_profiles],
+                    k=1,
+                )[0]
+            template = self.rng.choice(cohort) if cohort and not profile else None
             immigrants.append(
                 Person(
                     run_id=self.run_id,
                     age=self.rng.randint(18, 45),
                     religious_background=(
-                        template.religious_background
-                        if template
-                        else self.rng.choice(list(ReligiousBackground))
+                        ReligiousBackground[profile["religious_background"]]
+                        if profile
+                        else (
+                            template.religious_background
+                            if template
+                            else self.rng.choice(list(ReligiousBackground))
+                        )
                     ),
                     gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
                     education_level=self.rng.choice(list(EducationLevel)),
-                    location=template.location if template else Location.BELFAST,
-                    origin=Origin.OTHER,
+                    location=(
+                        Location[profile["location"]]
+                        if profile
+                        else (template.location if template else Location.BELFAST)
+                    ),
+                    origin=Origin[profile["origin"]] if profile else Origin.OTHER,
                 )
             )
         return immigrants

@@ -243,12 +243,16 @@ class ModelDirector:
             if not self._is_active(config, year):
                 continue
             filters = self._parse_filters(config.get("filters", {}))
+            extra = {}
+            if calculator_class is MigrationCalculator:
+                extra["arrival_profiles"] = self.config.get("immigration_profiles", [])
             calc = calculator_class(
                 self.db_session,
                 rate=self._jittered_rate(config["rate"]),
                 query_filters=filters,
                 rng=self.rng,
                 run_id=self.run_id,
+                **extra,
             )
             calculators.append(calc)
         return calculators
@@ -442,6 +446,20 @@ class ModelDirector:
                     elif len(set(group_values.values())) == 1:
                         rule["rate"] *= next(iter(group_values.values()))
                         expanded.append(rule)
+                    elif (
+                        section == "migration_rates"
+                        and rule["rate"] >= 0
+                        and config.get("immigration_profiles")
+                    ):
+                        profiles = config["immigration_profiles"]
+                        total_weight = sum(profile["weight"] for profile in profiles)
+                        adjusted_weight = sum(
+                            profile["weight"]
+                            * group_values.get(profile["religious_background"], 1.0)
+                            for profile in profiles
+                        )
+                        rule["rate"] *= adjusted_weight / total_weight
+                        expanded.append(rule)
                     else:
                         for group, group_multiplier in group_values.items():
                             expanded.append(
@@ -455,6 +473,11 @@ class ModelDirector:
                                 }
                             )
                 config[section] = expanded
+                if section == "migration_rates" and config.get("immigration_profiles"):
+                    for profile in config["immigration_profiles"]:
+                        profile["weight"] *= group_values.get(
+                            profile["religious_background"], 1.0
+                        )
         if config.get("annual_demographic_components"):
             config["_component_target_multipliers"] = {
                 "birth_rates": section_multipliers["birth_rates"],

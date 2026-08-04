@@ -196,6 +196,31 @@ def test_immigration_samples_each_arrival_from_the_cohort(
     }
 
 
+def test_immigration_uses_explicit_arrival_profile(
+    postgres_db_session, initial_population
+):
+    calculator = MigrationCalculator(
+        postgres_db_session,
+        rate=10.0,
+        arrival_profiles=[
+            {
+                "origin": "ROI",
+                "location": "DERRY_STRABANE",
+                "religious_background": "CATHOLIC",
+                "weight": 1,
+            }
+        ],
+    )
+
+    immigrants = calculator._generate_immigrants(10, calculator._get_cohort())
+
+    assert {person.origin for person in immigrants} == {Origin.ROI}
+    assert {person.location for person in immigrants} == {Location.DERRY_STRABANE}
+    assert {person.religious_background for person in immigrants} == {
+        ReligiousBackground.CATHOLIC
+    }
+
+
 def test_migration_calculator_with_cohort_filter(
     postgres_db_session, initial_population
 ):

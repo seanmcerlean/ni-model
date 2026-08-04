@@ -475,6 +475,36 @@ def test_per_community_adjustments_split_unfiltered_rules(
     assert rates == {"CATHOLIC": 20.0, "PROTESTANT": 10.0, "OTHER": 10.0, "NONE": 10.0}
 
 
+def test_per_community_migration_adjustments_reweight_arrival_profiles(
+    postgres_db_session, tmp_path
+):
+    model_path = tmp_path / "model.yaml"
+    model_path.write_text(
+        "rate_jitter: 0\nrandom_seed: 42\nbirth_rates: []\ndeath_rates: []\n"
+        "migration_rates:\n- rate: 10\n  filters: {}\n"
+        "internal_migration_rates: []\nimmigration_profiles:\n"
+        "- religious_background: CATHOLIC\n  location: BELFAST\n"
+        "  origin: ROI\n  weight: 1\n"
+        "- religious_background: PROTESTANT\n  location: BELFAST\n"
+        "  origin: GB\n  weight: 1\n",
+        encoding="utf-8",
+    )
+    community = {
+        "catholic": {"migration_multiplier": 2.0},
+        "protestant": {"migration_multiplier": 1.0},
+    }
+
+    director = ModelDirector.from_yaml(
+        postgres_db_session, model_path, adjustments={"community": community}
+    )
+
+    assert len(director.config["migration_rates"]) == 1
+    assert director.config["migration_rates"][0]["rate"] == 15.0
+    assert [
+        profile["weight"] for profile in director.config["immigration_profiles"]
+    ] == [2.0, 1.0]
+
+
 def test_per_community_adjustments_modify_existing_group_rules(postgres_db_session):
     adjustments = {
         "community": {
