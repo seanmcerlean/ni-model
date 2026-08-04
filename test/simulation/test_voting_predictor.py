@@ -152,6 +152,34 @@ def test_custom_baseline_rakes_lucidtalk_without_flattening_areas(db_session):
     )
 
 
+@pytest.mark.parametrize(
+    "calibration,baseline",
+    [
+        ("lucidtalk_summer_2021_high", (0.42, 0.49, 0.09)),
+        ("lucidtalk_winter_2024_low", (0.39 / 0.99, 0.49 / 0.99, 0.11 / 0.99)),
+        ("lucidtalk_winter_2025", (0.41 / 0.99, 0.48 / 0.99, 0.10 / 0.99)),
+    ],
+)
+def test_published_lucidtalk_baselines_are_reproduced(
+    db_session, calibration, baseline
+):
+    for _ in range(100):
+        _make_person(db_session, ReligiousBackground.CATHOLIC, Origin.NI, 35)
+        _make_person(db_session, ReligiousBackground.PROTESTANT, Origin.NI, 55)
+    reference = VotingPredictor.aggregate_population(db_session)
+
+    result = VotingPredictor(
+        db_session,
+        calibration=calibration,
+        custom_reference_rows=reference,
+    ).predict()
+
+    assert result["unite_share"] == pytest.approx(baseline[0], abs=0.001)
+    assert result["remain_share"] == pytest.approx(baseline[1], abs=0.001)
+    assert result["undecided_share"] == pytest.approx(baseline[2], abs=0.001)
+    assert result["source"]["baseline_definition"] == "current_reference_population"
+
+
 def test_custom_baseline_uses_fixed_reference_as_demographics_change(db_session):
     def row(background, count):
         return SimpleNamespace(

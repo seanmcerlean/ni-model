@@ -202,7 +202,24 @@ does not turn the custom inputs into flat area values. It remains a user-defined
 scenario and inherits LucidTalk's sampling interval rather than representing a
 new poll.
 
+The dropdown also includes the highest and lowest comparable LucidTalk
+immediate border-poll results in the five years to August 2026. August 2021 is
+the high case (42% unite, 49% remain, 9% undecided); February 2024 is the low
+case (39% unite, 49% remain, 11% undecided and 1% would not vote/spoil). The
+February 2024 scenario uses that poll's published community cross-breaks. An
+equivalent August 2021 cross-break workbook was not available from LucidTalk's
+current archive, so that scenario transparently uses the Winter 2025 community
+pattern raked to the August 2021 NI-wide result.
+
+All built-in LucidTalk options are raked to their published overall totals
+against the fixed current reference population. Subsequent movement therefore
+comes from simulated demographic change rather than recalibration each year.
+The decided-voter headline divides Unite and Remain by their combined share;
+it does not assign individual undecided respondents.
+
 - [LucidTalk Winter 2025 NI Tracker and data tables](https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/)
+- [LucidTalk Winter 2024 NI Tracker and data tables](https://www.lucidtalk.co.uk/news/lucidtalk-ni-tracker-poll-winter-2024/)
+- [August 2021 LucidTalk result and fieldwork](https://www.theguardian.com/politics/2021/aug/29/majority-of-northern-irish-voters-want-vote-on-staying-uk)
 
 ## Assumptions not yet replaced
 

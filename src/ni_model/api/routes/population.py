@@ -127,6 +127,7 @@ def voting_prediction(
             run_id=run_id,
             calibration=calibration,
             custom_baseline=custom_baseline,
+            custom_reference_rows=VotingPredictor.aggregate_population(db),
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

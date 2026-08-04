@@ -161,10 +161,28 @@ def test_voting_prediction_shares_sum_to_one(client):
     assert total == pytest.approx(1.0, abs=0.01)
 
 
-def test_voting_prediction_catholic_majority_favours_unite(client):
-    # populated_db has 50 Catholics, 30 Protestants, 20 Other
+def test_voting_prediction_reproduces_published_lucidtalk_baseline(client):
     data = client.get("/api/population/voting-prediction").json()
-    assert data["unite_share"] > data["remain_share"]
+    assert data["unite_share"] == pytest.approx(0.41 / 0.99, abs=0.001)
+    assert data["remain_share"] == pytest.approx(0.48 / 0.99, abs=0.001)
+    assert data["undecided_share"] == pytest.approx(0.10 / 0.99, abs=0.001)
+
+
+@pytest.mark.parametrize(
+    "calibration,expected_unite",
+    [
+        ("lucidtalk_summer_2021_high", 0.42),
+        ("lucidtalk_winter_2024_low", 0.39 / 0.99),
+    ],
+)
+def test_voting_prediction_supports_lucidtalk_five_year_extremes(
+    client, calibration, expected_unite
+):
+    data = client.get(
+        f"/api/population/voting-prediction?calibration={calibration}"
+    ).json()
+    assert data["source"]["id"] == calibration
+    assert data["unite_share"] == pytest.approx(expected_unite, abs=0.001)
 
 
 def test_voting_prediction_by_location_has_all_locations(client):

@@ -62,6 +62,35 @@ _LUCIDTALK_SOURCE = {
     ),
 }
 
+_LUCIDTALK_SUMMER_2021_SOURCE = {
+    "id": "lucidtalk_summer_2021_high",
+    "name": "LucidTalk / Belfast Telegraph August 2021 (five-year high)",
+    "publisher": "LucidTalk / Belfast Telegraph",
+    "fieldwork": "20 to 23 August 2021",
+    "sample_size": 2403,
+    "margin_of_error": 0.025,
+    "url": (
+        "https://www.theguardian.com/politics/2021/aug/29/"
+        "majority-of-northern-irish-voters-want-vote-on-staying-uk"
+    ),
+    "question": "Border referendum today: remain in the UK or join a united Ireland",
+    "subgroup_basis": "LucidTalk Winter 2025 community pattern raked to this poll",
+}
+
+_LUCIDTALK_WINTER_2024_SOURCE = {
+    "id": "lucidtalk_winter_2024_low",
+    "name": "LucidTalk / Belfast Telegraph Winter 2024 (five-year low)",
+    "publisher": "LucidTalk / Belfast Telegraph",
+    "fieldwork": "9 to 12 February 2024",
+    "sample_size": 1049,
+    "base_responses": 3207,
+    "margin_of_error": 0.023,
+    "url": "https://www.lucidtalk.co.uk/news/lucidtalk-ni-tracker-poll-winter-2024/",
+    "question": (
+        "Border poll within the week: remain in the UK or join a united Ireland"
+    ),
+}
+
 # Official Q4 weighted cross-breaks: unity, UK, unsure-but-would-vote,
 # would-not-vote/spoil. Percentages are published rounded and normalised below.
 _LUCIDTALK_RESPONSES = {
@@ -69,6 +98,12 @@ _LUCIDTALK_RESPONSES = {
     ReligiousBackground.PROTESTANT: (0.04, 0.88, 0.07, 0.01),
     ReligiousBackground.NONE: (0.40, 0.34, 0.26, 0.00),
     ReligiousBackground.OTHER: (0.53, 0.41, 0.06, 0.00),
+}
+_LUCIDTALK_WINTER_2024_RESPONSES = {
+    ReligiousBackground.CATHOLIC: (0.78, 0.08, 0.13, 0.01),
+    ReligiousBackground.PROTESTANT: (0.05, 0.87, 0.07, 0.01),
+    ReligiousBackground.NONE: (0.32, 0.41, 0.26, 0.01),
+    ReligiousBackground.OTHER: (0.38, 0.60, 0.02, 0.00),
 }
 _LUCIDTALK_NON_VOTE_BY_AGE = (
     (18, 34, 0.00),
@@ -84,7 +119,23 @@ CALIBRATIONS = {
         _LUCIDTALK_RESPONSES,
         _LUCIDTALK_NON_VOTE_BY_AGE,
     ),
+    "lucidtalk_summer_2021_high": (
+        _LUCIDTALK_SUMMER_2021_SOURCE,
+        _LUCIDTALK_RESPONSES,
+        _LUCIDTALK_NON_VOTE_BY_AGE,
+    ),
+    "lucidtalk_winter_2024_low": (
+        _LUCIDTALK_WINTER_2024_SOURCE,
+        _LUCIDTALK_WINTER_2024_RESPONSES,
+        _LUCIDTALK_NON_VOTE_BY_AGE,
+    ),
     "nilt_2024": (_NILT_SOURCE, _NILT_RESPONSES, _NILT_NON_VOTE_BY_AGE),
+}
+
+_PUBLISHED_BASELINES = {
+    "lucidtalk_summer_2021_high": (0.42, 0.49, 0.09),
+    "lucidtalk_winter_2024_low": (0.39 / 0.99, 0.49 / 0.99, 0.11 / 0.99),
+    "lucidtalk_winter_2025": (0.41 / 0.99, 0.48 / 0.99, 0.10 / 0.99),
 }
 
 
@@ -132,6 +183,19 @@ class VotingPredictor:
         self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
         if custom_baseline is not None:
             self._apply_custom_baseline(custom_baseline)
+        elif calibration in _PUBLISHED_BASELINES and custom_reference_rows is not None:
+            source = self.source
+            self._apply_custom_baseline(_PUBLISHED_BASELINES[calibration])
+            self.calibration = calibration
+            self.source = {
+                **source,
+                "published_baseline": {
+                    "unite": _PUBLISHED_BASELINES[calibration][0],
+                    "remain": _PUBLISHED_BASELINES[calibration][1],
+                    "undecided": _PUBLISHED_BASELINES[calibration][2],
+                },
+                "baseline_definition": "current_reference_population",
+            }
 
     def _apply_custom_baseline(self, baseline: Sequence[float]) -> None:
         """Rake LucidTalk response odds to a user-supplied overall baseline."""
@@ -350,6 +414,12 @@ class VotingPredictor:
                     "simulated demographics change. They inherit the LucidTalk "
                     "sampling interval and are a user scenario, not a new poll."
                     if self.calibration == "custom_lucidtalk"
+                    else ""
+                )
+                + (
+                    " Published NI-wide totals calibrate subgroup odds against "
+                    "the current reference population and are then held fixed."
+                    if self.calibration in _PUBLISHED_BASELINES
                     else ""
                 )
             ),

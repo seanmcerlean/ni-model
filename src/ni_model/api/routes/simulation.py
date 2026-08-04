@@ -562,9 +562,7 @@ def simulation_year_voting_prediction(
         )
         for location, background, age, count in stored_rows
     ]
-    custom_reference_rows = (
-        VotingPredictor.aggregate_population(db) if custom_baseline else None
-    )
+    custom_reference_rows = VotingPredictor.aggregate_population(db)
     try:
         return VotingPrediction(
             **_snapshot_voting_prediction(

@@ -277,14 +277,15 @@ describe("App", () => {
     expect(screen.getByText("Showing LucidTalk")).toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();
     expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
-    expect(screen.getByLabelText("As reported")).toBeChecked();
-    fireEvent.click(screen.getByLabelText("Force to Unite"));
+    expect(screen.getByRole("option", { name: "LucidTalk Aug 2021 — five-year high" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "LucidTalk Feb 2024 — five-year low" })).toBeInTheDocument();
+    expect(screen.getByLabelText("All respondents")).toBeChecked();
+    fireEvent.click(screen.getByLabelText("Decided voters (headline)"));
     const votingHeadline = document.querySelector(".voting-headline");
     expect(votingHeadline).not.toBeNull();
-    expect(within(votingHeadline as HTMLElement).getByText("58.0%")).toBeInTheDocument();
+    expect(within(votingHeadline as HTMLElement).getByText("46.2%")).toBeInTheDocument();
+    expect(within(votingHeadline as HTMLElement).getByText("53.8%")).toBeInTheDocument();
     expect(within(votingHeadline as HTMLElement).getByText("0.0%")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Force to Remain"));
-    expect(within(votingHeadline as HTMLElement).getByText("64.0%")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "LucidTalk" })).toHaveAttribute(
       "href",
       "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",

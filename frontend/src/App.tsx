@@ -444,6 +444,8 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
       <select id="voting-calibration" className="model-select" value={calibration}
         onChange={(event) => onCalibrationChange(event.target.value)}>
         <option value="lucidtalk_winter_2025">LucidTalk Winter 2025</option>
+        <option value="lucidtalk_summer_2021_high">LucidTalk Aug 2021 — five-year high</option>
+        <option value="lucidtalk_winter_2024_low">LucidTalk Feb 2024 — five-year low</option>
         <option value="nilt_2024">NILT 2024</option>
         <option value="custom_lucidtalk">Custom baseline (LucidTalk-relative)</option>
       </select>
@@ -469,9 +471,8 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
       <fieldset className="undecided-allocation">
         <legend>Undecided treatment</legend>
         {([
-          ["reported", "As reported"],
-          ["remain", "Force to Remain"],
-          ["unite", "Force to Unite"],
+          ["reported", "All respondents"],
+          ["decided", "Decided voters (headline)"],
         ] as Array<[UndecidedAllocation, string]>).map(([value, label]) => (
           <label key={value}>
             <input type="radio" name="undecided-allocation" value={value}
@@ -482,7 +483,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
         ))}
       </fieldset>
       <p className="allocation-note">
-        The undecided share comes from the selected poll. Forcing it to one side is a sensitivity assumption, not observed voter movement.
+        The headline view excludes undecided respondents and renormalises Unite and Remain to 100%; it does not predict how undecided people will vote.
       </p>
       <div className="voting-headline">
         <span><b>{percentage(displayed.unite_share, 1)}</b> Unite</span>
