@@ -72,9 +72,6 @@ button, input, select { font: inherit; }
 .voting-source { color: #94a3b8; font-size: 9px; line-height: 1.45; }
 .voting-source a { color: #7dd3fc; }
 .calibration-status { margin-top: 7px; color: #86efac; font-size: 9px; }
-.calibration-status.loading { color: #fcd34d; }
-.voting-headline { transition: opacity .15s; }
-.calibration-status.loading + .voting-headline { opacity: .45; }
 .custom-polling { border: 0; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .custom-polling label { display: grid; gap: 3px; color: var(--muted); font-size: 9px; }
 .custom-polling input { width: 100%; min-width: 0; box-sizing: border-box; }
@@ -149,9 +146,31 @@ button, input, select { font: inherit; }
 }
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .swatch { width: 10px; height: 10px; border-radius: 2px; }
+.swatch.unite { background: #16a34a; }
+.swatch.remain { background: #2563eb; }
+.swatch.vote-blend { background: linear-gradient(90deg, #16a34a, #2563eb); }
 .swatch.catholic { background: #22c55e; }
-.swatch.balanced { background: #64748b; }
 .swatch.protestant { background: #0ea5e9; }
+.swatch.other { background: #a855f7; }
+.swatch.none { background: #94a3b8; }
+.map-mode {
+  position: absolute;
+  z-index: 800;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172ae8;
+}
+.map-mode legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.map-mode label { position: relative; padding: 6px 8px; border-radius: 4px; color: #94a3b8; font-size: 9px; cursor: pointer; }
+.map-mode label:has(input:checked) { background: #123653; color: #f8fafc; }
+.map-mode input { position: absolute; opacity: 0; }
+.map-mode label:focus-within { outline: 2px solid #7dd3fc; outline-offset: 1px; }
 
 .leaflet-container { background: #07101d !important; }
 .leaflet-tooltip { border: 1px solid #334155; background: #0f172a; color: #f8fafc; box-shadow: 0 6px 16px #0008; }

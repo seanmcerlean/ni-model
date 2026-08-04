@@ -43,13 +43,13 @@ export default function App() {
   const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
 
   const [startYear, setStartYear] = useState(2024);
-  const [endYear, setEndYear] = useState(2035);
+  const [endYear, setEndYear] = useState(2050);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [models, setModels] = useState<SimulationModel[]>([]);
-  const [modelPath, setModelPath] = useState("models/ni_current.yaml");
+  const [modelPath, setModelPath] = useState("models/ni_current_community.yaml");
   const [modelError, setModelError] = useState<string | null>(null);
   const [voting, setVoting] = useState<VotingPrediction | null>(null);
   const [votingLoading, setVotingLoading] = useState(true);
@@ -97,7 +97,7 @@ export default function App() {
     setVotingError(null);
     const params = new URLSearchParams({
       calibration: isCustom ? "lucidtalk_winter_2025" : votingCalibration,
-      include_locations: "false",
+      include_locations: "true",
     });
     if (isCustom) {
       params.set("custom_unite", String(customPolling.unite));
@@ -206,7 +206,7 @@ export default function App() {
             value={modelPath}
             onChange={(event) => handleModelChange(event.target.value)}
           >
-            {models.length === 0 && <option value={modelPath}>NI Current Model</option>}
+            {models.length === 0 && <option value={modelPath}>NI Current Community Model</option>}
             {models.map((model) => <option key={model.id} value={model.path}>{model.name}</option>)}
           </select>
           {modelError && <p className="inline-error" role="alert">{modelError}</p>}
@@ -285,7 +285,6 @@ export default function App() {
               <VotingPanel prediction={voting} calibration={votingCalibration}
                 customPolling={customPolling} onCustomPollingChange={setCustomPolling}
                 loading={votingLoading} error={votingError}
-                projectionYear={snapshot?.year ?? null}
                 undecidedAllocation={undecidedAllocation}
                 onUndecidedAllocationChange={setUndecidedAllocation}
                 onCalibrationChange={setVotingCalibration} />
@@ -296,7 +295,7 @@ export default function App() {
         <main className="map-column">
           <OverallStats snapshot={snapshot} />
           <div className="map-frame">
-            <NiMap snapshot={snapshot} onLocationClick={setSelectedLocation} />
+            <NiMap snapshot={snapshot} voting={voting} onLocationClick={setSelectedLocation} />
             <LocationDetail
               locationId={selectedLocation}
               year={currentYear}
@@ -415,13 +414,12 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   </details>;
 }
 
-function VotingPanel({ prediction, calibration, customPolling, loading, error, projectionYear, undecidedAllocation, onCalibrationChange, onCustomPollingChange, onUndecidedAllocationChange }: {
+function VotingPanel({ prediction, calibration, customPolling, loading, error, undecidedAllocation, onCalibrationChange, onCustomPollingChange, onUndecidedAllocationChange }: {
   prediction: VotingPrediction | null;
   calibration: string;
   customPolling: { unite: number; remain: number; undecided: number };
   loading: boolean;
   error: string | null;
-  projectionYear: number | null;
   undecidedAllocation: UndecidedAllocation;
   onCalibrationChange: (value: string) => void;
   onCustomPollingChange: (value: { unite: number; remain: number; undecided: number }) => void;
@@ -464,9 +462,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
         </fieldset>
         <p className="custom-polling-note">This is the present-day baseline. Projected figures update as each simulation year's demographics change.</p></>
       )}
-      <div className={`calibration-status ${loading ? "loading" : ""}`} aria-live="polite">
-        {loading ? "Updating calibration…" : `Showing ${prediction.source.name}`}
-      </div>
+      <div className="calibration-status">Showing {prediction.source.name}</div>
       {error && <p className="inline-error" role="alert">{error}</p>}
       <fieldset className="undecided-allocation">
         <legend>Undecided treatment</legend>
@@ -505,7 +501,6 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, p
       </details>
       <p className="voting-source">
         <a href={prediction.source.url} target="_blank" rel="noreferrer">{prediction.source.name}</a>, n={prediction.source.sample_size}. Community background is a polling calibration, not a vote.
-        {projectionYear !== null && <> Estimate recalculated from the simulated {projectionYear} adult population.</>}
       </p>
     </section>
   );

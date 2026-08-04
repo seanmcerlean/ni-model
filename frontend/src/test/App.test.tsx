@@ -2,19 +2,22 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock react-leaflet to avoid DOM/canvas issues in jsdom
-vi.mock("react-leaflet", () => ({
-  MapContainer: ({ children, zoomControl, dragging, scrollWheelZoom, bounds }: {
-    children: React.ReactNode;
-    zoomControl: boolean;
-    dragging: boolean;
-    scrollWheelZoom: boolean;
-    bounds: unknown;
-  }) => <div data-testid="map" data-zoom-control={String(zoomControl)}
-    data-dragging={String(dragging)} data-scroll-wheel={String(scrollWheelZoom)}
-    data-bounds={JSON.stringify(bounds)}>{children}</div>,
-  TileLayer: () => <div data-testid="tile-layer" />,
-  GeoJSON: () => null,
-}));
+vi.mock("react-leaflet", async () => {
+  const { forwardRef } = await import("react");
+  return {
+    MapContainer: ({ children, zoomControl, dragging, scrollWheelZoom, bounds }: {
+      children: React.ReactNode;
+      zoomControl: boolean;
+      dragging: boolean;
+      scrollWheelZoom: boolean;
+      bounds: unknown;
+    }) => <div data-testid="map" data-zoom-control={String(zoomControl)}
+      data-dragging={String(dragging)} data-scroll-wheel={String(scrollWheelZoom)}
+      data-bounds={JSON.stringify(bounds)}>{children}</div>,
+    TileLayer: () => <div data-testid="tile-layer" />,
+    GeoJSON: forwardRef(() => null),
+  };
+});
 
 vi.mock("../geo/ni.geojson?raw", () => ({
   default: '{"type":"FeatureCollection","features":[]}',
@@ -107,7 +110,18 @@ describe("App", () => {
 
   it("defaults to a useful current projection horizon", () => {
     render(<App />);
-    expect(screen.getByLabelText("End")).toHaveValue(2035);
+    expect(screen.getByLabelText("End")).toHaveValue(2050);
+  });
+
+  it("defaults to Unite and Remain map colouring with a community option", () => {
+    render(<App />);
+    expect(screen.getByLabelText("Unite / Remain")).toBeChecked();
+    expect(screen.getByLabelText("Community")).not.toBeChecked();
+    fireEvent.click(screen.getByLabelText("Community"));
+    expect(screen.getByLabelText("Community")).toBeChecked();
+    const map = within(screen.getByTestId("map"));
+    expect(map.getByText("Other")).toBeInTheDocument();
+    expect(map.getByText("None")).toBeInTheDocument();
   });
 
   it("speed buttons are rendered", () => {
@@ -211,6 +225,7 @@ describe("App", () => {
     render(<App />);
     const select = await screen.findByLabelText("Scenario definition");
     await waitFor(() => expect(select).toHaveTextContent("NI Current"));
+    expect(select).toHaveValue("models/ni_current_community.yaml");
     fireEvent.change(select, { target: { value: "models/ni_current.yaml" } });
 
     expect(screen.queryByText("Observed components followed by the principal projection.")).not.toBeInTheDocument();
@@ -275,6 +290,7 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Polling" }));
     expect(await screen.findByText("BORDER POLL SCENARIO")).toBeInTheDocument();
     expect(screen.getByText("Showing LucidTalk")).toBeInTheDocument();
+    expect(screen.queryByText(/Updating calibration/)).not.toBeInTheDocument();
     expect(screen.getByText("95.0%")).toBeInTheDocument();
     expect(screen.getByText("All undecided vote unite")).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "LucidTalk Aug 2021 — five-year high" })).toBeInTheDocument();
@@ -289,6 +305,10 @@ describe("App", () => {
     expect(screen.getByRole("link", { name: "LucidTalk" })).toHaveAttribute(
       "href",
       "https://www.lucidtalk.co.uk/news/lt-ni-tracker-poll-winter-2025/",
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("include_locations=true"),
+      expect.anything(),
     );
 
     fireEvent.change(screen.getByLabelText("Polling calibration"), {
