@@ -124,6 +124,20 @@ describe("App", () => {
     expect(map.getByText("None")).toBeInTheDocument();
   });
 
+  it("can switch displays and polling to estimated probable community", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "Polling" }));
+    const probable = screen.getByRole("switch", { name: /Probable community/ });
+    expect(probable).not.toBeChecked();
+
+    fireEvent.click(probable);
+    fireEvent.click(screen.getByLabelText("Community"));
+
+    expect(probable).toBeChecked();
+    expect(within(screen.getByTestId("map")).queryByText("None")).not.toBeInTheDocument();
+    expect(screen.getByText("Probable community (estimate)")).toBeInTheDocument();
+  });
+
   it("speed buttons are rendered", () => {
     render(<App />);
     expect(screen.getByText("0.5×")).toBeInTheDocument();

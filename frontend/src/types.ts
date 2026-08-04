@@ -18,6 +18,7 @@ export interface YearSnapshot {
   sample_population?: number;
   population_scale?: number;
   religious_breakdown: Record<string, number>;
+  probable_community_breakdown?: Record<string, number>;
   gender_breakdown: Record<string, number>;
   location_breakdown: Record<string, number>;
   locations?: Record<string, SimulationLocationSnapshot>;
@@ -35,7 +36,7 @@ export interface VotingPrediction {
   decided_unite_share: number;
   intervals: Record<string, { low: number; estimate: number; high: number }>;
   scenarios: Array<{ id: string; label: string; unite_share: number }>;
-  source: { id: string; name: string; sample_size: number; fieldwork: string; url: string };
+  source: { id: string; name: string; sample_size: number; fieldwork: string; url: string; community_basis?: CommunityBasis; community_basis_estimated?: boolean };
   limitations: string;
   by_location?: Record<string, LocationVotingPrediction>;
 }
@@ -48,6 +49,7 @@ export type LocationVotingPrediction = Omit<
 export interface SimulationLocationSnapshot {
   total: number;
   religious_breakdown: Record<string, number>;
+  probable_community_breakdown?: Record<string, number>;
   gender_breakdown: Record<string, number>;
   origin_breakdown: Record<string, number>;
   age_bands: Record<string, number>;
@@ -118,6 +120,7 @@ export interface SimulationAdjustments {
 }
 
 export type CommunityBackground = "catholic" | "protestant" | "other" | "none";
+export type CommunityBasis = "reported" | "probable";
 
 export interface CommunityRateAdjustments {
   birth_multiplier: number;

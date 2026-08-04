@@ -18,6 +18,9 @@ def population(size=1_000):
             "religious_background": [
                 "catholic" if index % 2 else "protestant" for index in range(size)
             ],
+            "probable_community": [
+                "catholic" if index % 2 else "protestant" for index in range(size)
+            ],
             "gender": ["female" if index % 2 else "male" for index in range(size)],
             "education_level": ["secondary"] * size,
             "location": [
@@ -229,6 +232,7 @@ def test_columnar_worker_assigns_child_background_from_parent_rule():
 
     assert result["births"] == 50
     assert set(newborns["religious_background"].to_list()) == {"none"}
+    assert set(newborns["probable_community"].to_list()) == {"catholic"}
 
 
 def test_columnar_worker_uses_explicit_immigration_profiles():
@@ -257,6 +261,7 @@ def test_columnar_worker_uses_explicit_immigration_profiles():
     assert set(arrivals["origin"]) == {"roi"}
     assert set(arrivals["location"]) == {"derry_strabane"}
     assert set(arrivals["religious_background"]) == {"catholic"}
+    assert set(arrivals["probable_community"]) == {"catholic"}
 
 
 def test_historical_component_controls_are_expected_rates_not_exact_outputs():

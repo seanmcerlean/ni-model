@@ -3,7 +3,7 @@ import { GeoJSON as GeoJSONComponent, MapContainer } from "react-leaflet";
 import { GeoJSON as GeoJSONLayer, Layer, PathOptions } from "leaflet";
 
 import niGeoJsonRaw from "../geo/ni.geojson?raw";
-import { LOCATION_CODES, VotingPrediction, YearSnapshot } from "../types";
+import { CommunityBasis, LOCATION_CODES, VotingPrediction, YearSnapshot } from "../types";
 
 const niGeoJson = JSON.parse(niGeoJsonRaw) as GeoJSON.FeatureCollection;
 const NI_BOUNDS: [[number, number], [number, number]] = [
@@ -18,6 +18,7 @@ function featureId(feature: GeoJSON.Feature): string {
 interface Props {
   snapshot: YearSnapshot | null;
   voting: VotingPrediction | null;
+  communityBasis: CommunityBasis;
   onLocationClick: (locationId: string) => void;
 }
 
@@ -54,15 +55,16 @@ function voteColour(voting: VotingPrediction | null, locationId: string): string
   ], 1.65);
 }
 
-function communityColour(snapshot: YearSnapshot | null, locationId: string): string {
-  const breakdown = snapshot?.locations?.[locationId]?.religious_breakdown;
+function communityColour(snapshot: YearSnapshot | null, locationId: string, basis: CommunityBasis): string {
+  const detail = snapshot?.locations?.[locationId];
+  const breakdown = basis === "probable" ? detail?.probable_community_breakdown : detail?.religious_breakdown;
   if (!breakdown) return "#475569";
   return blendedColour(([
     "catholic", "protestant", "other", "none",
   ] as const).map((background) => [breakdown[background] ?? 0, COLOURS[background]]), 2.4);
 }
 
-export function NiMap({ snapshot, voting, onLocationClick }: Props) {
+export function NiMap({ snapshot, voting, communityBasis, onLocationClick }: Props) {
   const [colourMode, setColourMode] = useState<ColourMode>("vote");
   const geoJsonRef = useRef<GeoJSONLayer | null>(null);
 
@@ -72,12 +74,12 @@ export function NiMap({ snapshot, voting, onLocationClick }: Props) {
     return {
       fillColor: colourMode === "vote"
         ? voteColour(voting, locationId)
-        : communityColour(snapshot, locationId),
+        : communityColour(snapshot, locationId, communityBasis),
       fillOpacity: 0.88,
       weight: 1.2,
       color: "#f8fafc",
     };
-  }, [colourMode, snapshot, voting]);
+  }, [colourMode, snapshot, voting, communityBasis]);
 
   const tooltip = useCallback((feature: GeoJSON.Feature): string => {
     const total = snapshot?.location_breakdown[featureId(feature)];
@@ -137,7 +139,7 @@ export function NiMap({ snapshot, voting, onLocationClick }: Props) {
           <span><i className="swatch catholic" />Catholic</span>
           <span><i className="swatch protestant" />Protestant</span>
           <span><i className="swatch other" />Other</span>
-          <span><i className="swatch none" />None</span>
+          {communityBasis === "reported" && <span><i className="swatch none" />None</span>}
         </>}
       </div>
     </MapContainer>

@@ -265,6 +265,9 @@ class HistoricalCalibration:
                 "religious_background": [
                     person.religious_background.value for person in people
                 ],
+                "probable_community": [
+                    person.probable_community.value for person in people
+                ],
                 "gender": [person.gender.value for person in people],
                 "education_level": [person.education_level.value for person in people],
                 "location": [person.location.value for person in people],

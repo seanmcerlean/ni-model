@@ -171,6 +171,7 @@ class VotingPredictor:
         total_population: Optional[int] = None,
         custom_baseline: Optional[Sequence[float]] = None,
         custom_reference_rows: Optional[Sequence[Any]] = None,
+        community_basis: str = "reported",
     ):
         if calibration not in CALIBRATIONS:
             raise ValueError(f"unknown voting calibration: {calibration}")
@@ -180,7 +181,15 @@ class VotingPredictor:
         self.aggregate_rows = aggregate_rows
         self.total_population = total_population
         self.custom_reference_rows = custom_reference_rows
-        self.source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
+        if community_basis not in {"reported", "probable"}:
+            raise ValueError("community_basis must be reported or probable")
+        self.community_basis = community_basis
+        source, self.responses, self.non_vote_by_age = CALIBRATIONS[calibration]
+        self.source = {
+            **source,
+            "community_basis": community_basis,
+            "community_basis_estimated": community_basis == "probable",
+        }
         if custom_baseline is not None:
             self._apply_custom_baseline(custom_baseline)
         elif calibration in _PUBLISHED_BASELINES and custom_reference_rows is not None:
@@ -212,10 +221,11 @@ class VotingPredictor:
         for _ in range(100):
             totals = [0.0, 0.0, 0.0]
             for row in rows:
-                base = self.responses[row.religious_background][:3]
+                background = self._row_background(row)
+                base = self.responses[background][:3]
                 adjusted = [base[index] * multipliers[index] for index in range(3)]
                 denominator = sum(adjusted)
-                turnout = self._turnout(row.age, row.religious_background)
+                turnout = self._turnout(row.age, background)
                 weight = row.count * turnout
                 for index in range(3):
                     totals[index] += weight * adjusted[index] / denominator
@@ -268,8 +278,13 @@ class VotingPredictor:
                 return self.aggregate_rows
             location = filters[0].right.value
             return [row for row in self.aggregate_rows if row.location == location]
+        community_column = (
+            Person.probable_community
+            if self.community_basis == "probable"
+            else Person.religious_background
+        )
         query = self.db.query(
-            Person.religious_background,
+            community_column.label("religious_background"),
             Person.age,
             func.count(Person.id).label("count"),
         ).filter(Person.age >= 18, *filters)
@@ -279,7 +294,7 @@ class VotingPredictor:
             )
         else:
             query = query.filter(Person.run_id == self.run_id)
-        return query.group_by(Person.religious_background, Person.age).all()
+        return query.group_by(community_column, Person.age).all()
 
     @staticmethod
     def aggregate_population(db: Session, run_id: Optional[UUID] = None):
@@ -287,6 +302,7 @@ class VotingPredictor:
         query = db.query(
             Person.location,
             Person.religious_background,
+            Person.probable_community,
             Person.age,
             func.count(Person.id).label("count"),
         ).filter(Person.age >= 18)
@@ -297,8 +313,16 @@ class VotingPredictor:
         else:
             query = query.filter(Person.run_id == run_id)
         return query.group_by(
-            Person.location, Person.religious_background, Person.age
+            Person.location,
+            Person.religious_background,
+            Person.probable_community,
+            Person.age,
         ).all()
+
+    def _row_background(self, row) -> ReligiousBackground:
+        if self.community_basis == "probable" and hasattr(row, "probable_community"):
+            return row.probable_community
+        return row.religious_background
 
     def _predict(self, *filters) -> Dict[str, Any]:
         rows = self._rows(*filters)
@@ -308,9 +332,10 @@ class VotingPredictor:
 
         unite = remain = undecided = 0.0
         for row in rows:
-            yes, no, uncertain, _ = self.responses[row.religious_background]
+            background = self._row_background(row)
+            yes, no, uncertain, _ = self.responses[background]
             response_total = yes + no + uncertain
-            turnout = self._turnout(row.age, row.religious_background)
+            turnout = self._turnout(row.age, background)
             likely_voters = row.count * turnout
             unite += likely_voters * yes / response_total
             remain += likely_voters * no / response_total
@@ -408,6 +433,13 @@ class VotingPredictor:
             "limitations": (
                 "Adult resident eligibility proxy; community-background and age "
                 "marginals are not causal predictors or a joint poll model."
+                + (
+                    " Probable community is an ecological lineage estimate based "
+                    "on Census national identity and LGD, not an observed identity "
+                    "or constitutional preference."
+                    if self.community_basis == "probable"
+                    else ""
+                )
                 + (
                     " Custom values calibrate LucidTalk subgroup odds against the "
                     "current reference population, then hold those odds fixed as "

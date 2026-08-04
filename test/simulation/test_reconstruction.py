@@ -16,6 +16,7 @@ def test_apply_events_reconstructs_birth_death_and_relocation():
             "person_number": [1],
             "birth_year": [1990],
             "religious_background": ["catholic"],
+            "probable_community": ["catholic"],
             "gender": ["female"],
             "education_level": ["tertiary"],
             "location": ["derry_strabane"],
@@ -28,6 +29,7 @@ def test_apply_events_reconstructs_birth_death_and_relocation():
         "person_number": 2,
         "birth_year": 2025,
         "religious_background": "catholic",
+        "probable_community": "catholic",
         "gender": "male",
         "education_level": "pre_primary",
         "location": "derry_strabane",
@@ -70,3 +72,4 @@ def test_apply_events_reconstructs_birth_death_and_relocation():
     assert reconstructed.row(0, named=True)["person_id"] == first_id.bytes
     assert reconstructed.row(0, named=True)["location"] == "belfast"
     assert reconstructed.row(0, named=True)["religious_background"] == "none"
+    assert reconstructed.row(0, named=True)["probable_community"] == "catholic"

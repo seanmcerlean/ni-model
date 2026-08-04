@@ -210,6 +210,7 @@ def _capture_snapshot(
         location_id: SimulationLocationSnapshot(
             total=detail.total,
             religious_breakdown=detail.religious_breakdown,
+            probable_community_breakdown=detail.probable_community_breakdown,
             gender_breakdown=detail.gender_breakdown,
             origin_breakdown=detail.origin_breakdown,
             age_bands=detail.age_bands,
@@ -221,6 +222,7 @@ def _capture_snapshot(
         year=year,
         total_population=aggregates.total,
         religious_breakdown=aggregates.religious_breakdown,
+        probable_community_breakdown=aggregates.probable_community_breakdown,
         gender_breakdown=aggregates.gender_breakdown,
         location_breakdown={
             key: detail.total
@@ -241,6 +243,7 @@ def _snapshot_voting_prediction(
     total_population=None,
     custom_baseline=None,
     custom_reference_rows=None,
+    community_basis="reported",
 ) -> dict:
     predictor = VotingPredictor(
         db,
@@ -250,6 +253,7 @@ def _snapshot_voting_prediction(
         total_population=total_population,
         custom_baseline=custom_baseline,
         custom_reference_rows=custom_reference_rows,
+        community_basis=community_basis,
     )
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
@@ -284,6 +288,9 @@ def _scaled_aggregates(aggregates: dict, scale: float) -> dict:
             "religious_breakdown": _scaled_counts(
                 detail["religious_breakdown"], scale, location_total
             ),
+            "probable_community_breakdown": _scaled_counts(
+                detail["probable_community_breakdown"], scale, location_total
+            ),
             "gender_breakdown": _scaled_counts(
                 detail["gender_breakdown"], scale, location_total
             ),
@@ -296,6 +303,9 @@ def _scaled_aggregates(aggregates: dict, scale: float) -> dict:
         "total_population": total,
         "religious_breakdown": _scaled_counts(
             aggregates["religious_breakdown"], scale, total
+        ),
+        "probable_community_breakdown": _scaled_counts(
+            aggregates["probable_community_breakdown"], scale, total
         ),
         "gender_breakdown": _scaled_counts(
             aggregates["gender_breakdown"], scale, total
@@ -339,6 +349,7 @@ def _scaled_voting_rows(rows, scale: float):
         SimpleNamespace(
             location=row.location,
             religious_background=row.religious_background,
+            probable_community=row.probable_community,
             age=row.age,
             count=counts[index],
         )
@@ -372,7 +383,13 @@ def _capture_columnar_snapshot(
 def _stored_columnar_snapshot(snapshot: SimulationYearSnapshot, voting_rows) -> dict:
     data = snapshot.model_dump(mode="json")
     data["_polling_inputs"] = [
-        [row.location.value, row.religious_background.value, row.age, row.count]
+        [
+            row.location.value,
+            row.religious_background.value,
+            row.probable_community.value,
+            row.age,
+            row.count,
+        ]
         for row in voting_rows
     ]
     return data
@@ -525,6 +542,7 @@ def simulation_year_voting_prediction(
     run_id: UUID,
     year: int,
     calibration: str = "lucidtalk_winter_2025",
+    community_basis: str = "reported",
     custom_unite: Optional[float] = Query(None, ge=0, le=100),
     custom_remain: Optional[float] = Query(None, ge=0, le=100),
     custom_undecided: Optional[float] = Query(None, ge=0, le=100),
@@ -553,15 +571,22 @@ def simulation_year_voting_prediction(
                 status_code=422, detail="Custom baseline values must sum to 100"
             )
         custom_baseline = tuple(value / 100 for value in custom_values)
-    rows = [
-        SimpleNamespace(
-            location=Location(location),
-            religious_background=ReligiousBackground(background),
-            age=age,
-            count=count,
+    rows = []
+    for stored in stored_rows:
+        if len(stored) == 4:
+            location, background, age, count = stored
+            probable = background
+        else:
+            location, background, probable, age, count = stored
+        rows.append(
+            SimpleNamespace(
+                location=Location(location),
+                religious_background=ReligiousBackground(background),
+                probable_community=ReligiousBackground(probable),
+                age=age,
+                count=count,
+            )
         )
-        for location, background, age, count in stored_rows
-    ]
     custom_reference_rows = VotingPredictor.aggregate_population(db)
     try:
         return VotingPrediction(
@@ -573,6 +598,7 @@ def simulation_year_voting_prediction(
                 snapshot.data["total_population"],
                 custom_baseline,
                 custom_reference_rows,
+                community_basis,
             )
         )
     except ValueError as exc:

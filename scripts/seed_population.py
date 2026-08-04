@@ -192,6 +192,7 @@ def _mapping(
         "age": person.age,
         "birth_year": person.birth_year,
         "religious_background": person.religious_background,
+        "probable_community": person.probable_community,
         "gender": person.gender,
         "education_level": person.education_level,
         "location": person.location,

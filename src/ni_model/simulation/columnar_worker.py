@@ -38,6 +38,7 @@ COLUMN_TYPES = {
     "person_number": pl.Int64,
     "birth_year": pl.Int16,
     "religious_background": BACKGROUND_TYPE,
+    "probable_community": BACKGROUND_TYPE,
     "gender": GENDER_TYPE,
     "education_level": EDUCATION_TYPE,
     "location": LOCATION_TYPE,
@@ -64,6 +65,21 @@ class ColumnarSimulationWorker:
         seed: Optional[int] = None,
         recorder=None,
     ):
+        if (
+            "probable_community" not in population.columns
+            and "religious_background" in population.columns
+        ):
+            population = population.with_columns(
+                pl.when(
+                    pl.col("religious_background").cast(pl.String).str.to_lowercase()
+                    == "none"
+                )
+                .then(pl.lit("other"))
+                .otherwise(
+                    pl.col("religious_background").cast(pl.String).str.to_lowercase()
+                )
+                .alias("probable_community")
+            )
         missing = set(COLUMN_TYPES) - set(population.columns)
         if missing:
             raise ValueError(f"population is missing columns: {sorted(missing)}")
@@ -109,6 +125,7 @@ class ColumnarSimulationWorker:
                 "birth_year"
             ),
             cast(Person.religious_background, String).label("religious_background"),
+            cast(Person.probable_community, String).label("probable_community"),
             cast(Person.gender, String).label("gender"),
             cast(Person.education_level, String).label("education_level"),
             cast(Person.location, String).label("location"),
@@ -146,6 +163,7 @@ class ColumnarSimulationWorker:
         frame = frame.with_columns(
             pl.col(
                 "religious_background",
+                "probable_community",
                 "gender",
                 "education_level",
                 "location",
@@ -331,6 +349,12 @@ class ColumnarSimulationWorker:
                 rng.choice(mothers.height, size=count, replace=True).tolist()
             ]
             backgrounds = self._child_backgrounds(parents, year, rng)
+            probable_communities = [
+                parent if background == "none" else background
+                for parent, background in zip(
+                    parents["probable_community"].to_list(), backgrounds
+                )
+            ]
             ids = self._new_ids(year, "birth", count)
             numbers = list(
                 range(self._next_person_number, self._next_person_number + count)
@@ -342,6 +366,7 @@ class ColumnarSimulationWorker:
                     "person_number": numbers,
                     "birth_year": [year] * count,
                     "religious_background": backgrounds,
+                    "probable_community": probable_communities,
                     "gender": rng.choice(["male", "female"], size=count),
                     "education_level": ["pre_primary"] * count,
                     "location": parents["location"],
@@ -434,6 +459,9 @@ class ColumnarSimulationWorker:
                 locations = [
                     profiles[index]["location"].lower() for index in selected_profiles
                 ]
+                probable_communities = self._initial_probable_communities(
+                    backgrounds, locations, rng
+                )
                 origins = [
                     profiles[index]["origin"].lower() for index in selected_profiles
                 ]
@@ -442,6 +470,7 @@ class ColumnarSimulationWorker:
                     rng.choice(cohort.height, size=change, replace=True).tolist()
                 ]
                 backgrounds = templates["religious_background"]
+                probable_communities = templates["probable_community"]
                 locations = templates["location"]
                 origins = ["other"] * change
             else:
@@ -450,6 +479,9 @@ class ColumnarSimulationWorker:
                 )
                 locations = ["belfast"] * change
                 origins = ["other"] * change
+                probable_communities = self._initial_probable_communities(
+                    backgrounds, locations, rng
+                )
             ids = self._new_ids(year, "arrival", change)
             numbers = list(
                 range(self._next_person_number, self._next_person_number + change)
@@ -461,6 +493,7 @@ class ColumnarSimulationWorker:
                     "person_number": numbers,
                     "birth_year": year - rng.integers(18, 46, size=change),
                     "religious_background": backgrounds,
+                    "probable_community": probable_communities,
                     "gender": rng.choice(["male", "female"], size=change),
                     "education_level": rng.choice(
                         [
@@ -595,10 +628,15 @@ class ColumnarSimulationWorker:
             )
             previous = self.population.filter(
                 pl.col("person_number").is_in(change_frame["person_number"])
-            ).select("person_number", "person_id", "religious_background")
+            ).select(
+                "person_number",
+                "person_id",
+                "religious_background",
+                "probable_community",
+            )
             prior = {
-                number: (person_id, background)
-                for number, person_id, background in previous.iter_rows()
+                number: (person_id, background, probable)
+                for number, person_id, background, probable in previous.iter_rows()
             }
             self.population = (
                 self.population.join(change_frame, on="person_number", how="left")
@@ -607,10 +645,21 @@ class ColumnarSimulationWorker:
                     .cast(BACKGROUND_TYPE)
                     .alias("religious_background")
                 )
+                .with_columns(
+                    pl.when(pl.col("new_background").is_not_null())
+                    .then(
+                        pl.when(pl.col("new_background") == "none")
+                        .then(pl.col("probable_community"))
+                        .otherwise(pl.col("new_background"))
+                    )
+                    .otherwise(pl.col("probable_community"))
+                    .cast(BACKGROUND_TYPE)
+                    .alias("probable_community")
+                )
                 .drop("new_background")
             )
             for person_number, destination in changes:
-                person_id, source = prior[person_number]
+                person_id, source, _ = prior[person_number]
                 key = f"{source}_to_{destination}"
                 breakdown[key] = breakdown.get(key, 0) + 1
                 self.events.append(
@@ -678,18 +727,21 @@ class ColumnarSimulationWorker:
             return result
 
         religious_by_location = grouped("religious_background")
+        probable_by_location = grouped("probable_community")
         gender_by_location = grouped("gender")
         origin_by_location = grouped("origin")
         age_by_location = grouped("age_band")
         locations = {}
         for location in Location:
             religious = religious_by_location[location.value]
+            probable = probable_by_location[location.value]
             genders = gender_by_location[location.value]
             origins = origin_by_location[location.value]
             age_bands = age_by_location[location.value]
             locations[location.value] = {
                 "total": sum(religious.values()),
                 "religious_breakdown": religious,
+                "probable_community_breakdown": probable,
                 "gender_breakdown": genders,
                 "origin_breakdown": origins,
                 "age_bands": {
@@ -698,15 +750,19 @@ class ColumnarSimulationWorker:
                 },
             }
         religious = {}
+        probable = {}
         genders = {}
         for detail in locations.values():
             for key, value in detail["religious_breakdown"].items():
                 religious[key] = religious.get(key, 0) + value
+            for key, value in detail["probable_community_breakdown"].items():
+                probable[key] = probable.get(key, 0) + value
             for key, value in detail["gender_breakdown"].items():
                 genders[key] = genders.get(key, 0) + value
         return {
             "total_population": aged.height,
             "religious_breakdown": religious,
+            "probable_community_breakdown": probable,
             "gender_breakdown": genders,
             "location_breakdown": {
                 key: detail["total"]
@@ -721,18 +777,40 @@ class ColumnarSimulationWorker:
         rows = (
             self.population.with_columns((year - pl.col("birth_year")).alias("age"))
             .filter(pl.col("age") >= 18)
-            .group_by("location", "religious_background", "age")
+            .group_by("location", "religious_background", "probable_community", "age")
             .len()
         )
         return [
             SimpleNamespace(
                 location=Location(row["location"]),
                 religious_background=ReligiousBackground(row["religious_background"]),
+                probable_community=ReligiousBackground(row["probable_community"]),
                 age=row["age"],
                 count=row["len"],
             )
             for row in rows.iter_rows(named=True)
         ]
+
+    @staticmethod
+    def _initial_probable_communities(backgrounds, locations, rng) -> list[str]:
+        """Infer lineage for new None records while preserving all other groups."""
+        from ..data.probable_community import (
+            NONE_PROBABLE_CATHOLIC_BY_LOCATION,
+            NONE_PROBABLE_OTHER,
+        )
+
+        result = []
+        for background, location in zip(backgrounds, locations):
+            value = str(background)
+            if value != "none":
+                result.append(value)
+                continue
+            if rng.random() < NONE_PROBABLE_OTHER:
+                result.append("other")
+                continue
+            probability = NONE_PROBABLE_CATHOLIC_BY_LOCATION[Location(str(location))]
+            result.append("catholic" if rng.random() < probability else "protestant")
+        return result
 
     def checkpoint_digest(self) -> str:
         """Hash current population content for deterministic parity checks."""

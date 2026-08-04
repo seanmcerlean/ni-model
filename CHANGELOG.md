@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.0 - 2026-08-04
+
+### Added
+
+- Persistent `probable_community` estimate alongside the observed Census
+  background, with Catholic, Protestant, and Other outcomes.
+- NISRA DT-0002 national-identity calibration and conservatively shrunk LGD
+  inference for residents reporting no Census background.
+- A frontend switch selecting reported or probable community for statistics,
+  map colouring, area details, and polling cross-tabs.
+
+### Changed
+
+- Births, migration, community transitions, events, checkpoints, snapshots,
+  and polling inputs now preserve both community classifications.
+- A reported transition to None preserves probable lineage; explicit Catholic,
+  Protestant, or Other mutation updates both fields.
+
+### Data limitations
+
+- Probable community is ecological inference, not an observed identity,
+  religion, political opinion, or vote. The reported Census field remains the
+  default and the inferred view is labelled as an estimate.
+
 ## 0.2.3 - 2026-07-30
 
 ### Added

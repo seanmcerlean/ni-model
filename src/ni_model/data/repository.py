@@ -98,6 +98,15 @@ class PersonRepository:
             .all()
         )
 
+        probable_community_breakdown = (
+            self._query()
+            .with_entities(
+                Person.probable_community, func.count(Person.id).label("count")
+            )
+            .group_by(Person.probable_community)
+            .all()
+        )
+
         gender_breakdown = (
             self._query()
             .with_entities(Person.gender, func.count(Person.id).label("count"))
@@ -114,6 +123,10 @@ class PersonRepository:
             },
             "religious_breakdown": {
                 rb.religious_background.value: rb.count for rb in religious_breakdown
+            },
+            "probable_community_breakdown": {
+                row.probable_community.value: row.count
+                for row in probable_community_breakdown
             },
             "gender_breakdown": {gb.gender.value: gb.count for gb in gender_breakdown},
         }

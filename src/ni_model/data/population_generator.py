@@ -242,6 +242,11 @@ def iter_population(
         raise ValueError("size must be non-negative")
 
     rng = random.Random(seed)
+    # Keep the established demographic stream unchanged; adding this inferred
+    # field must not silently alter ages, locations, origins, or backgrounds.
+    probable_rng = random.Random(None if seed is None else seed ^ 0x50B4B1E)
+    from .probable_community import infer_probable_community
+
     use_background_age_bands = religion_weights is None and age_bands is None
     age_bands = _AGE_BANDS if age_bands is None else age_bands
     origin_weights = _ORIGIN_WEIGHTS if origin_weights is None else origin_weights
@@ -258,6 +263,9 @@ def iter_population(
             age=age,
             birth_year=reference_year - age,
             religious_background=background,
+            probable_community=infer_probable_community(
+                background, location, probable_rng
+            ),
             gender=_weighted_choice(_GENDER_WEIGHTS, rng),
             location=location,
             origin=_weighted_choice(origin_weights, rng),

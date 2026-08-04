@@ -12,6 +12,7 @@ def test_population_summary_schema(client):
     data = client.get("/api/population/summary").json()
     assert "age_stats" in data
     assert "religious_breakdown" in data
+    assert "probable_community_breakdown" in data
     assert "gender_breakdown" in data
     assert data["age_stats"]["average"] > 0
 
@@ -91,6 +92,13 @@ def test_location_detail_case_insensitive(client):
 def test_voting_prediction_status(client):
     response = client.get("/api/population/voting-prediction")
     assert response.status_code == 200
+
+
+def test_voting_prediction_supports_probable_community_basis(client):
+    response = client.get("/api/population/voting-prediction?community_basis=probable")
+    assert response.status_code == 200
+    assert response.json()["source"]["community_basis"] == "probable"
+    assert response.json()["source"]["community_basis_estimated"] is True
 
 
 def test_voting_prediction_schema(client):

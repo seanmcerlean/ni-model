@@ -29,6 +29,7 @@ describe("LocationDetail", () => {
       }}
       pollingSource="LucidTalk"
       undecidedAllocation="reported"
+      communityBasis="reported"
       onClose={onClose}
     />);
 
@@ -52,6 +53,7 @@ describe("LocationDetail", () => {
       voting={null}
       pollingSource={null}
       undecidedAllocation="reported"
+      communityBasis="reported"
       onClose={vi.fn()}
     />);
 

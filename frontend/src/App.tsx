@@ -6,7 +6,7 @@ import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
 import { allocateUndecided, UndecidedAllocation } from "./polling";
-import { ChildBackgroundRule, CommunityBackground, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
+import { ChildBackgroundRule, CommunityBackground, CommunityBasis, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
 type PanelTab = "setup" | "model" | "polling";
@@ -58,6 +58,7 @@ export default function App() {
   const [undecidedAllocation, setUndecidedAllocation] = useState<UndecidedAllocation>("reported");
   const [customPolling, setCustomPolling] = useState({ unite: 41.4, remain: 48.5, undecided: 10.1 });
   const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
+  const [communityBasis, setCommunityBasis] = useState<CommunityBasis>("reported");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
   const [panelTab, setPanelTab] = useState<PanelTab>("setup");
 
@@ -98,6 +99,7 @@ export default function App() {
     const params = new URLSearchParams({
       calibration: isCustom ? "lucidtalk_winter_2025" : votingCalibration,
       include_locations: "true",
+      community_basis: communityBasis,
     });
     if (isCustom) {
       params.set("custom_unite", String(customPolling.unite));
@@ -123,7 +125,7 @@ export default function App() {
         }
       });
     return () => controller.abort();
-  }, [snapshot, votingCalibration, customPolling]);
+  }, [snapshot, votingCalibration, customPolling, communityBasis]);
 
   // Auto-advance to first buffered year when stream starts
   useEffect(() => {
@@ -282,6 +284,11 @@ export default function App() {
           )}
           {panelTab === "polling" && (
             <div className="panel-tab-content" role="tabpanel" id="polling-panel" aria-labelledby="polling-tab">
+              <label className="population-toggle">
+                <span><b>Probable community</b><small>{communityBasis === "probable" ? "Estimated Catholic / Protestant / Other lineage" : "Off — Census reported background"}</small></span>
+                <input type="checkbox" role="switch" checked={communityBasis === "probable"}
+                  onChange={(event) => setCommunityBasis(event.target.checked ? "probable" : "reported")} />
+              </label>
               <VotingPanel prediction={voting} calibration={votingCalibration}
                 customPolling={customPolling} onCustomPollingChange={setCustomPolling}
                 loading={votingLoading} error={votingError}
@@ -293,9 +300,9 @@ export default function App() {
         </aside>
 
         <main className="map-column">
-          <OverallStats snapshot={snapshot} />
+          <OverallStats snapshot={snapshot} communityBasis={communityBasis} />
           <div className="map-frame">
-            <NiMap snapshot={snapshot} voting={voting} onLocationClick={setSelectedLocation} />
+            <NiMap snapshot={snapshot} voting={voting} communityBasis={communityBasis} onLocationClick={setSelectedLocation} />
             <LocationDetail
               locationId={selectedLocation}
               year={currentYear}
@@ -303,6 +310,7 @@ export default function App() {
               voting={selectedLocation ? voting?.by_location?.[selectedLocation] ?? null : null}
               pollingSource={voting?.source.name ?? null}
               undecidedAllocation={undecidedAllocation}
+              communityBasis={communityBasis}
               onClose={() => setSelectedLocation(null)}
             />
           </div>
@@ -500,13 +508,13 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, u
         </div>
       </details>
       <p className="voting-source">
-        <a href={prediction.source.url} target="_blank" rel="noreferrer">{prediction.source.name}</a>, n={prediction.source.sample_size}. Community background is a polling calibration, not a vote.
+        <a href={prediction.source.url} target="_blank" rel="noreferrer">{prediction.source.name}</a>, n={prediction.source.sample_size}. {prediction.source.community_basis === "probable" ? "Probable community is an ecological estimate used to select poll cross-tabs, not a vote." : "Community background is a polling calibration, not a vote."}
       </p>
     </section>
   );
 }
 
-function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
+function OverallStats({ snapshot, communityBasis }: { snapshot: YearSnapshot | null; communityBasis: CommunityBasis }) {
   const result = snapshot?.simulation_result;
   const cards = [
     ["Population", snapshot?.total_population.toLocaleString() ?? "—"],
@@ -524,7 +532,7 @@ function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
         </div>
       ))}
       <div className="stat-card community-card">
-        <div className="stat-label">Community background</div>
+        <div className="stat-label">{communityBasis === "probable" ? "Probable community (estimate)" : "Census community background"}</div>
         {snapshot ? (
           <div className="community-split">
             {[
@@ -535,7 +543,7 @@ function OverallStats({ snapshot }: { snapshot: YearSnapshot | null }) {
             ].map(([label, key]) => (
               <span key={key}>
                 <b>{label}</b>
-                {percentage(snapshot.religious_breakdown[key] ?? 0, snapshot.total_population)}
+                {percentage((communityBasis === "probable" ? snapshot.probable_community_breakdown ?? {} : snapshot.religious_breakdown)[key] ?? 0, snapshot.total_population)}
               </span>
             ))}
           </div>

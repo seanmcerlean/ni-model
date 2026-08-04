@@ -1,4 +1,4 @@
-import { LOCATION_KEYS, LocationVotingPrediction, SimulationLocationSnapshot } from "../types";
+import { CommunityBasis, LOCATION_KEYS, LocationVotingPrediction, SimulationLocationSnapshot } from "../types";
 import { allocateUndecided, UndecidedAllocation } from "../polling";
 
 const DETAIL_ORDERS = {
@@ -15,10 +15,11 @@ interface Props {
   voting: LocationVotingPrediction | null;
   pollingSource: string | null;
   undecidedAllocation: UndecidedAllocation;
+  communityBasis: CommunityBasis;
   onClose: () => void;
 }
 
-export function LocationDetail({ locationId, year, detail, voting, pollingSource, undecidedAllocation, onClose }: Props) {
+export function LocationDetail({ locationId, year, detail, voting, pollingSource, undecidedAllocation, communityBasis, onClose }: Props) {
   if (!locationId) return null;
   return (
     <aside className="location-panel" aria-labelledby="location-title">
@@ -29,8 +30,10 @@ export function LocationDetail({ locationId, year, detail, voting, pollingSource
       {detail && <>
         <div className="location-population">{detail.total.toLocaleString()}</div>
         <div className="location-population-label">simulated residents</div>
-        {voting && <AreaVoting prediction={voting} source={pollingSource} undecidedAllocation={undecidedAllocation} />}
-        <Section title="Community background" data={detail.religious_breakdown} order={DETAIL_ORDERS.community} />
+        {voting && <AreaVoting prediction={voting} source={pollingSource} undecidedAllocation={undecidedAllocation} communityBasis={communityBasis} />}
+        <Section title={communityBasis === "probable" ? "Probable community (estimate)" : "Census community background"}
+          data={communityBasis === "probable" ? detail.probable_community_breakdown ?? {} : detail.religious_breakdown}
+          order={DETAIL_ORDERS.community} />
         <Section title="Gender" data={detail.gender_breakdown} order={DETAIL_ORDERS.gender} />
         <Section title="Origin" data={detail.origin_breakdown} order={DETAIL_ORDERS.origin} />
         <Section title="Age bands" data={detail.age_bands} order={DETAIL_ORDERS.age} />
@@ -39,10 +42,11 @@ export function LocationDetail({ locationId, year, detail, voting, pollingSource
   );
 }
 
-function AreaVoting({ prediction, source, undecidedAllocation }: {
+function AreaVoting({ prediction, source, undecidedAllocation, communityBasis }: {
   prediction: LocationVotingPrediction;
   source: string | null;
   undecidedAllocation: UndecidedAllocation;
+  communityBasis: CommunityBasis;
 }) {
   const displayed = allocateUndecided(prediction, undecidedAllocation);
   return <section className="area-voting" aria-labelledby="area-voting-title">
@@ -52,7 +56,7 @@ function AreaVoting({ prediction, source, undecidedAllocation }: {
       <span><b>{percent(displayed.remain_share)}</b> Remain</span>
       <span><b>{percent(displayed.undecided_share)}</b> Undecided</span>
     </div>
-    <p>Estimated from this area's simulated adult age and community-background mix using {source ?? "the selected poll"} cross-tabs. Not area-level polling.</p>
+    <p>Estimated from this area's simulated adult age and {communityBasis === "probable" ? "probable-community estimate" : "Census community-background mix"} using {source ?? "the selected poll"} cross-tabs. Not area-level polling.</p>
   </section>;
 }
 

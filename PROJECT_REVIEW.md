@@ -26,6 +26,13 @@ but it is not a vote. A credible voting model must additionally be calibrated
 against representative polling or election-study microdata, include turnout and
 uncertainty, and be back-tested against outcomes it can actually observe.
 
+`probable_community` is a separate ecological lineage estimate for modelling
+how reported None can grow without assuming that constitutional preference
+disappears at the same rate. It has Catholic, Protestant, and Other outcomes,
+never None, and is selectable rather than replacing the observed Census field.
+Its NISRA identity-cross-tab calibration, LGD shrinkage, and limitations are
+documented in `docs/probable-community.md`.
+
 ## Evidence incorporated
 
 - NISRA Census 2021 total population: 1,903,175.
@@ -80,5 +87,8 @@ Primary references:
   and Other becoming immutable sinks. Rates are explicitly estimated from
   Census family patterns and longitudinal affiliation trends; NILT is a
   directional check rather than a raw calibration source.
+- [x] A separate probable-community lineage estimate follows inheritance and
+  mutation while the UI can switch all community and polling views back to the
+  observed Census classification.
 
 Performance work is tracked separately in `performance.md`.

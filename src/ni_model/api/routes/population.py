@@ -14,6 +14,7 @@ from ..queries import (
     gender_breakdown,
     location_totals,
     origin_breakdown,
+    probable_community_breakdown,
     religious_breakdown,
 )
 from ..schemas import (
@@ -54,6 +55,7 @@ def population_summary(db: Session = Depends(get_db)):
             "maximum": age_stats[2] or 0,
         },
         religious_breakdown=religious_breakdown(db),
+        probable_community_breakdown=probable_community_breakdown(db),
         gender_breakdown=gender_breakdown(db),
     )
 
@@ -65,6 +67,7 @@ def population_by_location(db: Session = Depends(get_db)):
             location=loc.value,
             total=count,
             religious_breakdown=religious_breakdown(db, loc),
+            probable_community_breakdown=probable_community_breakdown(db, loc),
         )
         for loc, count in location_totals(db)
     ]
@@ -97,6 +100,7 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
         location=location.value,
         total=total,
         religious_breakdown=religious_breakdown(db, location),
+        probable_community_breakdown=probable_community_breakdown(db, location),
         gender_breakdown=gender_breakdown(db, location),
         origin_breakdown=origin_breakdown(db, location),
         age_bands=age_band_breakdown(db, location),
@@ -108,6 +112,7 @@ def voting_prediction(
     run_id: Optional[UUID] = None,
     calibration: str = "lucidtalk_winter_2025",
     include_locations: bool = True,
+    community_basis: str = "reported",
     custom_unite: Optional[float] = Query(None, ge=0, le=100),
     custom_remain: Optional[float] = Query(None, ge=0, le=100),
     custom_undecided: Optional[float] = Query(None, ge=0, le=100),
@@ -128,6 +133,7 @@ def voting_prediction(
             calibration=calibration,
             custom_baseline=custom_baseline,
             custom_reference_rows=VotingPredictor.aggregate_population(db),
+            community_basis=community_basis,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

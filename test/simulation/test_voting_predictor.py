@@ -13,10 +13,18 @@ from src.ni_model.core.models import (
 from src.ni_model.simulation.voting_predictor import VotingPredictor
 
 
-def _make_person(db, religion, origin, age, location=Location.BELFAST):
+def _make_person(
+    db, religion, origin, age, location=Location.BELFAST, probable_community=None
+):
     p = Person(
         age=age,
         religious_background=religion,
+        probable_community=probable_community
+        or (
+            ReligiousBackground.OTHER
+            if religion == ReligiousBackground.NONE
+            else religion
+        ),
         gender=Gender.FEMALE,
         education_level=EducationLevel.TERTIARY,
         location=location,
@@ -50,6 +58,21 @@ def test_all_protestant_gb_origin_low_unite(db_session):
     predictor = VotingPredictor(db_session)
     result = predictor.predict()
     assert result["unite_share"] < 0.20
+
+
+def test_probable_basis_uses_estimated_field_without_changing_reported(db_session):
+    person = _make_person(
+        db_session,
+        ReligiousBackground.NONE,
+        Origin.NI,
+        40,
+        probable_community=ReligiousBackground.CATHOLIC,
+    )
+    reported = VotingPredictor(db_session, community_basis="reported").predict()
+    probable = VotingPredictor(db_session, community_basis="probable").predict()
+
+    assert probable["unite_share"] > reported["unite_share"]
+    assert person.religious_background == ReligiousBackground.NONE
 
 
 def test_vote_shares_sum_to_one(db_session):

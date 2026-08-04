@@ -20,6 +20,7 @@ AGE_BANDS = {
 class LocationAggregates:
     total: int
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int]
     gender_breakdown: Dict[str, int]
     origin_breakdown: Dict[str, int]
     age_bands: Dict[str, int]
@@ -29,6 +30,7 @@ class LocationAggregates:
 class PopulationAggregates:
     total: int
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int]
     gender_breakdown: Dict[str, int]
     locations: Dict[str, LocationAggregates]
 
@@ -47,6 +49,7 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
             db,
             Person.location,
             Person.religious_background,
+            Person.probable_community,
             Person.gender,
             Person.origin,
             age_band,
@@ -56,6 +59,7 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
         .group_by(
             Person.location,
             Person.religious_background,
+            Person.probable_community,
             Person.gender,
             Person.origin,
             age_band,
@@ -64,11 +68,13 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
     )
 
     religious: Dict[str, int] = {}
+    probable: Dict[str, int] = {}
     genders: Dict[str, int] = {}
     mutable_locations = {
         location.value: {
             "total": 0,
             "religious_breakdown": {},
+            "probable_community_breakdown": {},
             "gender_breakdown": {},
             "origin_breakdown": {},
             "age_bands": {label: 0 for label in AGE_BANDS},
@@ -81,13 +87,18 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
         location = mutable_locations[row.location.value]
         total += count
         religious_key = row.religious_background.value
+        probable_key = row.probable_community.value
         gender_key = row.gender.value
         origin_key = row.origin.value
         religious[religious_key] = religious.get(religious_key, 0) + count
+        probable[probable_key] = probable.get(probable_key, 0) + count
         genders[gender_key] = genders.get(gender_key, 0) + count
         location["total"] += count
         location["religious_breakdown"][religious_key] = (
             location["religious_breakdown"].get(religious_key, 0) + count
+        )
+        location["probable_community_breakdown"][probable_key] = (
+            location["probable_community_breakdown"].get(probable_key, 0) + count
         )
         location["gender_breakdown"][gender_key] = (
             location["gender_breakdown"].get(gender_key, 0) + count
@@ -100,6 +111,7 @@ def snapshot_aggregates(db: Session, run_id: uuid.UUID = None) -> PopulationAggr
     return PopulationAggregates(
         total=total,
         religious_breakdown=religious,
+        probable_community_breakdown=probable,
         gender_breakdown=genders,
         locations={
             key: LocationAggregates(**values)
@@ -125,6 +137,19 @@ def religious_breakdown(
         query = query.filter(Person.location == location)
     return {
         rb.value: count for rb, count in query.group_by(Person.religious_background)
+    }
+
+
+def probable_community_breakdown(
+    db: Session, location: Location = None, run_id: uuid.UUID = None
+) -> Dict[str, int]:
+    query = _population_query(
+        db, Person.probable_community, func.count(Person.id), run_id=run_id
+    )
+    if location:
+        query = query.filter(Person.location == location)
+    return {
+        value.value: count for value, count in query.group_by(Person.probable_community)
     }
 
 

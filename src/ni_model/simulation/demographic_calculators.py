@@ -94,18 +94,26 @@ class BirthCalculator(DemographicCalculator):
         if not parents:
             return []
 
-        return [
-            Person(
-                run_id=self.run_id,
-                age=0,
-                religious_background=self._child_background(parent),
-                gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
-                education_level=EducationLevel.PRE_PRIMARY,
-                location=parent.location,
-                origin=Origin.NI,
+        births = []
+        for parent in self.rng.choices(parents, k=count):
+            background = self._child_background(parent)
+            births.append(
+                Person(
+                    run_id=self.run_id,
+                    age=0,
+                    religious_background=background,
+                    probable_community=(
+                        parent.probable_community
+                        if background == ReligiousBackground.NONE
+                        else background
+                    ),
+                    gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
+                    education_level=EducationLevel.PRE_PRIMARY,
+                    location=parent.location,
+                    origin=Origin.NI,
+                )
             )
-            for parent in self.rng.choices(parents, k=count)
-        ]
+        return births
 
     def _child_background(self, parent: Person) -> ReligiousBackground:
         choices = self.child_background_probabilities.get(parent.religious_background)
@@ -197,26 +205,35 @@ class MigrationCalculator(DemographicCalculator):
                     k=1,
                 )[0]
             template = self.rng.choice(cohort) if cohort and not profile else None
+            background = (
+                ReligiousBackground[profile["religious_background"]]
+                if profile
+                else (
+                    template.religious_background
+                    if template
+                    else self.rng.choice(list(ReligiousBackground))
+                )
+            )
+            location = (
+                Location[profile["location"]]
+                if profile
+                else (template.location if template else Location.BELFAST)
+            )
+            if template:
+                probable = template.probable_community
+            else:
+                from ..data.probable_community import infer_probable_community
+
+                probable = infer_probable_community(background, location, self.rng)
             immigrants.append(
                 Person(
                     run_id=self.run_id,
                     age=self.rng.randint(18, 45),
-                    religious_background=(
-                        ReligiousBackground[profile["religious_background"]]
-                        if profile
-                        else (
-                            template.religious_background
-                            if template
-                            else self.rng.choice(list(ReligiousBackground))
-                        )
-                    ),
+                    religious_background=background,
+                    probable_community=probable,
                     gender=self.rng.choice([Gender.MALE, Gender.FEMALE]),
                     education_level=self.rng.choice(list(EducationLevel)),
-                    location=(
-                        Location[profile["location"]]
-                        if profile
-                        else (template.location if template else Location.BELFAST)
-                    ),
+                    location=location,
                     origin=Origin[profile["origin"]] if profile else Origin.OTHER,
                 )
             )
@@ -293,3 +310,5 @@ class CommunityTransitionCalculator(DemographicCalculator):
     def apply_transitions(self, people: List[Person]) -> None:
         for person in people:
             person.religious_background = self.destination
+            if self.destination != ReligiousBackground.NONE:
+                person.probable_community = self.destination

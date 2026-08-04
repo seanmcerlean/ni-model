@@ -64,6 +64,52 @@ def test_all_religious_backgrounds_present(population):
     assert backgrounds == set(ReligiousBackground)
 
 
+def test_probable_community_has_no_none_and_preserves_observed_groups(population):
+    assert all(
+        person.probable_community != ReligiousBackground.NONE for person in population
+    )
+    reported_none = [
+        person
+        for person in population
+        if person.religious_background == ReligiousBackground.NONE
+    ]
+    probable_other_share = sum(
+        person.probable_community == ReligiousBackground.OTHER
+        for person in reported_none
+    ) / len(reported_none)
+    assert probable_other_share == pytest.approx(0.0304, abs=0.015)
+    assert all(
+        person.probable_community == person.religious_background
+        for person in population
+        if person.religious_background != ReligiousBackground.NONE
+    )
+
+
+def test_probable_none_assignment_reflects_shrunk_lgd_evidence(population):
+    derry_none = [
+        person
+        for person in population
+        if person.location == Location.DERRY_STRABANE
+        and person.religious_background == ReligiousBackground.NONE
+    ]
+    mid_east_antrim_none = [
+        person
+        for person in population
+        if person.location == Location.MID_EAST_ANTRIM
+        and person.religious_background == ReligiousBackground.NONE
+    ]
+    derry_catholic = sum(
+        person.probable_community == ReligiousBackground.CATHOLIC
+        for person in derry_none
+    ) / len(derry_none)
+    mid_east_antrim_catholic = sum(
+        person.probable_community == ReligiousBackground.CATHOLIC
+        for person in mid_east_antrim_none
+    ) / len(mid_east_antrim_none)
+
+    assert derry_catholic > mid_east_antrim_catholic + 0.20
+
+
 def test_gender_roughly_equal(population):
     shares = _shares(population, "gender")
     assert shares[Gender.MALE] == pytest.approx(0.494, abs=0.03)

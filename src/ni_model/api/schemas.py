@@ -14,6 +14,7 @@ class PopulationSummary(BaseModel):
     total_population: int
     age_stats: AgeStats
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int] = Field(default_factory=dict)
     gender_breakdown: Dict[str, int]
 
 
@@ -21,12 +22,14 @@ class LocationSummary(BaseModel):
     location: str
     total: int
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int] = Field(default_factory=dict)
 
 
 class LocationDetail(BaseModel):
     location: str
     total: int
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int] = Field(default_factory=dict)
     gender_breakdown: Dict[str, int]
     origin_breakdown: Dict[str, int]
     age_bands: Dict[str, int]
@@ -48,6 +51,7 @@ class SimulationYearResult(BaseModel):
 class SimulationLocationSnapshot(BaseModel):
     total: int
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int] = Field(default_factory=dict)
     gender_breakdown: Dict[str, int]
     origin_breakdown: Dict[str, int]
     age_bands: Dict[str, int]
@@ -60,6 +64,7 @@ class SimulationYearSnapshot(BaseModel):
     sample_population: Optional[int] = None
     population_scale: float = 1.0
     religious_breakdown: Dict[str, int]
+    probable_community_breakdown: Dict[str, int] = Field(default_factory=dict)
     gender_breakdown: Dict[str, int]
     location_breakdown: Dict[str, int]
     locations: Dict[str, SimulationLocationSnapshot] = Field(default_factory=dict)
@@ -108,6 +113,7 @@ class SimulationPerson(BaseModel):
     birth_year: int
     age: int
     religious_background: str
+    probable_community: str
     gender: str
     education_level: str
     location: str

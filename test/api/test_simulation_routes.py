@@ -80,9 +80,9 @@ def test_simulation_models_describes_available_configs(client):
         current["internal_migration_rate_rules"][0]["evidence"]
         == "census_2021_origin_destination_by_religion"
     )
-    assert "religious_background" in current["internal_migration_rate_rules"][0][
-        "filters"
-    ]
+    assert (
+        "religious_background" in current["internal_migration_rate_rules"][0]["filters"]
+    )
     assert current["integration_rules"] == 10
     assert current["integration_rate_rules"][0]["destination"] == "NONE"
     assert current["default_start_year"] == 2024
@@ -418,7 +418,7 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
     response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2024").json()
 
     assert stored.data["_polling_inputs"]
-    assert len(stored.data["_polling_inputs"][0]) == 4
+    assert len(stored.data["_polling_inputs"][0]) == 5
     assert "_polling_inputs" not in response
 
 
@@ -445,7 +445,13 @@ def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
         f"/api/simulation/runs/{created['run_id']}/years/2025/voting-prediction",
         params={"custom_unite": 50, "custom_remain": 40, "custom_undecided": 10},
     ).json()
-    assert later["unite_share"] != prediction["unite_share"]
+    # A tiny one-year demographic change can legitimately round the NI-wide
+    # share to the same four decimals; the year-specific counts/area mix must
+    # still be recalculated rather than serving the prior snapshot.
+    assert (
+        later["projected_turnout"] != prediction["projected_turnout"]
+        or later["by_location"] != prediction["by_location"]
+    )
 
 
 def test_run_exposes_paginated_people_and_individual_history(client):

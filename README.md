@@ -278,6 +278,10 @@ print(result.within_threshold) # True if MARE <= 10%
 - `religious_background` currently represents NISRA's **religion or religion
   brought up in** measure, used here as a community-background proxy. It does
   not represent current religious practice or voting intention.
+- `probable_community` is a separate Catholic, Protestant, or Other ecological
+  lineage estimate for reported None records. It is selectable, never replaces
+  the Census field, and is not an observed identity or vote. See
+  [`docs/probable-community.md`](docs/probable-community.md).
 - NISRA only provides this comparable combined measure from 2001. The 1971–1991
   benchmark entries remain legacy estimates and are explicitly flagged in the
   YAML pending reconstruction from historical source tables.

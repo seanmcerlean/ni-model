@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from sqlalchemy import (
     JSON,
     BigInteger,
+    CheckConstraint,
     Column,
     DateTime,
     Enum,
@@ -85,6 +86,7 @@ class Person(Base):
     age = Column(Integer, nullable=False)
     birth_year = Column(Integer, nullable=True, index=True)
     religious_background = Column(Enum(ReligiousBackground), nullable=False)
+    probable_community = Column(Enum(ReligiousBackground), nullable=False)
     gender = Column(Enum(Gender), nullable=False)
     education_level = Column(Enum(EducationLevel), nullable=False)
     location = Column(Enum(Location), nullable=False)
@@ -92,8 +94,13 @@ class Person(Base):
 
     # Indexes for performance
     __table_args__ = (
+        CheckConstraint(
+            "probable_community <> 'NONE'",
+            name="ck_person_probable_community_not_none",
+        ),
         Index("idx_age", "age"),
         Index("idx_religious_background", "religious_background"),
+        Index("idx_probable_community", "probable_community"),
         Index("idx_location", "location"),
         Index("idx_origin", "origin"),
         Index("idx_age_location", "age", "location"),
@@ -101,6 +108,18 @@ class Person(Base):
         Index("idx_run_location", "run_id", "location"),
         Index("idx_run_age", "run_id", "age"),
     )
+
+    def __init__(self, **kwargs):
+        # Keep existing callers and fixtures meaningful: absent an explicit
+        # estimate, the reported background is the best available value.
+        if "probable_community" not in kwargs:
+            reported = kwargs.get("religious_background")
+            kwargs["probable_community"] = (
+                ReligiousBackground.OTHER
+                if reported == ReligiousBackground.NONE
+                else reported
+            )
+        super().__init__(**kwargs)
 
 
 class SimulationRun(Base):

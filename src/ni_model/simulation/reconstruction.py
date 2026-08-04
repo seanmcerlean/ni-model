@@ -35,6 +35,13 @@ class PopulationReconstructor:
         )
         if checkpoint:
             population = EventStore.load(checkpoint)
+            if "probable_community" not in population.columns:
+                population = population.with_columns(
+                    pl.when(pl.col("religious_background") == "none")
+                    .then(pl.lit("other"))
+                    .otherwise(pl.col("religious_background"))
+                    .alias("probable_community")
+                )
             after_year = checkpoint.year
         else:
             population = ColumnarSimulationWorker.baseline_frame(
@@ -73,6 +80,12 @@ class PopulationReconstructor:
                 {
                     **event.data,
                     "person_id": uuid.UUID(event.data["person_id"]).bytes,
+                    "probable_community": event.data.get("probable_community")
+                    or (
+                        "other"
+                        if event.data.get("religious_background") == "none"
+                        else event.data.get("religious_background")
+                    ),
                 }
                 for event in yearly
                 if event.event_type in {"birth", "arrival"}
@@ -117,6 +130,15 @@ class PopulationReconstructor:
                 )
                 population = (
                     population.join(transition_frame, on="person_id", how="left")
+                    .with_columns(
+                        pl.when(
+                            pl.col("new_background").is_not_null()
+                            & (pl.col("new_background") != "none")
+                        )
+                        .then(pl.col("new_background"))
+                        .otherwise(pl.col("probable_community"))
+                        .alias("probable_community")
+                    )
                     .with_columns(
                         pl.coalesce("new_background", "religious_background").alias(
                             "religious_background"
@@ -178,6 +200,7 @@ class PopulationReconstructor:
                 "birth_year",
                 "age",
                 "religious_background",
+                "probable_community",
                 "gender",
                 "education_level",
                 "location",
@@ -219,6 +242,7 @@ class PopulationReconstructor:
                     else run.start_year - baseline.age
                 ),
                 "religious_background": baseline.religious_background.value,
+                "probable_community": baseline.probable_community.value,
                 "gender": baseline.gender.value,
                 "education_level": baseline.education_level.value,
                 "location": baseline.location.value,
