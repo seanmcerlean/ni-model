@@ -3,8 +3,8 @@ baseline_profile: current
 baseline_population: 1903175
 description: NISRA 2024 principal totals split by community background using conservative
   estimated differentials calibrated to Census 2011–2021 change. Annual component rates are
-  normalized to the official starting total. Estimated two-way community-identification
-  transitions are included. This sensitivity scenario is not an official projection.
+  normalized to the official starting total. Estimated two-way community-identification transitions
+  are included. This sensitivity scenario is not an official projection.
 baseline_year: 2021
 data_through: 2024
 projection_version: Estimated community differential over NISRA/ONS 2024 principal
@@ -13,29 +13,123 @@ default_end_year: 2050
 rate_jitter: 0
 random_seed: 42
 integration_rates:
-- {rate: 0.35, year_min: 2022, destination: NONE, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 0.65, year_min: 2022, destination: NONE, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 0.03, year_min: 2022, destination: PROTESTANT, filters: {religious_background: CATHOLIC, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 0.03, year_min: 2022, destination: CATHOLIC, filters: {religious_background: PROTESTANT, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 3.2, year_min: 2022, destination: CATHOLIC, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 2.8, year_min: 2022, destination: PROTESTANT, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 0.2, year_min: 2022, destination: OTHER, filters: {religious_background: NONE, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 4.0, year_min: 2022, destination: CATHOLIC, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 3.5, year_min: 2022, destination: PROTESTANT, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
-- {rate: 1.0, year_min: 2022, destination: NONE, filters: {religious_background: OTHER, age_min: 18, age_max: 44}, evidence: estimated_identity_transition}
+- rate: 0.35
+  year_min: 2022
+  destination: NONE
+  filters:
+    religious_background: CATHOLIC
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 0.65
+  year_min: 2022
+  destination: NONE
+  filters:
+    religious_background: PROTESTANT
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 0.03
+  year_min: 2022
+  destination: PROTESTANT
+  filters:
+    religious_background: CATHOLIC
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 0.03
+  year_min: 2022
+  destination: CATHOLIC
+  filters:
+    religious_background: PROTESTANT
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 3.2
+  year_min: 2022
+  destination: CATHOLIC
+  filters:
+    religious_background: NONE
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 2.8
+  year_min: 2022
+  destination: PROTESTANT
+  filters:
+    religious_background: NONE
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 0.2
+  year_min: 2022
+  destination: OTHER
+  filters:
+    religious_background: NONE
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 4.0
+  year_min: 2022
+  destination: CATHOLIC
+  filters:
+    religious_background: OTHER
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 3.5
+  year_min: 2022
+  destination: PROTESTANT
+  filters:
+    religious_background: OTHER
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
+- rate: 1.0
+  year_min: 2022
+  destination: NONE
+  filters:
+    religious_background: OTHER
+    age_min: 18
+    age_max: 44
+  evidence: estimated_identity_transition
 mortality_age_rates:
-- {age_min: 0, age_max: 0, rate: 4.424556}
-- {age_min: 1, age_max: 4, rate: 0.091557}
-- {age_min: 5, age_max: 9, rate: 0.073626}
-- {age_min: 10, age_max: 14, rate: 0.030976}
-- {age_min: 15, age_max: 24, rate: 0.466414}
-- {age_min: 25, age_max: 34, rate: 0.836050}
-- {age_min: 35, age_max: 44, rate: 1.455992}
-- {age_min: 45, age_max: 54, rate: 2.839962}
-- {age_min: 55, age_max: 64, rate: 7.009875}
-- {age_min: 65, age_max: 74, rate: 16.609164}
-- {age_min: 75, age_max: 84, rate: 44.028801}
-- {age_min: 85, age_max: 130, rate: 149.379433}
+- age_min: 0
+  age_max: 0
+  rate: 4.424556
+- age_min: 1
+  age_max: 4
+  rate: 0.091557
+- age_min: 5
+  age_max: 9
+  rate: 0.073626
+- age_min: 10
+  age_max: 14
+  rate: 0.030976
+- age_min: 15
+  age_max: 24
+  rate: 0.466414
+- age_min: 25
+  age_max: 34
+  rate: 0.83605
+- age_min: 35
+  age_max: 44
+  rate: 1.455992
+- age_min: 45
+  age_max: 54
+  rate: 2.839962
+- age_min: 55
+  age_max: 64
+  rate: 7.009875
+- age_min: 65
+  age_max: 74
+  rate: 16.609164
+- age_min: 75
+  age_max: 84
+  rate: 44.028801
+- age_min: 85
+  age_max: 130
+  rate: 149.379433
 birth_rates:
 - rate: 12.135442
   year_min: 2022
@@ -5456,663 +5550,2929 @@ migration_rates:
   evidence: estimated_community_differential
   flow: out
 internal_migration_rates:
-- rate: 1.07098
+- rate: 0.917752
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 9.645684
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.790573
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.349528
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.668891
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.537453
   year_min: 2022
   destination: BELFAST
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 1.942867
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.64305
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 17.094017
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 26.077287
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.311074
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 0.466837
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.618793
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.226578
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.633686
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 0.425646
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.200781
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.278843
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.633686
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 2.087038
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.250976
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.722825
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.616992
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 6.007099
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.317622
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.899685
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.839033
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.94476
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 1.016058
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.948123
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.398111
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 16.680567
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.59514
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 0.755178
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.577244
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.79937
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.390047
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.311074
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 1.503491
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.389012
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.249213
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.778426
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.677388
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: ANTRIM_AND_NEWTOWNABBEY
-  evidence: census_2021_origin_destination
-- rate: 0.76833
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.141939
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.699055
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.059772
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ANTRIM_AND_NEWTOWNABBEY
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.563275
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 5.648141
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.754436
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.483129
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.830486
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.351108
   year_min: 2022
   destination: BELFAST
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 0.987853
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.223499
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.494253
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 20.079876
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.625861
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 0.48478
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.940596
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.370782
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.272687
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.594568
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 0.589968
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.254745
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.741565
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.164855
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.563275
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 2.396458
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.4605
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.370782
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.49767
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.147411
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 0.429899
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.380882
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.044865
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.431329
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.177327
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 1.920825
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.352723
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.27424
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.242667
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 2.337004
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.361904
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.660972
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.357408
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 0.72717
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.303117
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.561735
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.59929
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.198189
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: ARMAGH_BANBRIDGE_CRAIGAVON
-  evidence: census_2021_origin_destination
-- rate: 4.287559
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.646659
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.337041
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.605503
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: ARMAGH_BANBRIDGE_CRAIGAVON
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.060539
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 2.179967
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.494305
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.304348
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 12.220723
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.652097
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.531478
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.671535
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.130435
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.297796
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.962733
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.33172
-  year_min: 2022
-  destination: DERRY_STRABANE
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.042216
-  year_min: 2022
-  destination: FERMANAGH_OMAGH
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 7.761611
-  year_min: 2022
-  destination: LISBURN_CASTLEREAGH
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.887568
-  year_min: 2022
-  destination: MID_EAST_ANTRIM
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.3433
-  year_min: 2022
-  destination: MID_ULSTER
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 2.321825
-  year_min: 2022
-  destination: NEWRY_MOURNE_DOWN
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 4.067536
-  year_min: 2022
-  destination: ARDS_NORTH_DOWN
-  filters:
-    location: BELFAST
-  evidence: census_2021_origin_destination
-- rate: 1.354536
-  year_min: 2022
-  destination: ANTRIM_AND_NEWTOWNABBEY
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.761926
-  year_min: 2022
-  destination: ARMAGH_BANBRIDGE_CRAIGAVON
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 5.25588
-  year_min: 2022
-  destination: BELFAST
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 1.975364
-  year_min: 2022
-  destination: DERRY_STRABANE
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.56439
-  year_min: 2022
-  destination: FERMANAGH_OMAGH
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.649048
-  year_min: 2022
-  destination: LISBURN_CASTLEREAGH
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 2.426876
-  year_min: 2022
-  destination: MID_EAST_ANTRIM
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 1.305151
-  year_min: 2022
-  destination: MID_ULSTER
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.910079
-  year_min: 2022
-  destination: NEWRY_MOURNE_DOWN
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.83953
-  year_min: 2022
-  destination: ARDS_NORTH_DOWN
-  filters:
-    location: CAUSEWAY_COAST_GLENS
-  evidence: census_2021_origin_destination
-- rate: 0.570458
-  year_min: 2022
-  destination: ANTRIM_AND_NEWTOWNABBEY
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.610258
-  year_min: 2022
-  destination: ARMAGH_BANBRIDGE_CRAIGAVON
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 5.180557
-  year_min: 2022
-  destination: BELFAST
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 2.600228
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.361107
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 1.512378
-  year_min: 2022
-  destination: FERMANAGH_OMAGH
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.484226
-  year_min: 2022
-  destination: LISBURN_CASTLEREAGH
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.497493
-  year_min: 2022
-  destination: MID_EAST_ANTRIM
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.630157
-  year_min: 2022
-  destination: MID_ULSTER
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.616891
-  year_min: 2022
-  destination: NEWRY_MOURNE_DOWN
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.291862
-  year_min: 2022
-  destination: ARDS_NORTH_DOWN
-  filters:
-    location: DERRY_STRABANE
-  evidence: census_2021_origin_destination
-- rate: 0.719104
-  year_min: 2022
-  destination: ANTRIM_AND_NEWTOWNABBEY
-  filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.744786
-  year_min: 2022
-  destination: ARMAGH_BANBRIDGE_CRAIGAVON
-  filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 5.307674
-  year_min: 2022
-  destination: BELFAST
-  filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.907441
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.869565
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 1.67791
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.648373
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.337129
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.650618
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.493501
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.782609
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.098566
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.182616
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.589017
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.956522
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.899335
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.437657
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.196898
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.19264
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 9.478261
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 21.967311
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.754735
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
-    location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.775011
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.304348
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.17249
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.681811
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.573098
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.434783
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.59909
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.662372
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.907405
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.869565
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.173189
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.057817
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: BELFAST
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.600702
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: BELFAST
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.695652
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: BELFAST
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 15.444594
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: BELFAST
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.79139
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.089204
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.722323
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.776751
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.54518
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.675583
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
 - rate: 1.814882
   year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.3107
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.871443
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.895354
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.259528
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 22.218272
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.409342
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.171929
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.814882
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.976893
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.474834
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.344685
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.488446
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.351729
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.579071
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.907441
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.57732
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.28381
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.523094
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.820832
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.670712
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.799669
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.907441
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.755066
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.756217
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.386047
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.722323
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.88802
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.422074
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.813457
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.907441
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.110558
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: CAUSEWAY_COAST_GLENS
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.403185
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.688705
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.043127
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.267145
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.394022
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.860882
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.347709
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.211789
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.178464
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.1809
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.086253
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 44.776119
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.796007
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.185262
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.021563
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 15.492159
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.273699
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.664371
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.347709
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.478934
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.284062
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.401745
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.695418
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.534291
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.247409
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.545225
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.347709
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.101077
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.503981
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.459137
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.347709
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.156433
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.568125
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.258264
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.673854
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.967504
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.137449
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.631313
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.322501
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: DERRY_STRABANE
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.266322
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.976127
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.05934
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.532644
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.83668
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.931966
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.343084
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.753852
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.012048
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.523765
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 30.923527
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.732386
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.948237
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.552027
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.278347
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.896475
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.686168
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.452748
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.585676
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.931966
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.178855
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.066581
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.223115
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.089427
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.531353
+  year_min: 2022
   destination: MID_ULSTER
   filters:
     location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.522207
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.812807
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.931966
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.477225
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.386167
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 0.359552
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.446229
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.343084
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.066581
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: FERMANAGH_OMAGH
-  evidence: census_2021_origin_destination
-- rate: 2.018698
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.613565
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.931966
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.925198
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: FERMANAGH_OMAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.120159
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 4.473328
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.150973
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.191895
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.851314
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.736484
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 13.755315
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.84425
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.575685
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.127945
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 16.517516
   year_min: 2022
   destination: BELFAST
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 1.602887
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 7.020936
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.521653
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 38.764955
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.528487
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 0.556651
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.335129
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.397298
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.134632
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.665631
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 0.543238
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.276234
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.191895
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.515072
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.764243
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 0.87857
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.264724
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.986492
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.149365
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.24653
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 0.630424
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.702094
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.397298
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.082389
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.838202
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 2.957627
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.43737
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.149365
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.377462
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 4.72818
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.519285
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.164879
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.306776
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.725711
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: LISBURN_CASTLEREAGH
-  evidence: census_2021_origin_destination
-- rate: 5.129718
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.982367
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.191895
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 14.941748
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: LISBURN_CASTLEREAGH
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.133592
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 0.877736
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.615863
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.931394
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 14.608944
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.024253
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 5.273609
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.641869
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.019122
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.962615
   year_min: 2022
   destination: BELFAST
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 2.697958
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.706548
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 9.694258
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 18.053329
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.98727
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 0.467646
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.786536
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.474273
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.522893
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.170575
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 0.15828
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.213956
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.745712
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.712631
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.146322
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 1.071989
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.128374
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.237136
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.178158
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.877931
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 1.071989
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.802336
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.969297
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.865603
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 0.359728
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.599078
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.49421
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.438966
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 1.201491
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.181863
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.491424
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.128333
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.402385
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: MID_EAST_ANTRIM
-  evidence: census_2021_origin_destination
-- rate: 1.270851
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.920012
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.745712
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.097631
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_EAST_ANTRIM
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.76055
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 2.874385
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.783316
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.974334
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.182137
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.096652
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 5.229784
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.840096
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.935834
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 14.327084
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.16247
   year_min: 2022
   destination: BELFAST
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 1.749915
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.478567
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 12.833169
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 32.007316
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.130547
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 1.011358
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.11356
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.987167
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.535284
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.863327
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 1.596881
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.836617
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.974334
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.267642
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.418323
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 0.52564
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.431056
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.923001
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.724889
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.472774
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 0.745211
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.308227
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.987167
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.743484
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.49333
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 0.838362
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.88065
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.9615
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.200732
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.688606
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 0.292761
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.35226
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.987167
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 6.401463
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.041111
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: MID_ULSTER
-  evidence: census_2021_origin_destination
-- rate: 0.455859
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.52839
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.987167
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.286237
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: MID_ULSTER
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.380807
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 3.438163
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.325244
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.110372
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.536177
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 7.518921
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.977983
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.521477
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 13.506384
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 5.887281
   year_min: 2022
   destination: BELFAST
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.873271
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.628471
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 30.14318
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 39.14741
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.487433
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.60415
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.200901
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.260739
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.642819
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.411272
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.444874
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.300225
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.642819
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.350343
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 1.872865
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.275206
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.75358
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.426928
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.921554
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.302075
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.601951
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.260739
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 11.923605
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.258949
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.472335
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.225169
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.266223
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.456969
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 1.32913
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.275206
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.582779
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.510282
   year_min: 2022
   destination: ARDS_NORTH_DOWN
   filters:
     location: NEWRY_MOURNE_DOWN
-  evidence: census_2021_origin_destination
-- rate: 1.081517
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.176632
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.260739
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.969083
+  year_min: 2022
+  destination: ARDS_NORTH_DOWN
+  filters:
+    location: NEWRY_MOURNE_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.673794
   year_min: 2022
   destination: ANTRIM_AND_NEWTOWNABBEY
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.830996
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.836519
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.894055
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.394225
+  year_min: 2022
+  destination: ANTRIM_AND_NEWTOWNABBEY
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.718714
   year_min: 2022
   destination: ARMAGH_BANBRIDGE_CRAIGAVON
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 7.210114
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.611648
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.894055
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.786735
+  year_min: 2022
+  destination: ARMAGH_BANBRIDGE_CRAIGAVON
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.80424
   year_min: 2022
   destination: BELFAST
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.959312
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.957724
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 8.493518
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 18.76072
+  year_min: 2022
+  destination: BELFAST
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.628874
   year_min: 2022
   destination: CAUSEWAY_COAST_GLENS
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.287182
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.620643
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.894055
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.572899
+  year_min: 2022
+  destination: CAUSEWAY_COAST_GLENS
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.718714
   year_min: 2022
   destination: DERRY_STRABANE
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.274962
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.053969
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.894055
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.821898
+  year_min: 2022
+  destination: DERRY_STRABANE
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.539035
   year_min: 2022
   destination: FERMANAGH_OMAGH
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 2.389114
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.188891
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.894055
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.357347
+  year_min: 2022
+  destination: FERMANAGH_OMAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.437427
   year_min: 2022
   destination: LISBURN_CASTLEREAGH
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 1.020414
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.879919
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.9173
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.967124
+  year_min: 2022
+  destination: LISBURN_CASTLEREAGH
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.494116
   year_min: 2022
   destination: MID_EAST_ANTRIM
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 0.323844
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.899483
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 2.001144
+  year_min: 2022
+  destination: MID_EAST_ANTRIM
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.404276
   year_min: 2022
   destination: MID_ULSTER
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
-- rate: 1.753646
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.161907
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 3.129191
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 0.678959
+  year_min: 2022
+  destination: MID_ULSTER
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.751864
   year_min: 2022
   destination: NEWRY_MOURNE_DOWN
   filters:
     location: ARDS_NORTH_DOWN
-  evidence: census_2021_origin_destination
+    religious_background: CATHOLIC
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.151338
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: PROTESTANT
+  evidence: census_2021_origin_destination_by_religion
+- rate: 1.341082
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: OTHER
+  evidence: census_2021_origin_destination_by_religion
+- rate: 4.180961
+  year_min: 2022
+  destination: NEWRY_MOURNE_DOWN
+  filters:
+    location: ARDS_NORTH_DOWN
+    religious_background: NONE
+  evidence: census_2021_origin_destination_by_religion

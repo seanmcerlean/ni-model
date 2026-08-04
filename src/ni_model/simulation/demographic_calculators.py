@@ -14,6 +14,7 @@ from ..core.models import (
     Person,
     ReligiousBackground,
 )
+from .sampling import stochastic_round
 
 
 class DemographicCalculator(ABC):
@@ -229,7 +230,8 @@ class InternalMigrationCalculator(DemographicCalculator):
         excluded_ids = excluded_ids or set()
         full_cohort = self._get_cohort() if cohort is None else cohort
         available = [person for person in full_cohort if person.id not in excluded_ids]
-        num_movers = min(int((self.rate / 1000.0) * len(full_cohort)), len(available))
+        expected = (self.rate / 1000.0) * len(full_cohort)
+        num_movers = min(stochastic_round(expected, self.rng.random()), len(available))
         return self.rng.sample(available, num_movers) if num_movers > 0 else []
 
     def apply_movers(self, movers: List[Person]) -> None:

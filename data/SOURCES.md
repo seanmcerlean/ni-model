@@ -175,8 +175,23 @@ codes join directly to the Census and migration tables.
 `ni_internal_migration_lgd_2021.csv` is extracted from NISRA Census 2021 public
 origin–destination table ODMG01NI-UK. It contains all 110 directed movements
 between different LGDs during the year before Census day, totalling 38,074
-people. Rates use the exact Census 2021 source-LGD population in
-`ni_census_2021_lgd_population.csv` as denominator.
+people.
+
+`ni_internal_migration_lgd_2021_by_religion.csv` adds the mover composition
+published in ODMG20NI-UK. The five published current-religion categories are
+mapped to the model's four groups: Catholic and Protestant/other Christian map
+directly, Other Religions maps to Other, and No Religion plus Religion Not
+Stated map to None. Disclosure treatment leaves the religion table 15 people
+short of ODMG01; each origin-destination set is proportionally controlled with
+largest remainders to its authoritative ODMG01 total. Rates divide each
+controlled flow by the corresponding source-LGD Census 2021
+community-background population.
+
+ODMG20 records current religion, not “religion or religion brought up in”. Its
+use for modelled community background is therefore a documented proxy. It is,
+however, materially better supported than assuming movers have the average
+community composition of their entire source LGD—the previous assumption that
+created artificial Protestant inflows into western districts.
 
 - [Census 2021 origin–destination migration tables](https://www.nisra.gov.uk/publications/census-2021-origin-destination-migration-tables-uk)
 - [Census 2021 LGD population table](https://build.nisra.gov.uk/en/custom/data?d=PEOPLE&v=LGD14)

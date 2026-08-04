@@ -98,7 +98,7 @@ export interface ModelRule {
   year_min?: number;
   year_max?: number;
   destination?: string;
-  evidence?: "observed" | "observed_net_only" | "principal_projection" | "census_2021_origin_destination" | "estimated_community_differential" | "estimated_identity_transition";
+  evidence?: "observed" | "observed_net_only" | "principal_projection" | "census_2021_origin_destination" | "census_2021_origin_destination_by_religion" | "estimated_community_differential" | "estimated_identity_transition";
   flow?: "in" | "out";
   filters?: Record<string, string | number>;
 }

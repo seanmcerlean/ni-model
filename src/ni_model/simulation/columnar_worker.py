@@ -14,6 +14,7 @@ from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
 from ..core.models import Location, Person, ReligiousBackground
+from .sampling import stochastic_round
 
 EVENT_CODES = {
     "birth": 1,
@@ -476,7 +477,8 @@ class ColumnarSimulationWorker:
                 cohort = self.population.filter(self._filter_expression(filters, year))
                 cohorts[cohort_key] = cohort["person_number"].to_numpy()
             cohort_numbers = cohorts[cohort_key]
-            count = int(self._rate(rule, rng) / 1000 * len(cohort_numbers))
+            expected = self._rate(rule, rng) / 1000 * len(cohort_numbers)
+            count = stochastic_round(expected, rng.random())
             if selected_numbers:
                 selected_array = np.fromiter(selected_numbers, dtype=np.int64)
                 available = cohort_numbers[

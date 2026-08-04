@@ -75,7 +75,14 @@ def test_simulation_models_describes_available_configs(client):
     assert current["year_max"] == 2074
     assert current["birth_rules"] == 53
     assert current["migration_rules"] == 103
-    assert current["internal_migration_rules"] == 110
+    assert current["internal_migration_rules"] == 418
+    assert (
+        current["internal_migration_rate_rules"][0]["evidence"]
+        == "census_2021_origin_destination_by_religion"
+    )
+    assert "religious_background" in current["internal_migration_rate_rules"][0][
+        "filters"
+    ]
     assert current["integration_rules"] == 10
     assert current["integration_rate_rules"][0]["destination"] == "NONE"
     assert current["default_start_year"] == 2024

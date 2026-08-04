@@ -22,7 +22,21 @@ OBSERVED_PATH = ROOT / "data" / "ni_population_components_2002_2024.csv"
 PROJECTION_PATH = ROOT / "data" / "ni_population_projection_2024_2074.csv"
 LGD_POPULATION_PATH = ROOT / "data" / "ni_census_2021_lgd_population.csv"
 INTERNAL_MIGRATION_PATH = ROOT / "data" / "ni_internal_migration_lgd_2021.csv"
+COMMUNITY_BACKGROUND_PATH = (
+    ROOT / "data" / "ni_census_2021_lgd_community_background.csv"
+)
+COMMUNITY_MIGRATION_PATH = (
+    ROOT / "data" / "ni_internal_migration_lgd_2021_by_religion.csv"
+)
 MODEL_PATH = ROOT / "models" / "ni_current.yaml"
+
+MIGRATION_RELIGION_MAP = {
+    "Catholic": "catholic",
+    "Protestant and Other Christian": "protestant",
+    "Other Religions": "other",
+    "No Religion": "none",
+    "Religion Not Stated": "none",
+}
 
 
 def _integer(value):
@@ -158,8 +172,111 @@ def write_internal_migration(rows):
             )
 
 
+def _controlled_counts(counts, target):
+    """Scale disclosure-affected subgroup cells to the published all-person total."""
+    current = sum(counts.values())
+    if current == 0:
+        return {background: 0 for background in MIGRATION_RELIGION_MAP.values()}
+    raw = {background: count * target / current for background, count in counts.items()}
+    controlled = {background: int(value) for background, value in raw.items()}
+    remainder = target - sum(controlled.values())
+    for background in sorted(raw, key=lambda item: (raw[item] % 1, item), reverse=True)[
+        :remainder
+    ]:
+        controlled[background] += 1
+    return controlled
+
+
+def extract_community_internal_migration(archive_path, total_flows):
+    """Extract OD flows by published current religion as a background proxy."""
+    with COMMUNITY_BACKGROUND_PATH.open(encoding="utf-8", newline="") as source:
+        background_rows = list(csv.DictReader(source))
+    populations = {
+        (row["code"], background): int(row[background])
+        for row in background_rows
+        for background in MIGRATION_RELIGION_MAP.values()
+    }
+    codes = {row["code"] for row in background_rows}
+    observed = {}
+    with zipfile.ZipFile(archive_path) as archive:
+        binary_source = archive.open("ODMG20NI-UK-LGD.csv")
+        source = io.TextIOWrapper(binary_source, encoding="utf-8-sig")
+        for row in csv.DictReader(source):
+            source_code = row["Migrant one year ago area code"]
+            destination_code = row["Area of residence code"]
+            if source_code not in codes or destination_code not in codes:
+                continue
+            if source_code == destination_code:
+                continue
+            key = (source_code, destination_code)
+            if key not in observed:
+                observed[key] = {
+                    background: 0 for background in MIGRATION_RELIGION_MAP.values()
+                }
+            background = MIGRATION_RELIGION_MAP[
+                row["RELIGION_BELONG_TO_DVO_AGG5_label"]
+            ]
+            observed[key][background] += int(row["Count"])
+
+    flows = []
+    for total_flow in total_flows:
+        key = (total_flow["source_code"], total_flow["destination_code"])
+        controlled = _controlled_counts(observed[key], total_flow["count"])
+        for background, count in controlled.items():
+            if count == 0:
+                continue
+            flows.append(
+                {
+                    "source_code": total_flow["source_code"],
+                    "source": total_flow["source"],
+                    "destination_code": total_flow["destination_code"],
+                    "destination": total_flow["destination"],
+                    "religious_background": background,
+                    "count": count,
+                    "source_population": populations[(key[0], background)],
+                }
+            )
+    return flows
+
+
+def write_community_internal_migration(rows):
+    fields = [
+        "source_code",
+        "source",
+        "destination_code",
+        "destination",
+        "religious_background",
+        "count",
+        "source_population",
+        "rate_per_1000",
+    ]
+    with COMMUNITY_MIGRATION_PATH.open("w", encoding="utf-8", newline="") as target:
+        writer = csv.DictWriter(target, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(
+                {**row, "rate_per_1000": _rate(row["count"], row["source_population"])}
+            )
+
+
 def _rate(count, population):
     return round(count * 1000 / population, 6)
+
+
+def build_internal_migration_rules(internal_flows):
+    return [
+        {
+            "rate": _rate(flow["count"], flow["source_population"]),
+            "year_min": 2022,
+            "destination": flow["destination"].upper(),
+            "filters": {
+                "location": flow["source"].upper(),
+                "religious_background": flow["religious_background"].upper(),
+            },
+            "evidence": "census_2021_origin_destination_by_religion",
+        }
+        for flow in internal_flows
+    ]
 
 
 def build_model(rows, internal_flows):
@@ -246,16 +363,7 @@ def build_model(rows, internal_flows):
         "birth_rates": births,
         "death_rates": deaths,
         "migration_rates": migration,
-        "internal_migration_rates": [
-            {
-                "rate": _rate(flow["count"], flow["source_population"]),
-                "year_min": 2022,
-                "destination": flow["destination"].upper(),
-                "filters": {"location": flow["source"].upper()},
-                "evidence": "census_2021_origin_destination",
-            }
-            for flow in internal_flows
-        ],
+        "internal_migration_rates": build_internal_migration_rules(internal_flows),
     }
 
 
@@ -263,14 +371,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("workbook", type=Path)
     parser.add_argument("origin_destination_zip", type=Path)
+    parser.add_argument("origin_destination_religion_zip", type=Path)
     args = parser.parse_args()
     rows = read_observed() + extract_projection(args.workbook)
     internal_flows = extract_internal_migration(args.origin_destination_zip)
+    community_internal_flows = extract_community_internal_migration(
+        args.origin_destination_religion_zip, internal_flows
+    )
     write_projection(rows)
     write_internal_migration(internal_flows)
+    write_community_internal_migration(community_internal_flows)
     with MODEL_PATH.open("w", encoding="utf-8") as target:
         yaml.safe_dump(
-            build_model(rows, internal_flows),
+            build_model(rows, community_internal_flows),
             target,
             sort_keys=False,
             allow_unicode=True,
