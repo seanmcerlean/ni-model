@@ -64,6 +64,14 @@ class RelocationCohort:
     destination: str
 
 
+@dataclass(frozen=True)
+class IntegrationCohort:
+    rng: np.random.Generator
+    people: pl.DataFrame
+    count: int
+    destination: str
+
+
 class ColumnarSimulationWorker:
     """Evolve all residents as typed columns and retain individual events."""
 
@@ -439,6 +447,91 @@ class ColumnarSimulationWorker:
             total += self._remove_people(ids, year, "death")
         return total
 
+    def _profiled_immigrants(self, profiles, count, rng):
+        weights = np.array(
+            [profile["weight"] for profile in profiles], dtype=np.float64
+        )
+        selected = rng.choice(
+            len(profiles), size=count, replace=True, p=weights / weights.sum()
+        )
+        backgrounds = [
+            profiles[index]["religious_background"].lower() for index in selected
+        ]
+        locations = [profiles[index]["location"].lower() for index in selected]
+        return (
+            backgrounds,
+            self._initial_probable_communities(backgrounds, locations, rng),
+            locations,
+            [profiles[index]["origin"].lower() for index in selected],
+        )
+
+    @staticmethod
+    def _templated_immigrants(cohort, count, rng):
+        templates = cohort[rng.choice(cohort.height, size=count, replace=True).tolist()]
+        return (
+            templates["religious_background"],
+            templates["probable_community"],
+            templates["location"],
+            ["other"] * count,
+        )
+
+    def _fallback_immigrants(self, count, rng):
+        backgrounds = rng.choice(
+            ["catholic", "protestant", "other", "none"], size=count
+        )
+        locations = ["belfast"] * count
+        return (
+            backgrounds,
+            self._initial_probable_communities(backgrounds, locations, rng),
+            locations,
+            ["other"] * count,
+        )
+
+    def _immigrant_attributes(self, cohort, count, rng):
+        profiles = self.config.get("immigration_profiles", [])
+        if profiles:
+            return self._profiled_immigrants(profiles, count, rng)
+        if cohort.height:
+            return self._templated_immigrants(cohort, count, rng)
+        return self._fallback_immigrants(count, rng)
+
+    def _arrival_frame(self, year, count, cohort, rng):
+        backgrounds, probable, locations, origins = self._immigrant_attributes(
+            cohort, count, rng
+        )
+        numbers = range(self._next_person_number, self._next_person_number + count)
+        self._next_person_number += count
+        return pl.DataFrame(
+            {
+                "person_id": self._new_ids(year, "arrival", count),
+                "person_number": numbers,
+                "birth_year": year - rng.integers(18, 46, size=count),
+                "religious_background": backgrounds,
+                "probable_community": probable,
+                "gender": rng.choice(["male", "female"], size=count),
+                "education_level": rng.choice(
+                    [
+                        "pre_primary",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "postgraduate",
+                    ],
+                    size=count,
+                ),
+                "location": locations,
+                "origin": origins,
+            },
+            schema=COLUMN_TYPES,
+        )
+
+    def _append_arrivals(self, arrivals, year):
+        self._append_people(arrivals)
+        self.events.extend(
+            PopulationEvent(row["person_id"], year, "arrival", row)
+            for row in arrivals.iter_rows(named=True)
+        )
+
     def _external_migration(self, year: int) -> tuple[int, int]:
         immigration = emigration = 0
         for rule_index, rule in self._active_rules("migration_rates", year):
@@ -452,79 +545,9 @@ class ColumnarSimulationWorker:
                 ids = self._selected_ids(cohort, abs(change), rng)
                 emigration += self._remove_people(ids, year, "departure")
                 continue
-            if change == 0:
+            if not change:
                 continue
-            profiles = self.config.get("immigration_profiles", [])
-            if profiles:
-                weights = np.array(
-                    [profile["weight"] for profile in profiles], dtype=np.float64
-                )
-                selected_profiles = rng.choice(
-                    len(profiles), size=change, replace=True, p=weights / weights.sum()
-                )
-                backgrounds = [
-                    profiles[index]["religious_background"].lower()
-                    for index in selected_profiles
-                ]
-                locations = [
-                    profiles[index]["location"].lower() for index in selected_profiles
-                ]
-                probable_communities = self._initial_probable_communities(
-                    backgrounds, locations, rng
-                )
-                origins = [
-                    profiles[index]["origin"].lower() for index in selected_profiles
-                ]
-            elif cohort.height:
-                templates = cohort[
-                    rng.choice(cohort.height, size=change, replace=True).tolist()
-                ]
-                backgrounds = templates["religious_background"]
-                probable_communities = templates["probable_community"]
-                locations = templates["location"]
-                origins = ["other"] * change
-            else:
-                backgrounds = rng.choice(
-                    ["catholic", "protestant", "other", "none"], size=change
-                )
-                locations = ["belfast"] * change
-                origins = ["other"] * change
-                probable_communities = self._initial_probable_communities(
-                    backgrounds, locations, rng
-                )
-            ids = self._new_ids(year, "arrival", change)
-            numbers = list(
-                range(self._next_person_number, self._next_person_number + change)
-            )
-            self._next_person_number += change
-            arrivals = pl.DataFrame(
-                {
-                    "person_id": ids,
-                    "person_number": numbers,
-                    "birth_year": year - rng.integers(18, 46, size=change),
-                    "religious_background": backgrounds,
-                    "probable_community": probable_communities,
-                    "gender": rng.choice(["male", "female"], size=change),
-                    "education_level": rng.choice(
-                        [
-                            "pre_primary",
-                            "primary",
-                            "secondary",
-                            "tertiary",
-                            "postgraduate",
-                        ],
-                        size=change,
-                    ),
-                    "location": locations,
-                    "origin": origins,
-                },
-                schema=COLUMN_TYPES,
-            )
-            self._append_people(arrivals)
-            for row in arrivals.iter_rows(named=True):
-                self.events.append(
-                    PopulationEvent(row["person_id"], year, "arrival", row)
-                )
+            self._append_arrivals(self._arrival_frame(year, change, cohort, rng), year)
             immigration += change
         return immigration, emigration
 
@@ -640,11 +663,9 @@ class ColumnarSimulationWorker:
         self._apply_relocations(moves, year)
         return len(moves)
 
-    def _integration(self, year: int) -> tuple[int, dict[str, int]]:
-        """Apply competing community-identification flows simultaneously."""
-        selected_numbers: set[int] = set()
-        plans = []
+    def _integration_cohorts(self, year: int) -> list[IntegrationCohort]:
         cohorts: dict[tuple, pl.DataFrame] = {}
+        active = []
         for rule_index, rule in self._active_rules("integration_rates", year):
             rng = self._rng(year, "integration", rule_index)
             filters = rule.get("filters", {})
@@ -655,77 +676,92 @@ class ColumnarSimulationWorker:
                 )
             cohort = cohorts[cohort_key]
             count = int(self._rate(rule, rng) / 1000 * cohort.height)
-            available = cohort
+            active.append(
+                IntegrationCohort(rng, cohort, count, rule["destination"].lower())
+            )
+        return active
+
+    def _select_integrations(self, cohorts):
+        selected_numbers: set[int] = set()
+        plans = []
+        for cohort in cohorts:
+            available = cohort.people
             if selected_numbers:
                 available = available.filter(
                     ~pl.col("person_number").is_in(list(selected_numbers))
                 )
-            selected = self._selected_ids(available, count, rng)
-            if selected:
-                numbers = available.filter(pl.col("person_id").is_in(selected))[
+            selected = self._selected_ids(available, cohort.count, cohort.rng)
+            numbers = (
+                available.filter(pl.col("person_id").is_in(selected))[
                     "person_number"
                 ].to_list()
-            else:
-                numbers = []
+                if selected
+                else []
+            )
             selected_numbers.update(numbers)
-            plans.append((numbers, rule["destination"].lower()))
-        changes = [
+            plans.append((numbers, cohort.destination))
+        return [
             (person_number, destination)
             for numbers, destination in plans
             for person_number in numbers
         ]
-        breakdown: dict[str, int] = {}
-        if changes:
-            change_frame = pl.DataFrame(
-                changes,
-                schema={"person_number": pl.Int64, "new_background": pl.String},
-                orient="row",
+
+    def _apply_integrations(self, changes, year):
+        if not changes:
+            return {}
+        change_frame = pl.DataFrame(
+            changes,
+            schema={"person_number": pl.Int64, "new_background": pl.String},
+            orient="row",
+        )
+        previous = self.population.filter(
+            pl.col("person_number").is_in(change_frame["person_number"].implode())
+        ).select(
+            "person_number", "person_id", "religious_background", "probable_community"
+        )
+        prior = {
+            number: (person_id, background, probable)
+            for number, person_id, background, probable in previous.iter_rows()
+        }
+        self.population = (
+            self.population.join(change_frame, on="person_number", how="left")
+            .with_columns(
+                pl.coalesce("new_background", "religious_background")
+                .cast(BACKGROUND_TYPE)
+                .alias("religious_background")
             )
-            previous = self.population.filter(
-                pl.col("person_number").is_in(change_frame["person_number"])
-            ).select(
-                "person_number",
-                "person_id",
-                "religious_background",
-                "probable_community",
+            .with_columns(
+                pl.when(pl.col("new_background").is_not_null())
+                .then(
+                    pl.when(pl.col("new_background") == "none")
+                    .then(pl.col("probable_community"))
+                    .otherwise(pl.col("new_background"))
+                )
+                .otherwise(pl.col("probable_community"))
+                .cast(BACKGROUND_TYPE)
+                .alias("probable_community")
             )
-            prior = {
-                number: (person_id, background, probable)
-                for number, person_id, background, probable in previous.iter_rows()
-            }
-            self.population = (
-                self.population.join(change_frame, on="person_number", how="left")
-                .with_columns(
-                    pl.coalesce("new_background", "religious_background")
-                    .cast(BACKGROUND_TYPE)
-                    .alias("religious_background")
+            .drop("new_background")
+        )
+        breakdown = {}
+        for person_number, destination in changes:
+            person_id, source, _ = prior[person_number]
+            key = f"{source}_to_{destination}"
+            breakdown[key] = breakdown.get(key, 0) + 1
+            self.events.append(
+                PopulationEvent(
+                    person_id,
+                    year,
+                    "integration",
+                    {"from": source, "to": destination},
                 )
-                .with_columns(
-                    pl.when(pl.col("new_background").is_not_null())
-                    .then(
-                        pl.when(pl.col("new_background") == "none")
-                        .then(pl.col("probable_community"))
-                        .otherwise(pl.col("new_background"))
-                    )
-                    .otherwise(pl.col("probable_community"))
-                    .cast(BACKGROUND_TYPE)
-                    .alias("probable_community")
-                )
-                .drop("new_background")
             )
-            for person_number, destination in changes:
-                person_id, source, _ = prior[person_number]
-                key = f"{source}_to_{destination}"
-                breakdown[key] = breakdown.get(key, 0) + 1
-                self.events.append(
-                    PopulationEvent(
-                        person_id,
-                        year,
-                        "integration",
-                        {"from": source, "to": destination},
-                    )
-                )
-        return len(selected_numbers), breakdown
+        return breakdown
+
+    def _integration(self, year: int) -> tuple[int, dict[str, int]]:
+        """Apply competing community-identification flows simultaneously."""
+        changes = self._select_integrations(self._integration_cohorts(year))
+        return len(changes), self._apply_integrations(changes, year)
 
     def run_year(self, year: int) -> dict:
         """Apply one sequential year without population-wide age updates."""

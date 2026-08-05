@@ -6,7 +6,7 @@ import os
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import AsyncGenerator, Optional
+from typing import Optional
 from urllib.parse import unquote, urlparse
 from uuid import UUID
 
@@ -690,6 +690,82 @@ def simulation_person_history(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+def _validate_stream_years(start_year: int, end_year: int) -> None:
+    if not all(1900 <= year <= 2200 for year in (start_year, end_year)):
+        raise HTTPException(
+            status_code=422, detail="year must be between 1900 and 2200"
+        )
+    if end_year < start_year:
+        raise HTTPException(status_code=422, detail="end_year must be >= start_year")
+
+
+def _stream_adjustments(
+    birth_multiplier,
+    death_multiplier,
+    migration_multiplier,
+    relocation_multiplier,
+    integration_multiplier,
+    random_seed,
+    community_adjustments,
+):
+    try:
+        community = json.loads(community_adjustments) if community_adjustments else None
+        return SimulationAdjustments(
+            birth_multiplier=birth_multiplier,
+            death_multiplier=death_multiplier,
+            migration_multiplier=migration_multiplier,
+            relocation_multiplier=relocation_multiplier,
+            integration_multiplier=integration_multiplier,
+            random_seed=random_seed,
+            community=community,
+        ).model_dump(exclude_none=True)
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422, detail=f"Invalid community adjustments: {exc}"
+        ) from exc
+
+
+def _poll_run(session_factory, run_id, emitted_years):
+    poll_db = session_factory()
+    try:
+        current = poll_db.get(SimulationRun, run_id)
+        snapshots = (
+            poll_db.query(SimulationSnapshot)
+            .filter(
+                SimulationSnapshot.run_id == run_id,
+                ~SimulationSnapshot.year.in_(emitted_years),
+            )
+            .order_by(SimulationSnapshot.year)
+            .all()
+        )
+        return current.status, current.error, [snapshot.data for snapshot in snapshots]
+    finally:
+        poll_db.close()
+
+
+def _terminal_event(run_id, status, error):
+    event_name = "error" if status == "failed" else status
+    data = {"run_id": str(run_id)}
+    if error:
+        data["error"] = error
+    return f"event: {event_name}\ndata: {json.dumps(data)}\n\n"
+
+
+async def _simulation_event_stream(request, run_id, session_factory):
+    emitted_years = set()
+    yield f"event: started\ndata: {json.dumps({'run_id': str(run_id)})}\n\n"
+    while not await request.is_disconnected():
+        status, error, payloads = _poll_run(session_factory, run_id, emitted_years)
+        for payload in payloads:
+            emitted_years.add(payload["year"])
+            snapshot = SimulationYearSnapshot.model_validate(payload)
+            yield f"data: {snapshot.model_dump_json()}\n\n"
+        if status in {"complete", "cancelled", "failed"}:
+            yield _terminal_event(run_id, status, error)
+            return
+        await asyncio.sleep(0.05)
+
+
 @router.get("/stream")
 def stream_simulation(
     request: Request,
@@ -706,30 +782,19 @@ def stream_simulation(
     population_limit: Optional[int] = Query(None, ge=1, le=1_903_175),
     db: Session = Depends(get_db),
 ):
-    if not (1900 <= start_year <= 2200) or not (1900 <= end_year <= 2200):
-        raise HTTPException(
-            status_code=422, detail="year must be between 1900 and 2200"
-        )
-    if end_year < start_year:
-        raise HTTPException(status_code=422, detail="end_year must be >= start_year")
+    _validate_stream_years(start_year, end_year)
     owner_key = _enforce_run_limits(db, request, start_year, end_year)
 
     baseline_profile, represented_population = _baseline_settings(model_path)
-    try:
-        community = json.loads(community_adjustments) if community_adjustments else {}
-        adjustments = SimulationAdjustments(
-            birth_multiplier=birth_multiplier,
-            death_multiplier=death_multiplier,
-            migration_multiplier=migration_multiplier,
-            relocation_multiplier=relocation_multiplier,
-            integration_multiplier=integration_multiplier,
-            random_seed=random_seed,
-            community=community if community_adjustments else None,
-        ).model_dump(exclude_none=True)
-    except (json.JSONDecodeError, TypeError, ValueError) as exc:
-        raise HTTPException(
-            status_code=422, detail=f"Invalid community adjustments: {exc}"
-        ) from exc
+    adjustments = _stream_adjustments(
+        birth_multiplier,
+        death_multiplier,
+        migration_multiplier,
+        relocation_multiplier,
+        integration_multiplier,
+        random_seed,
+        community_adjustments,
+    )
     try:
         run = PopulationManager.create_run(
             db,
@@ -748,44 +813,8 @@ def stream_simulation(
     worker_sessions = sessionmaker(bind=db.get_bind(), autoflush=False)
     _submit_if_embedded(run.id, db)
 
-    async def event_stream() -> AsyncGenerator[str, None]:
-        emitted_years = set()
-        yield f"event: started\ndata: {json.dumps({'run_id': str(run.id)})}\n\n"
-        while True:
-            if await request.is_disconnected():
-                return
-            poll_db = worker_sessions()
-            try:
-                current = poll_db.get(SimulationRun, run.id)
-                snapshots = (
-                    poll_db.query(SimulationSnapshot)
-                    .filter(
-                        SimulationSnapshot.run_id == run.id,
-                        ~SimulationSnapshot.year.in_(emitted_years),
-                    )
-                    .order_by(SimulationSnapshot.year)
-                    .all()
-                )
-                status = current.status
-                error = current.error
-                payloads = [snapshot.data for snapshot in snapshots]
-            finally:
-                poll_db.close()
-            for payload in payloads:
-                emitted_years.add(payload["year"])
-                snapshot = SimulationYearSnapshot.model_validate(payload)
-                yield f"data: {snapshot.model_dump_json()}\n\n"
-            if status in {"complete", "cancelled", "failed"}:
-                event_name = "error" if status == "failed" else status
-                data = {"run_id": str(run.id)}
-                if error:
-                    data["error"] = error
-                yield f"event: {event_name}\ndata: {json.dumps(data)}\n\n"
-                return
-            await asyncio.sleep(0.05)
-
     return StreamingResponse(
-        event_stream(),
+        _simulation_event_stream(request, run.id, worker_sessions),
         media_type="text/event-stream",
         headers={"X-Simulation-Run-ID": str(run.id)},
     )
