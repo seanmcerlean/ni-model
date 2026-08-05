@@ -55,6 +55,15 @@ class PopulationEvent:
     data: Dict[str, Any]
 
 
+@dataclass(frozen=True)
+class RelocationCohort:
+    rng: np.random.Generator
+    person_numbers: np.ndarray
+    expected: float
+    source: str
+    destination: str
+
+
 class ColumnarSimulationWorker:
     """Evolve all residents as typed columns and retain individual events."""
 
@@ -519,12 +528,9 @@ class ColumnarSimulationWorker:
             immigration += change
         return immigration, emigration
 
-    def _relocations(self, year: int) -> int:
-        selected_numbers: set[int] = set()
-        plans = []
+    def _relocation_cohorts(self, year: int) -> list[RelocationCohort]:
         cohorts: dict[tuple, np.ndarray] = {}
         active = []
-        raw_flows = {}
         for rule_index, rule in self._active_rules("internal_migration_rates", year):
             rng = self._rng(year, "relocation", rule_index)
             filters = rule.get("filters", {})
@@ -536,11 +542,18 @@ class ColumnarSimulationWorker:
             expected = self._rate(rule, rng) / 1000 * len(cohort_numbers)
             source = str(filters.get("location", "")).lower()
             destination = rule["destination"].lower()
-            active.append((rng, cohort_numbers, expected, source, destination))
-            if source:
-                pair = (source, destination)
-                raw_flows[pair] = raw_flows.get(pair, 0.0) + expected
+            active.append(
+                RelocationCohort(rng, cohort_numbers, expected, source, destination)
+            )
+        return active
 
+    def _relocation_scales(self, cohorts, year):
+        raw_flows = {}
+        for cohort in cohorts:
+            if not cohort.source:
+                continue
+            pair = (cohort.source, cohort.destination)
+            raw_flows[pair] = raw_flows.get(pair, 0.0) + cohort.expected
         current_counts = {
             str(location): count
             for location, count in self.population.group_by("location")
@@ -554,61 +567,78 @@ class ColumnarSimulationWorker:
             self.config.get("lgd_relocation_calibration", {}),
             year,
         )
-        for rng, cohort_numbers, expected, source, destination in active:
-            expected *= scales.get((source, destination), 1.0)
-            count = stochastic_round(expected, rng.random())
+        return scales
+
+    @staticmethod
+    def _select_relocations(cohorts, scales):
+        selected_numbers: set[int] = set()
+        plans = []
+        for cohort in cohorts:
+            pair = (cohort.source, cohort.destination)
+            expected = cohort.expected * scales.get(pair, 1.0)
+            count = stochastic_round(expected, cohort.rng.random())
             if selected_numbers:
                 selected_array = np.fromiter(selected_numbers, dtype=np.int64)
-                available = cohort_numbers[
-                    ~np.isin(cohort_numbers, selected_array, assume_unique=True)
+                available = cohort.person_numbers[
+                    ~np.isin(cohort.person_numbers, selected_array, assume_unique=True)
                 ]
             else:
-                available = cohort_numbers
+                available = cohort.person_numbers
             if count > 0 and len(available):
-                numbers = rng.choice(
+                numbers = cohort.rng.choice(
                     available, size=min(count, len(available)), replace=False
                 ).tolist()
             else:
                 numbers = []
             selected_numbers.update(numbers)
-            plans.append((numbers, destination))
-        moves = [
+            plans.append((numbers, cohort.destination))
+        return [
             (person_number, destination)
             for numbers, destination in plans
             for person_number in numbers
         ]
-        if moves:
-            move_frame = pl.DataFrame(
-                moves,
-                schema={"person_number": pl.Int64, "new_location": pl.String},
-                orient="row",
+
+    def _apply_relocations(self, moves, year):
+        if not moves:
+            return
+        move_frame = pl.DataFrame(
+            moves,
+            schema={"person_number": pl.Int64, "new_location": pl.String},
+            orient="row",
+        )
+        previous = self.population.filter(
+            pl.col("person_number").is_in(move_frame["person_number"].implode())
+        ).select("person_number", "person_id", "location")
+        prior = {
+            person_number: (person_id, location)
+            for person_number, person_id, location in previous.iter_rows()
+        }
+        self.population = (
+            self.population.join(move_frame, on="person_number", how="left")
+            .with_columns(
+                pl.coalesce("new_location", "location")
+                .cast(LOCATION_TYPE)
+                .alias("location")
             )
-            previous = self.population.filter(
-                pl.col("person_number").is_in(move_frame["person_number"].implode())
-            ).select("person_number", "person_id", "location")
-            prior = {
-                person_number: (person_id, location)
-                for person_number, person_id, location in previous.iter_rows()
-            }
-            self.population = (
-                self.population.join(move_frame, on="person_number", how="left")
-                .with_columns(
-                    pl.coalesce("new_location", "location")
-                    .cast(LOCATION_TYPE)
-                    .alias("location")
-                )
-                .drop("new_location")
+            .drop("new_location")
+        )
+        self.events.extend(
+            PopulationEvent(
+                prior[person_number][0],
+                year,
+                "relocation",
+                {"from": prior[person_number][1], "to": destination},
             )
-            self.events.extend(
-                PopulationEvent(
-                    prior[person_number][0],
-                    year,
-                    "relocation",
-                    {"from": prior[person_number][1], "to": destination},
-                )
-                for person_number, destination in moves
-            )
-        return len(selected_numbers)
+            for person_number, destination in moves
+        )
+
+    def _relocations(self, year: int) -> int:
+        cohorts = self._relocation_cohorts(year)
+        moves = self._select_relocations(
+            cohorts, self._relocation_scales(cohorts, year)
+        )
+        self._apply_relocations(moves, year)
+        return len(moves)
 
     def _integration(self, year: int) -> tuple[int, dict[str, int]]:
         """Apply competing community-identification flows simultaneously."""
