@@ -22,6 +22,7 @@ from .demographic_calculators import (
     MigrationCalculator,
 )
 from .historical_configuration import configure_historical_model_from_file
+from .model_adjustments import apply_model_adjustments
 from .relocation_calibration import relocation_pair_scales
 
 
@@ -35,6 +36,15 @@ class ModelDirector:
         "internal_migration_rates",
         "integration_rates",
     )
+    VALID_FILTERS = {
+        "religious_background",
+        "gender",
+        "location",
+        "education_level",
+        "origin",
+        "age_min",
+        "age_max",
+    }
 
     def __init__(
         self,
@@ -58,6 +68,14 @@ class ModelDirector:
 
     def _validate_config(self) -> None:
         """Fail fast for invalid or ambiguous model configuration."""
+        self._validate_runtime_options()
+        for section in self.RATE_SECTIONS:
+            self._validate_rate_section(section)
+        self._validate_mortality_age_rates()
+        self._validate_child_background_rules()
+        self._validate_lgd_population_targets()
+
+    def _validate_runtime_options(self) -> None:
         if (
             isinstance(self.jitter, bool)
             or not isinstance(self.jitter, (int, float))
@@ -68,79 +86,80 @@ class ModelDirector:
         if isinstance(self.seed, bool) or not isinstance(self.seed, int):
             raise ValueError("random_seed must be an integer")
 
-        valid_filters = {
-            "religious_background",
-            "gender",
-            "location",
-            "education_level",
-            "origin",
-            "age_min",
-            "age_max",
-        }
-        for section in self.RATE_SECTIONS:
-            rates = self.config.get(section, [])
-            if not isinstance(rates, list):
-                raise ValueError(f"{section} must be a list")
-            for index, item in enumerate(rates):
-                label = f"{section}[{index}]"
-                if not isinstance(item, dict) or "rate" not in item:
-                    raise ValueError(f"{label} must contain a rate")
-                rate = item["rate"]
-                if (
-                    isinstance(rate, bool)
-                    or not isinstance(rate, (int, float))
-                    or not isfinite(rate)
-                ):
-                    raise ValueError(f"{label}.rate must be numeric")
-                if section != "migration_rates" and rate < 0:
-                    raise ValueError(f"{label}.rate must be non-negative")
-                if section == "integration_rates" and rate > 1000:
-                    raise ValueError(f"{label}.rate must not exceed 1000")
-                year_min = item.get("year_min", 0)
-                year_max = item.get("year_max", 9999)
-                if not isinstance(year_min, int) or not isinstance(year_max, int):
-                    raise ValueError(f"{label} year bounds must be integers")
-                if year_min > year_max:
-                    raise ValueError(f"{label} has year_min after year_max")
-                filters = item.get("filters", {})
-                if not isinstance(filters, dict):
-                    raise ValueError(f"{label}.filters must be a mapping")
-                unknown = set(filters) - valid_filters
-                if unknown:
-                    raise ValueError(
-                        f"{label} has unsupported filters: {sorted(unknown)}"
-                    )
-                age_min = filters.get("age_min", 0)
-                age_max = filters.get("age_max", 999)
-                if not isinstance(age_min, int) or not isinstance(age_max, int):
-                    raise ValueError(f"{label} age bounds must be integers")
-                if age_min < 0 or age_min > age_max:
-                    raise ValueError(f"{label} has age_min after age_max")
-                # Parse now so invalid enum names fail during model loading.
-                self._parse_filters(filters)
-                if section == "internal_migration_rates":
-                    if "destination" not in item:
-                        raise ValueError(f"{label} must contain a destination")
-                    try:
-                        Location[item["destination"]]
-                    except (KeyError, TypeError) as exc:
-                        raise ValueError(f"{label} has invalid destination") from exc
-                if section == "integration_rates":
-                    if "destination" not in item:
-                        raise ValueError(f"{label} must contain a destination")
-                    try:
-                        destination = ReligiousBackground[item["destination"]]
-                    except (KeyError, TypeError) as exc:
-                        raise ValueError(f"{label} has invalid destination") from exc
-                    source_name = filters.get("religious_background")
-                    if source_name is None:
-                        raise ValueError(f"{label} must filter by religious_background")
-                    source = ReligiousBackground[source_name]
-                    if source == destination:
-                        raise ValueError(f"{label} source and destination must differ")
-        self._validate_mortality_age_rates()
-        self._validate_child_background_rules()
-        self._validate_lgd_population_targets()
+    def _validate_rate_section(self, section: str) -> None:
+        rates = self.config.get(section, [])
+        if not isinstance(rates, list):
+            raise ValueError(f"{section} must be a list")
+        for index, item in enumerate(rates):
+            self._validate_rate_rule(section, index, item)
+
+    def _validate_rate_rule(self, section: str, index: int, item: Dict) -> None:
+        label = f"{section}[{index}]"
+        if not isinstance(item, dict) or "rate" not in item:
+            raise ValueError(f"{label} must contain a rate")
+        self._validate_rate(section, item["rate"], label)
+        self._validate_year_bounds(item, label)
+        filters = self._validate_filters(item.get("filters", {}), label)
+        if section == "internal_migration_rates":
+            self._validate_destination(item, Location, label)
+        elif section == "integration_rates":
+            self._validate_integration_destination(item, filters, label)
+
+    @staticmethod
+    def _validate_rate(section: str, rate, label: str) -> None:
+        if (
+            isinstance(rate, bool)
+            or not isinstance(rate, (int, float))
+            or not isfinite(rate)
+        ):
+            raise ValueError(f"{label}.rate must be numeric")
+        if section != "migration_rates" and rate < 0:
+            raise ValueError(f"{label}.rate must be non-negative")
+        if section == "integration_rates" and rate > 1000:
+            raise ValueError(f"{label}.rate must not exceed 1000")
+
+    @staticmethod
+    def _validate_year_bounds(item: Dict, label: str) -> None:
+        year_min = item.get("year_min", 0)
+        year_max = item.get("year_max", 9999)
+        if not isinstance(year_min, int) or not isinstance(year_max, int):
+            raise ValueError(f"{label} year bounds must be integers")
+        if year_min > year_max:
+            raise ValueError(f"{label} has year_min after year_max")
+
+    def _validate_filters(self, filters, label: str) -> Dict:
+        if not isinstance(filters, dict):
+            raise ValueError(f"{label}.filters must be a mapping")
+        unknown = set(filters) - self.VALID_FILTERS
+        if unknown:
+            raise ValueError(f"{label} has unsupported filters: {sorted(unknown)}")
+        age_min = filters.get("age_min", 0)
+        age_max = filters.get("age_max", 999)
+        if not isinstance(age_min, int) or not isinstance(age_max, int):
+            raise ValueError(f"{label} age bounds must be integers")
+        if age_min < 0 or age_min > age_max:
+            raise ValueError(f"{label} has age_min after age_max")
+        self._parse_filters(filters)
+        return filters
+
+    @staticmethod
+    def _validate_destination(item: Dict, enum, label: str):
+        if "destination" not in item:
+            raise ValueError(f"{label} must contain a destination")
+        try:
+            return enum[item["destination"]]
+        except (KeyError, TypeError) as exc:
+            raise ValueError(f"{label} has invalid destination") from exc
+
+    def _validate_integration_destination(
+        self, item: Dict, filters: Dict, label: str
+    ) -> None:
+        destination = self._validate_destination(item, ReligiousBackground, label)
+        source_name = filters.get("religious_background")
+        if source_name is None:
+            raise ValueError(f"{label} must filter by religious_background")
+        if ReligiousBackground[source_name] == destination:
+            raise ValueError(f"{label} source and destination must differ")
 
     def _validate_lgd_population_targets(self) -> None:
         targets = self.config.get("lgd_population_targets", [])
@@ -483,78 +502,5 @@ class ModelDirector:
             except yaml.YAMLError as exc:
                 raise ValueError(f"invalid YAML: {exc}") from exc
         config = configure_historical_model_from_file(config, yaml_path)
-        adjustments = adjustments or {}
-        section_multipliers = {
-            "birth_rates": adjustments.get("birth_multiplier", 1.0),
-            "death_rates": adjustments.get("death_multiplier", 1.0),
-            "migration_rates": adjustments.get("migration_multiplier", 1.0),
-            "internal_migration_rates": adjustments.get("relocation_multiplier", 1.0),
-            "integration_rates": adjustments.get("integration_multiplier", 1.0),
-        }
-        community = adjustments.get("community") or {}
-        section_fields = {
-            "birth_rates": "birth_multiplier",
-            "death_rates": "death_multiplier",
-            "migration_rates": "migration_multiplier",
-            "internal_migration_rates": "relocation_multiplier",
-            "integration_rates": "integration_multiplier",
-        }
-        for section, multiplier in section_multipliers.items():
-            rules = config.get(section, [])
-            for rule in rules:
-                rule["rate"] *= multiplier
-            group_values = {
-                group.upper(): values.get(section_fields[section], 1.0)
-                for group, values in community.items()
-            }
-            if group_values:
-                expanded = []
-                for rule in rules:
-                    existing_group = rule.get("filters", {}).get("religious_background")
-                    if existing_group:
-                        rule["rate"] *= group_values.get(existing_group, 1.0)
-                        expanded.append(rule)
-                    elif len(set(group_values.values())) == 1:
-                        rule["rate"] *= next(iter(group_values.values()))
-                        expanded.append(rule)
-                    elif (
-                        section == "migration_rates"
-                        and rule["rate"] >= 0
-                        and config.get("immigration_profiles")
-                    ):
-                        profiles = config["immigration_profiles"]
-                        total_weight = sum(profile["weight"] for profile in profiles)
-                        adjusted_weight = sum(
-                            profile["weight"]
-                            * group_values.get(profile["religious_background"], 1.0)
-                            for profile in profiles
-                        )
-                        rule["rate"] *= adjusted_weight / total_weight
-                        expanded.append(rule)
-                    else:
-                        for group, group_multiplier in group_values.items():
-                            expanded.append(
-                                {
-                                    **rule,
-                                    "rate": rule["rate"] * group_multiplier,
-                                    "filters": {
-                                        **rule.get("filters", {}),
-                                        "religious_background": group,
-                                    },
-                                }
-                            )
-                config[section] = expanded
-                if section == "migration_rates" and config.get("immigration_profiles"):
-                    for profile in config["immigration_profiles"]:
-                        profile["weight"] *= group_values.get(
-                            profile["religious_background"], 1.0
-                        )
-        if config.get("annual_demographic_components"):
-            config["_component_target_multipliers"] = {
-                "birth_rates": section_multipliers["birth_rates"],
-                "death_rates": section_multipliers["death_rates"],
-                "migration_rates": section_multipliers["migration_rates"],
-            }
-        if adjustments.get("random_seed") is not None:
-            config["random_seed"] = adjustments["random_seed"]
+        apply_model_adjustments(config, adjustments or {})
         return cls(db_session, config, run_id=run_id)
