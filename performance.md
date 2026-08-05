@@ -135,7 +135,8 @@ administration without improving a read-only model presentation.
 The preferred first public deployment is a static ChatGPT Site backed by
 recorded full-population scenarios:
 
-1. Run each approved model and seed offline against the complete baseline.
+1. Run every model exposed by the frontend model selector offline against the
+   complete baseline using its canonical seed and default year range.
 2. Export a versioned manifest plus annual aggregate snapshots using the
    existing frontend `YearSnapshot` contract.
 3. Publish compressed JSON scenario assets with the compiled React frontend.
@@ -147,6 +148,12 @@ baseline and model versions, model configuration hash, population size, seed,
 adjustments, year range, generation time, and snapshot schema version. This
 makes every presented scenario traceable to a genuine deterministic
 full-population run.
+
+The static build is incomplete if any selectable model lacks a matching
+recording. Build validation must compare the exported manifest with the model
+catalogue and fail on missing, duplicate, stale, or schema-incompatible
+scenarios. Optional alternate seeds and sensitivity cases are additional
+recordings of a model, not substitutes for its canonical recording.
 
 Polling calibration, undecided allocation, community-basis display, map
 colouring, area selection, and other calculations that operate entirely on
