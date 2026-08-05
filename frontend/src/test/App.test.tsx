@@ -75,7 +75,7 @@ describe("App", () => {
         id: "ni_current", path: "models/ni_current.yaml", name: "NI Current",
         description: "Current model", rate_jitter: 0, random_seed: 42,
         baseline_year: 2021, data_through: 2024, projection_version: "2024-based",
-        default_start_year: 2024, default_end_year: 2035,
+        default_start_year: 2021, default_end_year: 2035,
         birth_rules: 0, death_rules: 0, migration_rules: 0,
         internal_migration_rules: 0, birth_rate_rules: [], death_rate_rules: [],
         migration_rate_rules: [], internal_migration_rate_rules: [],
@@ -105,7 +105,7 @@ describe("App", () => {
 
   it("defaults to the current model start year", () => {
     render(<App />);
-    expect(screen.getByLabelText("Start")).toHaveValue(2024);
+    expect(screen.getByLabelText("Start")).toHaveValue(2021);
   });
 
   it("defaults to a useful current projection horizon", () => {
@@ -194,7 +194,7 @@ describe("App", () => {
           baseline_year: 2021,
           data_through: 2024,
           projection_version: "NISRA/ONS 2024-based principal projection",
-          default_start_year: 2024,
+          default_start_year: 2021,
           default_end_year: 2035,
           birth_rules: 53,
           death_rules: 53,
@@ -220,7 +220,7 @@ describe("App", () => {
           baseline_year: 2021,
           data_through: 2024,
           projection_version: "Estimated community differential",
-          default_start_year: 2024,
+          default_start_year: 2021,
           default_end_year: 2050,
           birth_rules: 0,
           death_rules: 0,
@@ -270,7 +270,7 @@ describe("App", () => {
     expect(screen.getByText("Protestant parent proxy")).toBeInTheDocument();
     expect(screen.getByText("20.0%")).toBeInTheDocument();
     fireEvent.change(select, { target: { value: "models/ni_current_community.yaml" } });
-    expect(screen.getByLabelText("Start")).toHaveValue(2024);
+    expect(screen.getByLabelText("Start")).toHaveValue(2021);
     expect(screen.getByLabelText("End")).toHaveValue(2050);
   });
 

@@ -22,6 +22,7 @@ OBSERVED_PATH = ROOT / "data" / "ni_population_components_2002_2024.csv"
 PROJECTION_PATH = ROOT / "data" / "ni_population_projection_2024_2074.csv"
 LGD_POPULATION_PATH = ROOT / "data" / "ni_census_2021_lgd_population.csv"
 INTERNAL_MIGRATION_PATH = ROOT / "data" / "ni_internal_migration_lgd_2021.csv"
+LGD_PROJECTION_PATH = ROOT / "data" / "ni_lgd_population_projection_2022_2047.csv"
 COMMUNITY_BACKGROUND_PATH = (
     ROOT / "data" / "ni_census_2021_lgd_community_background.csv"
 )
@@ -37,6 +38,34 @@ MIGRATION_RELIGION_MAP = {
     "No Religion": "none",
     "Religion Not Stated": "none",
 }
+
+INTEGRATION_RATES = [
+    (0.35, "CATHOLIC", "NONE"),
+    (0.65, "PROTESTANT", "NONE"),
+    (0.03, "CATHOLIC", "PROTESTANT"),
+    (0.03, "PROTESTANT", "CATHOLIC"),
+    (3.2, "NONE", "CATHOLIC"),
+    (2.8, "NONE", "PROTESTANT"),
+    (0.2, "NONE", "OTHER"),
+    (4.0, "OTHER", "CATHOLIC"),
+    (3.5, "OTHER", "PROTESTANT"),
+    (1.0, "OTHER", "NONE"),
+]
+
+MORTALITY_AGE_RATES = [
+    (0, 0, 4.424556),
+    (1, 4, 0.091557),
+    (5, 9, 0.073626),
+    (10, 14, 0.030976),
+    (15, 24, 0.466414),
+    (25, 34, 0.83605),
+    (35, 44, 1.455992),
+    (45, 54, 2.839962),
+    (55, 64, 7.009875),
+    (65, 74, 16.609164),
+    (75, 84, 44.028801),
+    (85, 130, 149.379433),
+]
 
 
 def _integer(value):
@@ -107,6 +136,27 @@ def read_observed():
     ]
 
 
+def read_normalized_projection():
+    with PROJECTION_PATH.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    return [
+        {key: int(value) if value else "" for key, value in row.items()} for row in rows
+    ]
+
+
+def read_community_internal_migration():
+    with COMMUNITY_MIGRATION_PATH.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    return [
+        {
+            **row,
+            "count": int(row["count"]),
+            "source_population": int(row["source_population"]),
+        }
+        for row in rows
+    ]
+
+
 def write_projection(rows):
     fields = [
         "year",
@@ -123,6 +173,58 @@ def write_projection(rows):
         writer = csv.DictWriter(target, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+
+
+def extract_lgd_projection(workbook_path):
+    """Normalize the official sub-national population trajectory."""
+    workbook = openpyxl.load_workbook(workbook_path, data_only=True, read_only=True)
+    rows = workbook["Flat"].iter_rows(values_only=True)
+    headings = next(rows)
+    records = [dict(zip(headings, row)) for row in rows]
+    return [
+        {
+            "year": int(record["Year"].split("/")[1]),
+            "code": record["Area_Code"],
+            "location": record["Area_Name"],
+            "population": int(record["MYE"]),
+        }
+        for record in records
+        if record["Area_Code"].startswith("N09")
+        and record["Category"] == "Population at End"
+    ]
+
+
+def write_lgd_projection(rows):
+    with LGD_PROJECTION_PATH.open("w", encoding="utf-8", newline="") as target:
+        writer = csv.DictWriter(
+            target,
+            fieldnames=("year", "code", "location", "population"),
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def read_lgd_population_targets():
+    with LGD_POPULATION_PATH.open(encoding="utf-8", newline="") as source:
+        locations = {
+            row["code"]: row["location"].upper() for row in csv.DictReader(source)
+        }
+    with LGD_PROJECTION_PATH.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    targets = {}
+    for row in rows:
+        targets.setdefault(int(row["year"]), {})[locations[row["code"]]] = int(
+            row["population"]
+        )
+    return [
+        {
+            "year": year,
+            "populations": populations,
+            "evidence": "nisra_2022_lgd_principal_projection",
+        }
+        for year, populations in sorted(targets.items())
+    ]
 
 
 def extract_internal_migration(archive_path):
@@ -346,33 +448,85 @@ def build_model(rows, internal_flows):
 
     return {
         "name": "NI Current – NISRA 2024 principal projection",
+        "baseline_profile": "current",
+        "baseline_population": 1_903_175,
         "description": (
             "Observed NISRA components for 2022–2024 followed by the official "
             "2024-based principal projection for 2025–2074. The population "
             "baseline uses Census 2021 marginals; internal relocation follows "
-            "the Census 2021 LGD origin–destination pattern. This is a projection "
+            "the Census 2021 LGD origin–destination pattern balanced toward the "
+            "official 2022-based LGD population trajectory. This is a projection "
             "scenario, not a forecast."
         ),
         "baseline_year": 2021,
         "data_through": 2024,
         "projection_version": "NISRA/ONS 2024-based principal projection",
-        "default_start_year": 2024,
+        "default_start_year": 2021,
         "default_end_year": 2035,
         "rate_jitter": 0,
         "random_seed": 42,
+        "integration_rates": [
+            {
+                "rate": rate,
+                "year_min": 2022,
+                "destination": destination,
+                "filters": {
+                    "religious_background": source,
+                    "age_min": 18,
+                    "age_max": 44,
+                },
+                "evidence": "estimated_identity_transition",
+            }
+            for rate, source, destination in INTEGRATION_RATES
+        ],
+        "mortality_age_rates": [
+            {"age_min": age_min, "age_max": age_max, "rate": rate}
+            for age_min, age_max, rate in MORTALITY_AGE_RATES
+        ],
         "birth_rates": births,
         "death_rates": deaths,
         "migration_rates": migration,
         "internal_migration_rates": build_internal_migration_rules(internal_flows),
+        "lgd_population_targets": read_lgd_population_targets(),
+        "lgd_relocation_calibration": {
+            "strength": 0.65,
+            "post_projection_strength": 0.15,
+            "fade_years": 15,
+            "evidence": "nisra_2022_lgd_principal_projection",
+        },
     }
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("workbook", type=Path)
-    parser.add_argument("origin_destination_zip", type=Path)
-    parser.add_argument("origin_destination_religion_zip", type=Path)
+    parser.add_argument("workbook", type=Path, nargs="?")
+    parser.add_argument("origin_destination_zip", type=Path, nargs="?")
+    parser.add_argument("origin_destination_religion_zip", type=Path, nargs="?")
+    parser.add_argument("--lgd-projection-workbook", type=Path)
+    parser.add_argument("--normalized", action="store_true")
     args = parser.parse_args()
+    if args.lgd_projection_workbook:
+        write_lgd_projection(extract_lgd_projection(args.lgd_projection_workbook))
+    if args.normalized:
+        rows = read_normalized_projection()
+        community_internal_flows = read_community_internal_migration()
+        with MODEL_PATH.open("w", encoding="utf-8") as target:
+            yaml.safe_dump(
+                build_model(rows, community_internal_flows),
+                target,
+                sort_keys=False,
+                allow_unicode=True,
+                width=88,
+            )
+        return
+    if not all(
+        (
+            args.workbook,
+            args.origin_destination_zip,
+            args.origin_destination_religion_zip,
+        )
+    ):
+        parser.error("source workbooks are required unless --normalized is used")
     rows = read_observed() + extract_projection(args.workbook)
     internal_flows = extract_internal_migration(args.origin_destination_zip)
     community_internal_flows = extract_community_internal_migration(

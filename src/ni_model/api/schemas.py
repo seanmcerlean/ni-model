@@ -174,7 +174,7 @@ class SimulationAdjustments(BaseModel):
 
 class SimulationRunRequest(BaseModel):
     model_path: str = "models/ni_current.yaml"
-    start_year: int = 2024
+    start_year: int = 2021
     end_year: int = 2030
     adjustments: SimulationAdjustments = Field(default_factory=SimulationAdjustments)
     population_limit: Optional[int] = Field(default=None, ge=1, le=1_903_175)

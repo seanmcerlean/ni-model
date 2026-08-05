@@ -7,6 +7,7 @@ import yaml
 from scripts.build_current_model import _controlled_counts
 
 DATA_PATH = Path("data/ni_population_projection_2024_2074.csv")
+LGD_PROJECTION_PATH = Path("data/ni_lgd_population_projection_2022_2047.csv")
 MODEL_PATH = Path("models/ni_current.yaml")
 COMMUNITY_MIGRATION_PATH = Path("data/ni_internal_migration_lgd_2021_by_religion.csv")
 
@@ -53,6 +54,7 @@ def test_current_model_rates_are_derived_from_checked_in_series():
     model = yaml.safe_load(MODEL_PATH.read_text(encoding="utf-8"))
 
     assert model["baseline_year"] == 2021
+    assert model["default_start_year"] == 2021
     assert model["data_through"] == 2024
     assert model["rate_jitter"] == 0
     with COMMUNITY_MIGRATION_PATH.open(encoding="utf-8", newline="") as source:
@@ -80,6 +82,18 @@ def test_current_model_rates_are_derived_from_checked_in_series():
     )
     assert model["migration_rates"][3]["flow"] == "in"
     assert model["migration_rates"][4]["flow"] == "out"
+
+
+def test_lgd_projection_targets_are_official_complete_and_configured():
+    with LGD_PROJECTION_PATH.open(encoding="utf-8", newline="") as source:
+        rows = list(csv.DictReader(source))
+    model = yaml.safe_load(MODEL_PATH.read_text(encoding="utf-8"))
+
+    assert len(rows) == 25 * 11
+    assert {int(row["year"]) for row in rows} == set(range(2023, 2048))
+    assert len(model["lgd_population_targets"]) == 25
+    assert model["lgd_relocation_calibration"]["strength"] == 0.65
+    assert model["lgd_relocation_calibration"]["post_projection_strength"] == 0.15
 
 
 def test_internal_flows_cover_every_ordered_lgd_pair():

@@ -81,13 +81,15 @@ def build_model(source):
                 "origin, destination-LGD and current-religion profile; emigration "
                 "differentials remain estimated. Annual component rates are "
                 "normalized to the official starting total. Estimated two-way "
-                "community-identification transitions are included. This sensitivity "
+                "community-identification transitions are included. Census-derived "
+                "internal routes are balanced toward NISRA's 2022-based LGD population "
+                "trajectory without targeting community shares. This sensitivity "
                 "scenario is not an official projection."
             ),
             "projection_version": (
                 "Estimated community differential over NISRA/ONS 2024 principal"
             ),
-            "default_start_year": 2024,
+            "default_start_year": 2021,
             "default_end_year": 2050,
         }
     )

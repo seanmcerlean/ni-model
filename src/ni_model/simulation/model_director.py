@@ -22,6 +22,7 @@ from .demographic_calculators import (
     MigrationCalculator,
 )
 from .historical_configuration import configure_historical_model_from_file
+from .relocation_calibration import relocation_pair_scales
 
 
 class ModelDirector:
@@ -139,6 +140,43 @@ class ModelDirector:
                         raise ValueError(f"{label} source and destination must differ")
         self._validate_mortality_age_rates()
         self._validate_child_background_rules()
+        self._validate_lgd_population_targets()
+
+    def _validate_lgd_population_targets(self) -> None:
+        targets = self.config.get("lgd_population_targets", [])
+        if not isinstance(targets, list):
+            raise ValueError("lgd_population_targets must be a list")
+        years = set()
+        expected = {location.name for location in Location}
+        for index, target in enumerate(targets):
+            label = f"lgd_population_targets[{index}]"
+            if not isinstance(target, dict) or not isinstance(target.get("year"), int):
+                raise ValueError(f"{label} must contain an integer year")
+            if target["year"] in years:
+                raise ValueError(f"{label} duplicates year {target['year']}")
+            years.add(target["year"])
+            populations = target.get("populations")
+            if not isinstance(populations, dict) or set(populations) != expected:
+                raise ValueError(f"{label}.populations must contain every LGD")
+            if any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or value <= 0
+                for value in populations.values()
+            ):
+                raise ValueError(f"{label}.populations must be positive numbers")
+
+        calibration = self.config.get("lgd_relocation_calibration", {})
+        if not isinstance(calibration, dict):
+            raise ValueError("lgd_relocation_calibration must be a mapping")
+        for key in ("strength", "post_projection_strength"):
+            value = calibration.get(key, 0)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not 0 <= value <= 1
+            ):
+                raise ValueError(f"lgd_relocation_calibration.{key} must be 0 to 1")
 
     def _validate_child_background_rules(self) -> None:
         rules = self.config.get("child_background_rules", [])
@@ -348,11 +386,44 @@ class ModelDirector:
         selected_ids = set()
         plans = []
         cohorts = {}
+        current_counts = {}
+        raw_flows = {}
+        cohort_ids_by_location = {}
         for calculator in calcs:
             cohort_key = tuple(sorted(calculator.query_filters.items()))
             if cohort_key not in cohorts:
                 cohorts[cohort_key] = calculator._get_cohort()
             cohort = cohorts[cohort_key]
+            source = calculator.query_filters.get("location")
+            if source is None:
+                continue
+            source_name = source.value
+            cohort_ids_by_location.setdefault(source_name, set()).update(
+                person.id for person in cohort
+            )
+            pair = (source_name, calculator.destination.value)
+            raw_flows[pair] = raw_flows.get(pair, 0.0) + (
+                calculator.rate / 1000 * len(cohort)
+            )
+        current_counts = {
+            location: len(person_ids)
+            for location, person_ids in cohort_ids_by_location.items()
+        }
+        scales = relocation_pair_scales(
+            current_counts,
+            raw_flows,
+            self.config.get("lgd_population_targets", []),
+            self.config.get("lgd_relocation_calibration", {}),
+            year,
+        )
+        for calculator in calcs:
+            cohort_key = tuple(sorted(calculator.query_filters.items()))
+            cohort = cohorts[cohort_key]
+            source = calculator.query_filters.get("location")
+            if source is not None:
+                calculator.rate *= scales.get(
+                    (source.value, calculator.destination.value), 1.0
+                )
             movers = calculator.select_movers(selected_ids, cohort=cohort)
             selected_ids.update(person.id for person in movers)
             plans.append((calculator, movers))

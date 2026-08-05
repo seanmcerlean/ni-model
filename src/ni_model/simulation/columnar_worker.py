@@ -14,6 +14,7 @@ from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
 from ..core.models import Location, Person, ReligiousBackground
+from .relocation_calibration import relocation_pair_scales
 from .sampling import stochastic_round
 
 EVENT_CODES = {
@@ -522,6 +523,8 @@ class ColumnarSimulationWorker:
         selected_numbers: set[int] = set()
         plans = []
         cohorts: dict[tuple, np.ndarray] = {}
+        active = []
+        raw_flows = {}
         for rule_index, rule in self._active_rules("internal_migration_rates", year):
             rng = self._rng(year, "relocation", rule_index)
             filters = rule.get("filters", {})
@@ -531,6 +534,28 @@ class ColumnarSimulationWorker:
                 cohorts[cohort_key] = cohort["person_number"].to_numpy()
             cohort_numbers = cohorts[cohort_key]
             expected = self._rate(rule, rng) / 1000 * len(cohort_numbers)
+            source = str(filters.get("location", "")).lower()
+            destination = rule["destination"].lower()
+            active.append((rng, cohort_numbers, expected, source, destination))
+            if source:
+                pair = (source, destination)
+                raw_flows[pair] = raw_flows.get(pair, 0.0) + expected
+
+        current_counts = {
+            str(location): count
+            for location, count in self.population.group_by("location")
+            .len()
+            .iter_rows()
+        }
+        scales = relocation_pair_scales(
+            current_counts,
+            raw_flows,
+            self.config.get("lgd_population_targets", []),
+            self.config.get("lgd_relocation_calibration", {}),
+            year,
+        )
+        for rng, cohort_numbers, expected, source, destination in active:
+            expected *= scales.get((source, destination), 1.0)
             count = stochastic_round(expected, rng.random())
             if selected_numbers:
                 selected_array = np.fromiter(selected_numbers, dtype=np.int64)
@@ -546,7 +571,7 @@ class ColumnarSimulationWorker:
             else:
                 numbers = []
             selected_numbers.update(numbers)
-            plans.append((numbers, rule["destination"].lower()))
+            plans.append((numbers, destination))
         moves = [
             (person_number, destination)
             for numbers, destination in plans

@@ -42,7 +42,7 @@ function randomSeed(): number {
 export default function App() {
   const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
 
-  const [startYear, setStartYear] = useState(2024);
+  const [startYear, setStartYear] = useState(2021);
   const [endYear, setEndYear] = useState(2050);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);

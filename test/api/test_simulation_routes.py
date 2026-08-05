@@ -85,7 +85,7 @@ def test_simulation_models_describes_available_configs(client):
     )
     assert current["integration_rules"] == 10
     assert current["integration_rate_rules"][0]["destination"] == "NONE"
-    assert current["default_start_year"] == 2024
+    assert current["default_start_year"] == 2021
     assert current["default_end_year"] == 2035
     assert current["migration_rate_rules"][3]["flow"] == "in"
     assert current["mortality_age_rates"][0]["age_min"] == 0
@@ -96,7 +96,7 @@ def test_simulation_models_describes_available_configs(client):
     assert community["birth_rules"] == current["birth_rules"] * 4
     assert community["death_rules"] == current["death_rules"] * 4
     assert community["migration_rules"] == 253
-    assert community["default_start_year"] == 2024
+    assert community["default_start_year"] == 2021
     assert community["default_end_year"] == 2050
     assert "not an official projection" in community["description"]
     assert {

@@ -217,12 +217,27 @@ created artificial Protestant inflows into western districts.
 - [Census 2021 LGD population table](https://build.nisra.gov.uk/en/custom/data?d=PEOPLE&v=LGD14)
 - [NISRA migration methodology](https://datavis.nisra.gov.uk/population/methodology_report.html)
 
-These are observed one-year Census flows, not a forecast. The current model
-holds their per-origin-population rates constant after 2021 as a documented
-estimate. Census 2021 took place during pandemic restrictions, and NISRA notes
-that migration outputs may have been affected. The simulation selects all
-origin–destination moves from the pre-move population and applies them
-simultaneously, preventing rule order from moving a person twice.
+These are observed one-year Census flows, not a forecast. Census 2021 took
+place during pandemic restrictions, and NISRA notes that migration outputs may
+have been affected. The simulation selects all origin–destination moves from
+the pre-move population and applies them simultaneously, preventing rule order
+from moving a person twice.
+
+`ni_lgd_population_projection_2022_2047.csv` normalizes the population-at-end
+series from NISRA's 2022-based sub-national principal projection workbook
+`SNPP22_CoC.xlsx`, published 12 February 2026:
+
+- [NISRA 2022-based population projections for areas within NI](https://www.nisra.gov.uk/publications/2022-based-population-projections-areas-within-northern-ireland)
+
+Raw Census OD flows are balanced toward those official LGD population shares
+using iterative proportional fitting. The configured 0.65 strength deliberately
+approaches rather than exactly reproduces each annual target. Balancing changes
+one factor per origin-destination pair, preserving the observed relative
+Catholic, Protestant, Other and None rates on that route. After the official
+2047 horizon, calibration strength fades over 15 years to a 0.15 anchor so the
+last projected distribution does not become either a hard target or an
+unbounded continuation of the 2021 pattern. This calibration targets total LGD
+population only; it does not target future community shares.
 
 ## Border-poll scenarios
 
