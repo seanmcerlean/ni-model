@@ -121,3 +121,50 @@ individual history uses `(run_id, person_id, year)` and measured 3.15 ms.
 - Polling projections are scenario estimates based on simulated adult
   location/community/age composition. They are neither area polls nor stored
   person-level constitutional preferences.
+
+## Deployment direction
+
+The durable PostgreSQL deployment remains appropriate for development,
+benchmarking, exact-year person inspection, and recoverable multi-user runs. It
+is not the default target for a public demonstration: operating a shared
+resident database and retaining roughly 1 GB per full run would add cost and
+administration without improving a read-only model presentation.
+
+### Recorded ChatGPT Site
+
+The preferred first public deployment is a static ChatGPT Site backed by
+recorded full-population scenarios:
+
+1. Run each approved model and seed offline against the complete baseline.
+2. Export a versioned manifest plus annual aggregate snapshots using the
+   existing frontend `YearSnapshot` contract.
+3. Publish compressed JSON scenario assets with the compiled React frontend.
+4. Replay snapshots in the browser with play, pause, seek, and speed controls;
+   do not emulate a server or expose resident records.
+
+The exported manifest must identify the application version and commit,
+baseline and model versions, model configuration hash, population size, seed,
+adjustments, year range, generation time, and snapshot schema version. This
+makes every presented scenario traceable to a genuine deterministic
+full-population run.
+
+Polling calibration, undecided allocation, community-basis display, map
+colouring, area selection, and other calculations that operate entirely on
+exported aggregates remain interactive. Controls that change demographic
+evolution -- seed, population size, fertility, mortality, migration,
+relocation, integration, or community multipliers -- are replaced by a clearly
+labelled recorded-scenario selector. The Site must state that its demographic
+assumptions are fixed and direct users to the local deployment for custom runs.
+
+Parquet remains the compact offline format for the full baseline and optional
+simulation checkpoints. Browser assets use compressed JSON because snapshots
+are small, already match the frontend contract, and require no browser-side
+Parquet or DuckDB runtime. Only aggregate data is published.
+
+### Portable local mode
+
+The configurable counterpart should eventually be a single-container local
+mode for Docker Desktop or WSL. It should load the immutable baseline from
+Parquet into Polars, run one simulation at a time, and avoid a database server
+unless durable person history is explicitly requested. The current PostgreSQL
+API/worker architecture remains available as an advanced durable profile.
