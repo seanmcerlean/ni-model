@@ -1,6 +1,6 @@
 import pytest
 
-from scripts.seed_population import PROFILES, _mapping, validate_baseline
+from scripts.seed_population import PROFILES, _mapping, _seed_action, validate_baseline
 from src.ni_model.core.models import Person, ReligiousBackground
 from src.ni_model.data.population_generator import generate_population
 
@@ -19,7 +19,14 @@ def test_mapping_creates_baseline_row():
     assert mapping["person_number"] == 17
     assert mapping["birth_year"] == 2021 - mapping["age"]
     assert mapping["religious_background"] is ReligiousBackground.CATHOLIC
+    assert mapping["probable_community"] is person.probable_community
     assert mapping["id"] is not None
+
+
+def test_default_full_seed_replaces_a_truncated_baseline():
+    assert _seed_action(25_000, 1_903_175, True, False) == "replace"
+    assert _seed_action(1_903_175, 1_903_175, True, False) == "reuse"
+    assert _seed_action(25_000, 25_000, False, False) == "reuse"
 
 
 def test_profiles_define_their_population_reference_year():

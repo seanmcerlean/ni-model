@@ -16,10 +16,19 @@ from alembic.config import Config
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.ni_model.core.models import Origin, Person, ReligiousBackground  # noqa: E402
+from src.ni_model.core.models import (  # noqa: E402
+    Location,
+    Origin,
+    Person,
+    ReligiousBackground,
+)
 from src.ni_model.data.population_generator import (  # noqa: E402
     calibrated_age_bands,
     iter_population,
+)
+from src.ni_model.data.probable_community import (  # noqa: E402
+    NONE_PROBABLE_CATHOLIC_BY_LOCATION,
+    NONE_PROBABLE_OTHER,
 )
 
 _HISTORICAL_TOTAL = 1_536_065
@@ -180,6 +189,98 @@ def validate_baseline(session, profile_name: str, expected_size: int) -> None:
                 f"outside {expected:.4f} +/- {tolerance:.4f}"
             )
 
+    if profile_name == "current":
+        _validate_lgd_community_joint(session, filters)
+
+
+def _validate_lgd_community_joint(session, filters) -> None:
+    """Protect the Census LGD pattern and estimated None allocation."""
+    reported_checks = (
+        (Location.DERRY_STRABANE, ReligiousBackground.CATHOLIC, 109_131 / 150_756),
+        (
+            Location.MID_EAST_ANTRIM,
+            ReligiousBackground.PROTESTANT,
+            93_477 / 138_994,
+        ),
+    )
+    for location, background, expected in reported_checks:
+        denominator = (
+            session.query(func.count(Person.id))
+            .filter(*filters, Person.location == location)
+            .scalar()
+            or 0
+        )
+        count = (
+            session.query(func.count(Person.id))
+            .filter(
+                *filters,
+                Person.location == location,
+                Person.religious_background == background,
+            )
+            .scalar()
+            or 0
+        )
+        if denominator == 0:
+            raise RuntimeError(f"current {location.value} has no seeded residents")
+        tolerance = _share_tolerance(expected, denominator)
+        if abs(count / denominator - expected) > tolerance:
+            raise RuntimeError(
+                f"current {location.value} {background.value} share outside "
+                "the Census LGD tolerance"
+            )
+
+    for location in (Location.DERRY_STRABANE, Location.MID_EAST_ANTRIM):
+        none_count = (
+            session.query(func.count(Person.id))
+            .filter(
+                *filters,
+                Person.location == location,
+                Person.religious_background == ReligiousBackground.NONE,
+            )
+            .scalar()
+            or 0
+        )
+        if not none_count:
+            raise RuntimeError(f"current {location.value} has no reported None cohort")
+        probable_counts = dict(
+            session.query(Person.probable_community, func.count(Person.id))
+            .filter(
+                *filters,
+                Person.location == location,
+                Person.religious_background == ReligiousBackground.NONE,
+            )
+            .group_by(Person.probable_community)
+            .all()
+        )
+        catholic = probable_counts.get(ReligiousBackground.CATHOLIC, 0) / none_count
+        other = probable_counts.get(ReligiousBackground.OTHER, 0) / none_count
+        catholic_expected = NONE_PROBABLE_CATHOLIC_BY_LOCATION[location] * (
+            1 - NONE_PROBABLE_OTHER
+        )
+        if abs(catholic - catholic_expected) > _share_tolerance(
+            catholic_expected, none_count
+        ):
+            raise RuntimeError(
+                f"current {location.value} probable Catholic share outside tolerance"
+            )
+        if abs(other - NONE_PROBABLE_OTHER) > _share_tolerance(
+            NONE_PROBABLE_OTHER, none_count
+        ):
+            raise RuntimeError(
+                f"current {location.value} probable Other share outside tolerance"
+            )
+
+
+def _seed_action(
+    existing: int, target_size: int, requested_default: bool, replace: bool
+) -> str:
+    """Choose a safe action without accepting a truncated production baseline."""
+    if not existing:
+        return "seed"
+    if replace or (requested_default and existing != target_size):
+        return "replace"
+    return "reuse"
+
 
 def _mapping(
     person: Person, person_number: int, baseline_profile: str = "current"
@@ -221,11 +322,17 @@ def seed(
             Person.baseline_profile == profile_name,
         )
         existing = session.query(Person).filter(*profile_filter).count()
-        if existing and not replace:
+        action = _seed_action(existing, population_size, size is None, replace)
+        if action == "reuse":
             validate_baseline(session, profile_name, existing)
             print(f"Baseline already contains {existing:,} residents; nothing changed.")
             return existing
-        if replace:
+        if action == "replace":
+            if existing != population_size:
+                print(
+                    f"Replacing undersized {existing:,}-row {profile_name} baseline "
+                    f"with {population_size:,} rows."
+                )
             session.query(Person).filter(*profile_filter).delete(
                 synchronize_session=False
             )
