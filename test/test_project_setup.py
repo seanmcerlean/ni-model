@@ -59,4 +59,6 @@ def test_root_build_targets_the_static_sites_bundle():
 
     assert "VITE_DEPLOYMENT_MODE=static" in build_command
     assert "--outDir ../dist" in build_command
+    assert "prepare_sites_bundle.mjs" in build_command
+    assert Path("sites/server/index.js").is_file()
     assert Path("frontend/public/recordings/manifest.json").is_file()
