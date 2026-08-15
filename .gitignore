@@ -18,6 +18,7 @@ venv/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+build/
 frontend/public/recordings/*.json
 data/baselines/*.parquet
 

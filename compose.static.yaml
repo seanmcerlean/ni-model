@@ -6,4 +6,4 @@ services:
       args:
         VITE_DEPLOYMENT_MODE: static
     ports:
-      - "8000:8080"
+      - "${NI_MODEL_PORT:-8000}:8080"

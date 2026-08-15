@@ -4,6 +4,8 @@
 __pycache__
 *.db
 *.pyc
+build
+data/baselines/*.parquet
 frontend/dist
 frontend/node_modules
 htmlcov

@@ -38,7 +38,7 @@ services:
       MAX_ACTIVE_RUNS_PER_USER: "2"
       MAX_SIMULATION_HORIZON_YEARS: "100"
     ports:
-      - "8000:8000"
+      - "${NI_MODEL_PORT:-8000}:8000"
     depends_on:
       current-seed:
         condition: service_completed_successfully

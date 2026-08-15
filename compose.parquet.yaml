@@ -26,7 +26,7 @@ services:
       SIMULATION_WORKERS: "1"
     command: ["python", "scripts/start_portable.py"]
     ports:
-      - "8000:8000"
+      - "${NI_MODEL_PORT:-8000}:8000"
     volumes:
       - ./data/baselines:/app/data/baselines:ro
       - portable-runtime:/app/runtime

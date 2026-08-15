@@ -2,6 +2,7 @@
 set -euo pipefail
 
 mode="${NI_MODEL_MODE:-parquet}"
+port="${NI_MODEL_PORT:-8000}"
 
 case "$mode" in
   parquet)
@@ -35,4 +36,4 @@ case "$mode" in
     ;;
 esac
 
-echo "NI Model $mode mode is available at http://localhost:8000"
+echo "NI Model $mode mode is available at http://localhost:$port"

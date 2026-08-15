@@ -7,8 +7,40 @@ resulting population state.
 
 ## Deployment modes
 
-Set `NI_MODEL_MODE` in `.env` or the shell, then run `./deploy.sh`. The default
-is `parquet`.
+From WSL, run the application with mode and host port as command-line options:
+
+```bash
+./run.sh --mode parquet --port 8000
+```
+
+From Windows PowerShell, run the same deployment inside WSL:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-wsl.ps1 -Mode parquet -Port 8000
+```
+
+Check the WSL/Docker dependencies from Windows without starting the app:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-wsl.ps1 -CheckDependencies
+```
+
+The Windows launcher handles repositories stored either inside WSL or on a
+Windows drive, opens the correct WSL directory and invokes `run.sh`. It infers
+the distribution from a `\\wsl.localhost\Distro\...` path; set
+`NI_MODEL_WSL_DISTRO` in Windows to override it. `run-wsl.cmd` is also provided
+for Windows-drive checkouts where a Command Prompt launcher is preferred.
+
+Both options are optional and default to `parquet` and `8000`. Check the only
+host dependencies—Docker, Docker Compose v2 and a running Docker daemon—with:
+
+```bash
+./check-dependencies.sh
+```
+
+`run.sh` performs the same check automatically before deployment. The lower-level
+`deploy.sh` interface remains available through `NI_MODEL_MODE` and
+`NI_MODEL_PORT`.
 
 | Mode | Purpose | Population storage |
 |---|---|---|
@@ -24,18 +56,63 @@ NI_MODEL_MODE=full ./deploy.sh     # existing PostgreSQL deployment
 
 The first Parquet or static deployment creates deterministic `current` and
 `historical` full-population baselines under `data/baselines/`. Static mode
-then records every model exposed by the frontend selector using its canonical
-seed and default year range. The generated population and recording files are
-build artifacts and are not committed.
+then records every model exposed by the frontend selector. The historical,
+current, community and zero-migration recordings use seeds 1180, 1690, 1921
+and 1969 respectively. Historical playback is fixed at 1969–2024; future
+recordings are fixed at 2021–2075. Generated population and recording files are
+local build artifacts and are not committed.
 
 Static mode fixes seeds and demographic multipliers. Model selection, year
-playback, maps, community display, polling selection, and undecided treatment
-remain browser-side. Use Parquet or full mode when assumptions must be changed.
+playback, maps, community display, polling selection, undecided treatment and
+polling shocks remain browser-side. Use Parquet or full mode when demographic
+assumptions, seeds or year ranges must be changed.
+
+### Hosted static deployments
+
+The repository includes two deployment scripts. They are infrastructure
+starting points and have **not been executed against either hosting provider**.
+Review the generated resources, account permissions, current pricing and
+provider limits before running them.
+
+Build the deployable static directory without publishing it:
+
+```bash
+scripts/build_static_site.sh
+```
+
+Pass `--refresh-recordings` to regenerate all four full-population recordings
+first. Without it, existing local recordings are used; missing recordings are
+generated automatically. Output is written to the ignored
+`build/static-site/` directory.
+
+AWS deployment uses CloudFormation to create a private encrypted S3 bucket,
+CloudFront distribution and origin-access control, then uploads the site and
+invalidates the cache. AWS CLI v2 credentials are required, and S3/CloudFront
+can incur charges:
+
+```bash
+deploy/aws-static.sh --stack ni-model-static --region eu-west-2
+```
+
+The free-hosting option uses Cloudflare Pages. Create a Pages project and API
+token with Pages edit permission, then run:
+
+```bash
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"
+export CLOUDFLARE_API_TOKEN="your-api-token"
+deploy/cloudflare-pages.sh --project ni-model --branch main
+```
+
+Cloudflare Pages has a free plan suitable for these static aggregate files,
+subject to its [current platform limits](https://developers.cloudflare.com/pages/platform/limits/).
+Neither hosted mode uploads the individual-level Parquet baseline.
 
 ## What it does
 
-- Maintains one immutable PostgreSQL baseline and isolated per-run event history
-  without copying ~2M person records for each run
+- Evolves complete 1,903,175-person current and 1,512,500-person historical
+  baselines without sending individual records to the browser
+- Supports Parquet/SQLite for portable local runs, aggregate JSON for static
+  playback, and PostgreSQL for durable multi-user operation
 - Simulates demographic change year-by-year using configurable, era-specific rates
 - Applies different rates to different cohorts (e.g. community-background birth rates and age-specific mortality)
 - Tracks internal migration between NI locations and external migration in/out
@@ -57,11 +134,13 @@ src/ni_model/
 └── validation/     # Historical validator, model comparator
 ```
 
-Each simulation has a durable run ID. A bounded background worker loads the
-immutable baseline into compact Polars/Arrow columns, and every completed year
-is persisted as an aggregate snapshot plus append-only individual events. Full
-Parquet checkpoints support restart and reconstruction. The simulation follows
-the same sequential semantics per year:
+Live simulations have a run ID and load the selected immutable baseline into
+compact Polars/Arrow columns. The browser receives aggregate snapshots rather
+than individual rows. Parquet mode uses an embedded worker, SQLite run metadata
+and local checkpoints; full mode uses PostgreSQL, a durable job queue, a
+separate worker and persisted events. Static mode has no API or database and
+replays pre-generated aggregate snapshots. All simulation modes use the same
+sequential semantics per year:
 
 ```
 derive age → generate births → remove deaths → apply migration → relocate →
@@ -69,9 +148,9 @@ apply community transition → snapshot
 ```
 
 Model assumptions are defined in YAML and loaded at runtime via
-`ModelDirector`. PostgreSQL provides a durable `SKIP LOCKED` job queue;
-snapshots, events, checkpoints, cancellation, and run status survive API and
-worker restarts.
+`ModelDirector`. In full mode, PostgreSQL provides the durable `SKIP LOCKED`
+job queue; snapshots, events, checkpoints, cancellation, and run status survive
+API and worker restarts.
 
 Public deployments can bound anonymous-client concurrency and horizons with
 `MAX_ACTIVE_RUNS_PER_USER` and `MAX_SIMULATION_HORIZON_YEARS`. Worker execution,
@@ -83,9 +162,10 @@ The run editor supports global and per-community multipliers for births,
 deaths, external migration, internal relocation and community transition. These are sensitivity
 controls: they alter an isolated run and do not rewrite the sourced model.
 
-## Quick start
+## Local development without Compose
 
-**Prerequisites:** Python 3.11+, PostgreSQL (or use the Kubernetes setup below)
+The Docker launcher above is the supported quick start. For backend development
+without Compose, install Python 3.11+ and configure PostgreSQL explicitly:
 
 ```bash
 # Install dependencies
@@ -94,13 +174,15 @@ source venv/bin/activate
 pip install -e ".[dev]"
 
 # Run database migrations
+export NI_MODEL_MODE=full
+export DATABASE_URL=postgresql://ni_user:ni_password@localhost:5432/ni_current
 alembic upgrade head
 
 # Start the API
 uvicorn src.ni_model.api.app:app --reload
 ```
 
-API available at `http://localhost:8000`. Interactive docs are at
+The API is available at `http://localhost:8000`. Interactive docs are at
 `http://localhost:8000/docs`, and the MCP endpoint is
 `http://localhost:8000/mcp/`.
 
@@ -124,7 +206,8 @@ and the idempotent seed job skips a database that already has a baseline.
 docker compose up --build
 ```
 
-The API and built frontend are then available at `http://localhost:8000`.
+The API and built frontend are then available at `http://localhost:8000`, or
+the host port supplied through `NI_MODEL_PORT`.
 Seeding uses batches of 25,000 so memory use does not grow with the population.
 
 A separate, opt-in 1,512,500-record historical database is available for
@@ -140,16 +223,10 @@ uses the 1971 Census as the nearest documented proxy. Community background and
 other unavailable joint distributions remain estimates, and current LGDs are
 used as stable simulation areas rather than claimed historical boundaries.
 
-## Kubernetes deployment
-
-```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/postgres.yaml
-kubectl apply -f k8s/redis.yaml
-kubectl apply -f k8s/app.yaml
-```
-
 ## API endpoints
+
+These endpoints are available in Parquet and full modes. Static hosting has no
+server API and serves only the recorded aggregate JSON used by the frontend.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -170,7 +247,7 @@ kubectl apply -f k8s/app.yaml
 
 SSE stream example:
 ```
-GET /api/simulation/stream?start_year=1971&end_year=2024&model_path=models/ni_base_2024.yaml
+GET /api/simulation/stream?start_year=1969&end_year=2024&model_path=models/ni_base_2024.yaml
 ```
 
 Each event contains the run ID and full demographic snapshot for that year.
@@ -180,7 +257,9 @@ through the terminal-run deletion endpoint.
 
 ## Model configuration
 
-Models are defined in YAML. The default model is `models/ni_base_2024.yaml`.
+Models are defined in YAML. The frontend defaults to the community-differentiated
+current model, `models/ni_current_community.yaml`; the historical model remains
+selectable.
 
 ```yaml
 name: "NI Historical Model"
@@ -238,7 +317,11 @@ npm run dev      # dev server at http://localhost:5173
 npm run build    # production build → frontend/dist/
 ```
 
-Features: play/pause, speed control (0.5×–5×), scrub slider, per-location drill-down panel with population trend, religious breakdown, age pyramid, and origin breakdown.
+Features include play/pause, speed control (0.5×–5×), a scrub slider, blended
+Unite/Remain and community map modes, probable-community display, per-location
+demographic and political detail, LucidTalk polling calibrations, reported or
+decided-voter presentation, and frontend-only neutral/Brexit/anti-Brexit polling
+shock scenarios.
 
 ## Performance benchmarks
 
