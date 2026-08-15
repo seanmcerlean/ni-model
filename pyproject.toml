@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ni-model"
-version = "0.5.0"
+version = "1.0.0"
 description = "Northern Ireland Population and Voting Model"
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
     "sqlalchemy==2.0.23",

@@ -1,5 +1,7 @@
 import os
 import sys
+import tomllib
+from pathlib import Path
 
 
 def test_project_structure():
@@ -29,3 +31,13 @@ def test_pyproject_toml_exists():
         assert "[tool.black]" in content
         assert "[tool.isort]" in content
         assert "[tool.pytest.ini_options]" in content
+
+
+def test_project_declares_permissive_mit_license():
+    license_text = Path("LICENSE").read_text(encoding="utf-8")
+    with Path("pyproject.toml").open("rb") as source:
+        project = tomllib.load(source)["project"]
+
+    assert license_text.startswith("MIT License")
+    assert "Permission is hereby granted, free of charge" in license_text
+    assert project["license"] == {"file": "LICENSE"}

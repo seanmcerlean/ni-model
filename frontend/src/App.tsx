@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "./app.css";
+import { AboutPage } from "./components/AboutPage";
 import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
@@ -11,6 +12,7 @@ import { ChildBackgroundRule, CommunityBackground, CommunityBasis, CommunityRate
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
 type PanelTab = "setup" | "model" | "polling";
+type AppPage = "simulator" | "about";
 const PANEL_TABS: PanelTab[] = ["setup", "model", "polling"];
 
 function isCommunityBackground(value: string): value is CommunityBackground {
@@ -66,6 +68,7 @@ export default function App() {
   const [communityBasis, setCommunityBasis] = useState<CommunityBasis>("reported");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
   const [panelTab, setPanelTab] = useState<PanelTab>("setup");
+  const [page, setPage] = useState<AppPage>("simulator");
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -247,11 +250,20 @@ export default function App() {
         {currentYear && (
           <span className="year-badge">{currentYear}</span>
         )}
-        {status === "streaming" && (
-          <button className="stop-button" onClick={abort}>Stop simulation</button>
-        )}
+        <div className="header-actions">
+          <nav className="primary-navigation" aria-label="Primary navigation">
+            <button type="button" aria-current={page === "simulator" ? "page" : undefined}
+              onClick={() => setPage("simulator")}>Simulator</button>
+            <button type="button" aria-current={page === "about" ? "page" : undefined}
+              onClick={() => setPage("about")}>About</button>
+          </nav>
+          {status === "streaming" && (
+            <button className="stop-button" onClick={abort}>Stop simulation</button>
+          )}
+        </div>
       </header>
 
+      {page === "about" ? <AboutPage /> : <>
       <div className="workspace">
         <aside className="model-panel">
           <div className="panel-kicker">MODEL</div>
@@ -401,6 +413,7 @@ export default function App() {
         onStartYearChange={setStartYear}
         onEndYearChange={setEndYear}
       />
+      </>}
     </div>
   );
 }

@@ -54,6 +54,23 @@ describe("App", () => {
     expect(screen.getByText("Run")).toBeInTheDocument();
   });
 
+  it("opens the model explanation from the top navigation", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "About" }));
+
+    expect(screen.getByRole("heading", { name: "A toy for exploring assumptions" })).toBeInTheDocument();
+    expect(screen.getByText("“All models are wrong, but some are useful.”")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Not a serious demographic model" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "AI-generated code" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "How one run evolves" })).toBeInTheDocument();
+    expect(screen.getByText("Internal relocation")).toBeInTheDocument();
+    expect(screen.queryByTestId("map")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Simulator" }));
+    expect(screen.getByTestId("map")).toBeInTheDocument();
+  });
+
   it("separates setup, model information, and polling into keyboard tabs", () => {
     render(<App />);
     const setup = screen.getByRole("tab", { name: "Run setup" });

@@ -5,6 +5,12 @@ population at individual person level. Runs iterative year-by-year simulations
 (ageing → births → deaths → migration → community transition) and generates voting scenarios from the
 resulting population state.
 
+This is an experimental toy for examining basic assumptions, not a serious or
+validated demographic forecast. All code was AI-generated under human
+direction; bugs and methodological problems are likely, and every output
+should be treated with caution. The in-application **About** page explains the
+algorithm and limitations in more detail.
+
 ## Deployment modes
 
 From WSL, run the application with mode and host port as command-line options:
@@ -108,6 +114,12 @@ deploy/cloudflare-pages.sh --project ni-model --branch main
 Cloudflare Pages has a free plan suitable for these static aggregate files,
 subject to its [current platform limits](https://developers.cloudflare.com/pages/platform/limits/).
 Neither hosted mode uploads the individual-level Parquet baseline.
+
+## License
+
+This project is available under the permissive [MIT License](LICENSE). It may
+be used, copied, modified, distributed, sublicensed or sold subject to retaining
+the licence's copyright and permission notice.
 
 ## What it does
 

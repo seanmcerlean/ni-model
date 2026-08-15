@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.0 - 2026-08-15
+
+### Added
+
+- An in-application About page explaining the model's toy status, AI-generated
+  implementation, limitations and annual simulation pipeline.
+- The permissive MIT License for reuse and modification.
+
 ### Fixed
 
 - Preserve the observed population unchanged in each model's baseline-year
