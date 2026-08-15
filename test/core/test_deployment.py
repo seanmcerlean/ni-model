@@ -2,11 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.ni_model.core.deployment import (
-    DeploymentMode,
-    baseline_path,
-    deployment_mode,
-)
+from src.ni_model.core.deployment import DeploymentMode, baseline_path, deployment_mode
 
 
 def test_deployment_defaults_to_parquet(monkeypatch):

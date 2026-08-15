@@ -32,14 +32,16 @@ def upgrade() -> None:
 
     # Existing databases may contain current, historical, and cloned run rows.
     # Assign compact stable identifiers without guessing their reference year.
-    op.execute("""WITH numbered AS (
+    op.execute(
+        """WITH numbered AS (
                SELECT id, row_number() OVER (ORDER BY id) AS person_number
                FROM persons
            )
            UPDATE persons
            SET person_number = numbered.person_number
            FROM numbered
-           WHERE persons.id = numbered.id""")
+           WHERE persons.id = numbered.id"""
+    )
     op.alter_column("persons", "person_number", nullable=False)
     op.execute("CREATE SEQUENCE persons_person_number_seq")
     op.execute(

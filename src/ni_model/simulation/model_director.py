@@ -6,13 +6,7 @@ from typing import Any, Dict, List
 import yaml
 from sqlalchemy.orm import Session
 
-from ..core.models import (
-    EducationLevel,
-    Gender,
-    Location,
-    Origin,
-    ReligiousBackground,
-)
+from ..core.models import EducationLevel, Gender, Location, Origin, ReligiousBackground
 from .demographic_calculators import (
     AgeWeightedDeathCalculator,
     BirthCalculator,

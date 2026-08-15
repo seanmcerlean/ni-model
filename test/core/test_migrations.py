@@ -15,12 +15,16 @@ def test_initial_migration_upgrades_and_downgrades_clean_database():
 
         engine = create_engine(url)
         with engine.begin() as connection:
-            connection.execute(text("""INSERT INTO persons
+            connection.execute(
+                text(
+                    """INSERT INTO persons
                     (id, age, religious_background, gender, education_level,
                      location, origin)
                     VALUES
                     ('00000000-0000-0000-0000-000000000001', 30, 'CATHOLIC',
-                     'FEMALE', 'TERTIARY', 'BELFAST_WEST', 'NI')"""))
+                     'FEMALE', 'TERTIARY', 'BELFAST_WEST', 'NI')"""
+                )
+            )
 
         command.upgrade(config, "head")
         inspector = inspect(engine)

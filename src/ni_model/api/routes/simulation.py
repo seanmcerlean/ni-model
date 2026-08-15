@@ -27,9 +27,7 @@ from ...core.models import (
 )
 from ...simulation.columnar_worker import ColumnarSimulationWorker
 from ...simulation.event_store import EventStore
-from ...simulation.historical_configuration import (
-    configure_historical_model_from_file,
-)
+from ...simulation.historical_configuration import configure_historical_model_from_file
 from ...simulation.jobs import submit_run
 from ...simulation.model_director import ModelDirector
 from ...simulation.population_manager import PopulationManager
