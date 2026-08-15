@@ -1,0 +1,7 @@
+{
+  "name": "ni-model-sites-static",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend ci && VITE_DEPLOYMENT_MODE=static npm --prefix frontend run build -- --outDir ../dist --emptyOutDir"
+  }
+}

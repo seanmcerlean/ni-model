@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tomllib
@@ -50,3 +51,12 @@ def test_ci_installs_development_dependencies_before_quality_checks():
     assert "cache-dependency-path: |" in workflow
     assert "requirements.txt\n            dev-requirements.txt" in workflow
     assert workflow.index(install_command) < workflow.index("venv/bin/black")
+
+
+def test_root_build_targets_the_static_sites_bundle():
+    package = json.loads(Path("package.json").read_text(encoding="utf-8"))
+    build_command = package["scripts"]["build"]
+
+    assert "VITE_DEPLOYMENT_MODE=static" in build_command
+    assert "--outDir ../dist" in build_command
+    assert Path("frontend/public/recordings/manifest.json").is_file()
