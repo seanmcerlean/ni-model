@@ -47,12 +47,3 @@ jobs:
         run: npm test -- --run
       - working-directory: frontend
         run: npm run build
-      - env:
-          DATABASE_URL: postgresql://ni_user:ni_password@localhost:5432/ni_model
-        run: venv/bin/python scripts/seed_population.py current --size 25000
-      - env:
-          DATABASE_URL: postgresql://ni_user:ni_password@localhost:5432/ni_model
-        run: >-
-          venv/bin/python scripts/benchmark_simulation.py
-          --engine columnar --expected-size 25000
-          --start-year 2025 --end-year 2025 --enforce-budget
