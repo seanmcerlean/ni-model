@@ -65,8 +65,9 @@ The first Parquet or static deployment creates deterministic `current` and
 then records every model exposed by the frontend selector. The historical,
 current, community and zero-migration recordings use seeds 1180, 1690, 1921
 and 1969 respectively. Historical playback is fixed at 1969–2024; future
-recordings are fixed at 2021–2075. Generated population and recording files are
-local build artifacts and are not committed.
+recordings are fixed at 2021–2075. The canonical aggregate-only recordings are
+committed so the default static model can be deployed directly from `main`.
+Individual-level Parquet baselines remain ignored local build artifacts.
 
 Static mode fixes seeds, demographic multipliers and year ranges. Model selection, year
 playback, maps, community display, polling selection, undecided treatment and
@@ -91,7 +92,8 @@ Pass `--refresh-recordings` to regenerate all four full-population recordings
 unconditionally. Otherwise the builder verifies the schema, model catalogue,
 source inputs, complete asset set and both Parquet baselines, regenerating all
 recordings whenever anything is stale. Output is written to the ignored
-`build/static-site/` directory.
+`build/static-site/` directory. A refreshed recording changes the tracked
+canonical defaults and should be reviewed before it is committed.
 
 AWS deployment uses CloudFormation to create a private encrypted S3 bucket,
 CloudFront distribution and origin-access control, then uploads the site and
