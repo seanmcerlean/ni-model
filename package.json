@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm --prefix frontend ci && VITE_DEPLOYMENT_MODE=static npm --prefix frontend run build -- --outDir ../dist --emptyOutDir && node scripts/prepare_sites_bundle.mjs",
+    "build": "npm --prefix frontend ci && VITE_DEPLOYMENT_MODE=static npm --prefix frontend run build -- --outDir ../dist/client --emptyOutDir && node scripts/prepare_sites_bundle.mjs",
     "test:sites": "node --test sites/server/index.test.mjs"
   }
 }
