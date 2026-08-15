@@ -41,3 +41,12 @@ def test_project_declares_permissive_mit_license():
     assert license_text.startswith("MIT License")
     assert "Permission is hereby granted, free of charge" in license_text
     assert project["license"] == {"file": "LICENSE"}
+
+
+def test_ci_installs_development_dependencies_before_quality_checks():
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    install_command = "venv/bin/pip install -r dev-requirements.txt"
+
+    assert "cache-dependency-path: |" in workflow
+    assert "requirements.txt\n            dev-requirements.txt" in workflow
+    assert workflow.index(install_command) < workflow.index("venv/bin/black")
