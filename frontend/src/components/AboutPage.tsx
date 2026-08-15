@@ -168,9 +168,17 @@ export function AboutPage() {
             policy, campaigning, investment, academic claims or factual forecasts.
           </p>
           <p>
-            The repository is available under the permissive MIT License. You may
-            use, copy, modify, merge, publish, distribute, sublicense and sell copies
-            subject only to retaining its short copyright and permission notice.
+            The{" "}
+            <a
+              href="https://github.com/seanmcerlean/ni-model"
+              target="_blank"
+              rel="noreferrer"
+            >
+              source code is available on GitHub
+            </a>{" "}
+            under the permissive MIT License. You may use, copy, modify, merge,
+            publish, distribute, sublicense and sell copies subject only to retaining
+            its short copyright and permission notice.
           </p>
         </section>
       </article>

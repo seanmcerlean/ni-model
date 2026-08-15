@@ -65,6 +65,10 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "AI-generated code" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "How one run evolves" })).toBeInTheDocument();
     expect(screen.getByText("Internal relocation")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "source code is available on GitHub" })).toHaveAttribute(
+      "href",
+      "https://github.com/seanmcerlean/ni-model",
+    );
     expect(screen.queryByTestId("map")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Simulator" }));

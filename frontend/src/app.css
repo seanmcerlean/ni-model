@@ -68,6 +68,8 @@ button, input, select { font: inherit; }
 .pipeline-figure figcaption { margin-top: 16px; color: #71839a; font-size: 10px; line-height: 1.5; text-align: center; }
 .about-footnote { margin-top: 28px; padding: 26px; border-top: 1px solid #29415f; background: #0d1a2b88; }
 .about-footnote p + p { margin-top: 12px; }
+.about-footnote a { color: #7dd3fc; }
+.about-footnote a:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
 
 .workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: 290px 1fr; }
 .model-panel { padding: 18px; background: #0d1a2b; border-right: 1px solid #23364f; overflow-y: auto; }

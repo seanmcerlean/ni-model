@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.1 - 2026-08-15
+
+### Added
+
+- A link from the in-application About page to the public GitHub repository.
+
 ## 1.0.0 - 2026-08-15
 
 ### Added
