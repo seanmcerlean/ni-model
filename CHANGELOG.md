@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Preserve the observed population unchanged in each model's baseline-year
+  snapshot and reject runs that skip the baseline or exceed the supported end.
+- Restore historical population-adjustment migration for 1995–1997.
+- Clear or cancel buffered simulations when changing models and clean up stream
+  resources on replacement or unmount.
+- Recover interrupted portable Parquet runs after restart.
+- Validate static recordings against code, models, baselines, schema and asset
+  coverage before publishing.
+- Discard unpublished individual events during static export instead of
+  retaining an entire multi-decade full-population event history in memory.
+- Use an age-compatible resident-distribution proxy for immigrant life-course
+  attributes instead of forcing every arrival to age 18–45.
+- Isolate REST simulation runs with a per-browser owner cookie.
+
+### Removed
+
+- Stale Kubernetes/Redis deployment artifacts, their obsolete test script, and
+  the unused Redis dependency.
+
 ## 0.5.0 - 2026-08-04
 
 ### Added

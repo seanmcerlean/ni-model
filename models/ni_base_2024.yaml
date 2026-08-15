@@ -191,10 +191,10 @@ death_rates:
 # ---------------------------------------------------------------------------
 
 migration_rates:
-  # --- Troubles era: significant net emigration ---
+  # --- Troubles and pre-GFA era; annual controls determine the observed sign ---
   - rate: -8.0
     year_min: 1969
-    year_max: 1994
+    year_max: 1997
     filters: {}
 
   # --- Post-GFA (1998-2009): return migration, net positive ---

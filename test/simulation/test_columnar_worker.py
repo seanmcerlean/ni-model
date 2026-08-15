@@ -264,6 +264,29 @@ def test_columnar_worker_uses_explicit_immigration_profiles():
     assert set(arrivals["probable_community"]) == {"catholic"}
 
 
+def test_arrivals_preserve_a_full_life_course_and_valid_education():
+    people = (
+        population(3)
+        .with_columns(
+            pl.Series("birth_year", [2020, 1940, 1990]).cast(pl.Int16),
+            pl.Series("education_level", ["pre_primary", "primary", "primary"]),
+        )
+        .cast(COLUMN_TYPES)
+    )
+    worker = ColumnarSimulationWorker(people, config(), uuid.uuid4())
+
+    arrivals = worker._arrival_frame(
+        2025, 300, people, worker._rng(2025, "arrival", 0)
+    ).with_columns((2025 - pl.col("birth_year")).alias("age"))
+
+    assert arrivals["age"].min() == 5
+    assert arrivals["age"].max() == 85
+    assert arrivals.filter(
+        (pl.col("age") >= 18)
+        & pl.col("education_level").is_in(["pre_primary", "primary"])
+    ).is_empty()
+
+
 def test_historical_component_controls_are_expected_rates_not_exact_outputs():
     controlled = {
         "birth_rates": [{"rate": 100.0, "filters": {}}],

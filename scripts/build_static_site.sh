@@ -20,7 +20,16 @@ if [[ ! -f data/baselines/current.parquet || ! -f data/baselines/historical.parq
     python scripts/build_parquet_baselines.py --output-dir /app/data/baselines
 fi
 
-if $refresh_recordings || [[ ! -f frontend/public/recordings/manifest.json ]]; then
+recordings_valid=false
+if ! $refresh_recordings; then
+  if docker compose -f compose.parquet.yaml run --rm --build baseline-builder \
+    python scripts/validate_static_recordings.py \
+    --baseline-dir /app/data/baselines --output-dir /recordings; then
+    recordings_valid=true
+  fi
+fi
+
+if ! $recordings_valid; then
   docker compose -f compose.parquet.yaml run --rm --build baseline-builder \
     python scripts/export_static_recordings.py \
     --baseline-dir /app/data/baselines --output-dir /recordings

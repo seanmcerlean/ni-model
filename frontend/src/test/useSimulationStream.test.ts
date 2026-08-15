@@ -81,6 +81,40 @@ describe("useSimulationStream", () => {
     expect(result.current.status).toBe("idle");
   });
 
+  it("reset cancels the stream and clears buffered state", () => {
+    const { result } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(2024, 2025));
+    const snap = { year: 2024, total_population: 50, religious_breakdown: {}, gender_breakdown: {}, location_breakdown: {} };
+    act(() => mockEs.onmessage?.({ data: JSON.stringify(snap) }));
+
+    act(() => result.current.reset());
+
+    expect(mockEs.close).toHaveBeenCalled();
+    expect(result.current.status).toBe("idle");
+    expect(result.current.snapshots).toEqual({});
+    expect(result.current.years).toEqual([]);
+  });
+
+  it("closes an active stream when the hook unmounts", () => {
+    const { result, unmount } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(2024, 2025));
+
+    unmount();
+
+    expect(mockEs.close).toHaveBeenCalled();
+  });
+
+  it("reports malformed streamed snapshots", () => {
+    const { result } = renderHook(() => useSimulationStream());
+    act(() => result.current.startStream(2024, 2025));
+
+    act(() => mockEs.onmessage?.({ data: "not-json" }));
+
+    expect(result.current.status).toBe("error");
+    expect(result.current.error).toMatch(/malformed simulation data/i);
+    expect(mockEs.close).toHaveBeenCalled();
+  });
+
   it("cancels the durable run when aborting after the started event", () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);

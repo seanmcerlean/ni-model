@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import sys
+import tomllib
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.ni_model.api.routes.simulation import (  # noqa: E402
+    _baseline_year_result,
     _capture_columnar_snapshot,
     simulation_models,
 )
@@ -30,7 +32,12 @@ from src.ni_model.simulation.voting_predictor import (  # noqa: E402
 )
 
 SCHEMA_VERSION = 1
-STATIC_SEEDS = (1180, 1690, 1921, 1969)
+STATIC_SEEDS = {
+    "ni_base_2024": 1180,
+    "ni_current": 1690,
+    "ni_current_community": 1921,
+    "ni_zero_migration": 1969,
+}
 
 
 def _load_config(path: Path) -> dict:
@@ -46,6 +53,49 @@ def _frame(baseline_dir: Path, profile: str) -> pl.DataFrame:
     return pl.read_parquet(path)
 
 
+def _file_digest(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def recording_input_manifest(baseline_dir: Path, model_summaries) -> dict:
+    """Fingerprint every input capable of changing a recorded scenario."""
+    source_paths = sorted((PROJECT_ROOT / "src" / "ni_model").rglob("*.py"))
+    source_paths.append(Path(__file__).resolve())
+    data_paths = [
+        PROJECT_ROOT / "data" / "historical_demographic_components.yaml",
+        PROJECT_ROOT / "data" / "historical_calibration_result.yaml",
+    ]
+    model_paths = [PROJECT_ROOT / model.path for model in model_summaries]
+    files = {}
+    for path in sorted({*source_paths, *data_paths, *model_paths}):
+        files[str(path.relative_to(PROJECT_ROOT))] = _file_digest(path)
+    baselines = {
+        profile: _file_digest(baseline_dir / f"{profile}.parquet")
+        for profile in ("current", "historical")
+    }
+    digest = hashlib.sha256(
+        json.dumps(
+            {"files": files, "baselines": baselines},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    return {
+        "recording_inputs_hash": digest,
+        "input_files": files,
+        "baselines": baselines,
+    }
+
+
+def application_version() -> str:
+    with (PROJECT_ROOT / "pyproject.toml").open("rb") as source:
+        return str(tomllib.load(source)["project"]["version"])
+
+
 def _prediction(rows, reference_rows, calibration: str, basis: str) -> dict:
     predictor = VotingPredictor(
         None,
@@ -58,41 +108,31 @@ def _prediction(rows, reference_rows, calibration: str, basis: str) -> dict:
     return {**predictor.predict(), "by_location": predictor.predict_by_location()}
 
 
-def export_recordings(
-    baseline_dir: Path, output_dir: Path, selected_model_ids: set[str] | None = None
-) -> None:
+def _recording_year_result(worker, year: int, start_year: int) -> dict:
+    if year == start_year:
+        return _baseline_year_result(year)
+    try:
+        return worker.run_year(year)
+    finally:
+        # Static assets contain aggregates only; individual event objects would
+        # otherwise accumulate for the entire full-population projection.
+        worker.events.clear()
+
+
+def export_recordings(baseline_dir: Path, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     model_summaries = simulation_models()
-    seed_by_model = {
-        model.id: seed
-        for model, seed in zip(model_summaries, STATIC_SEEDS, strict=True)
-    }
-    selected_summaries = [
-        model
-        for model in model_summaries
-        if not selected_model_ids or model.id in selected_model_ids
-    ]
-    missing = (selected_model_ids or set()) - {model.id for model in model_summaries}
-    if missing:
-        raise ValueError(f"unknown model ids: {', '.join(sorted(missing))}")
-
-    if selected_model_ids:
-        manifest_path = output_dir / "manifest.json"
-        existing_manifest = (
-            json.loads(manifest_path.read_text(encoding="utf-8"))
-            if manifest_path.is_file()
-            else {"scenarios": []}
+    model_ids = {model.id for model in model_summaries}
+    if model_ids != set(STATIC_SEEDS):
+        missing = model_ids - set(STATIC_SEEDS)
+        obsolete = set(STATIC_SEEDS) - model_ids
+        raise ValueError(
+            "static seed mapping must match selectable models; "
+            f"missing={sorted(missing)}, obsolete={sorted(obsolete)}"
         )
-        selected_paths = {model.path for model in selected_summaries}
-        scenarios = [
-            scenario
-            for scenario in existing_manifest["scenarios"]
-            if scenario["model_path"] not in selected_paths
-        ]
-    else:
-        for stale_recording in output_dir.glob("*.json"):
-            stale_recording.unlink()
-        scenarios = []
+    for stale_recording in output_dir.glob("*.json"):
+        stale_recording.unlink()
+    scenarios = []
 
     current_reference = ColumnarSimulationWorker(
         _frame(baseline_dir, "current"), {}, uuid.uuid4(), seed=42
@@ -102,8 +142,8 @@ def export_recordings(
         profile: _frame(baseline_dir, profile) for profile in ("current", "historical")
     }
 
-    for summary in selected_summaries:
-        seed = seed_by_model[summary.id]
+    for summary in model_summaries:
+        seed = STATIC_SEEDS[summary.id]
         model_path = PROJECT_ROOT / summary.path
         config = _load_config(model_path)
         profile = config.get("baseline_profile", "current")
@@ -116,7 +156,7 @@ def export_recordings(
         worker = ColumnarSimulationWorker(frames[profile], config, run_id, seed=seed)
         snapshots = []
         for year in range(start_year, end_year + 1):
-            result = worker.run_year(year)
+            result = _recording_year_result(worker, year, start_year)
             snapshot = _capture_columnar_snapshot(
                 worker, run_id, year, result, None, population_scale=1.0
             ).model_dump(mode="json")
@@ -150,6 +190,7 @@ def export_recordings(
 
     manifest = {
         "schema_version": SCHEMA_VERSION,
+        "application_version": application_version(),
         "generated_at": datetime.now(UTC).isoformat(),
         "models_hash": hashlib.sha256(
             "".join(
@@ -159,6 +200,7 @@ def export_recordings(
         ).hexdigest(),
         "models": [model.model_dump(mode="json") for model in model_summaries],
         "scenarios": scenarios,
+        **recording_input_manifest(baseline_dir, model_summaries),
     }
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, separators=(",", ":")), encoding="utf-8"
@@ -171,18 +213,8 @@ def main() -> None:
     parser.add_argument(
         "--output-dir", type=Path, default=Path("frontend/public/recordings")
     )
-    parser.add_argument(
-        "--model-id",
-        action="append",
-        dest="model_ids",
-        help="Regenerate only this model while preserving other manifest scenarios.",
-    )
     args = parser.parse_args()
-    export_recordings(
-        args.baseline_dir,
-        args.output_dir,
-        set(args.model_ids) if args.model_ids else None,
-    )
+    export_recordings(args.baseline_dir, args.output_dir)
 
 
 if __name__ == "__main__":

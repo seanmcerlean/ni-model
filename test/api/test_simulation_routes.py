@@ -70,11 +70,14 @@ def test_simulation_models_describes_available_configs(client):
     assert current["baseline_profile"] == "current"
     assert current["baseline_population"] == 1_903_175
     assert current["data_through"] == 2024
-    assert current["projection_version"] == "NISRA/ONS 2024-based principal projection"
+    assert (
+        current["projection_version"]
+        == "NISRA/ONS 2024-based principal projection plus estimated 2075 tail"
+    )
     assert current["year_min"] == 2022
-    assert current["year_max"] == 2074
-    assert current["birth_rules"] == 53
-    assert current["migration_rules"] == 103
+    assert current["year_max"] == 2075
+    assert current["birth_rules"] == 54
+    assert current["migration_rules"] == 105
     assert current["internal_migration_rules"] == 418
     assert (
         current["internal_migration_rate_rules"][0]["evidence"]
@@ -86,7 +89,7 @@ def test_simulation_models_describes_available_configs(client):
     assert current["integration_rules"] == 10
     assert current["integration_rate_rules"][0]["destination"] == "NONE"
     assert current["default_start_year"] == 2021
-    assert current["default_end_year"] == 2035
+    assert current["default_end_year"] == 2075
     assert current["migration_rate_rules"][3]["flow"] == "in"
     assert current["mortality_age_rates"][0]["age_min"] == 0
     assert current["mortality_age_rates"][-1]["age_min"] == 85
@@ -95,9 +98,9 @@ def test_simulation_models_describes_available_configs(client):
     community = next(model for model in models if model["id"] == "ni_current_community")
     assert community["birth_rules"] == current["birth_rules"] * 4
     assert community["death_rules"] == current["death_rules"] * 4
-    assert community["migration_rules"] == 253
+    assert community["migration_rules"] == 258
     assert community["default_start_year"] == 2021
-    assert community["default_end_year"] == 2050
+    assert community["default_end_year"] == 2075
     assert "not an official projection" in community["description"]
     assert {
         rule["filters"]["religious_background"]
@@ -117,7 +120,7 @@ def test_run_uses_shared_baseline_and_durable_snapshots(client, populated_db):
 
     response = client.post(
         "/api/simulation/run",
-        json={"start_year": 2024, "end_year": 2025},
+        json={"start_year": 2021, "end_year": 2022},
     )
 
     assert response.status_code == 200
@@ -156,8 +159,8 @@ def test_run_can_use_a_deterministic_population_sample(client, populated_db):
     created = client.post(
         "/api/simulation/run",
         json={
-            "start_year": 2024,
-            "end_year": 2024,
+            "start_year": 2021,
+            "end_year": 2021,
             "population_limit": 2,
         },
     )
@@ -169,11 +172,11 @@ def test_run_can_use_a_deterministic_population_sample(client, populated_db):
     assert summary["represented_population_count"] == 1_903_175
     assert summary["population_scale"] == 1_903_175 / 2
     assert summary["baseline_profile"] == "current"
-    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2024").json()
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2021").json()
     assert snapshot["sample_population"] >= 1
     assert snapshot["population_scale"] == 1_903_175 / 2
     assert snapshot["total_population"] > 1_000_000
-    page = client.get(f"/api/simulation/runs/{run_id}/years/2024/people").json()
+    page = client.get(f"/api/simulation/runs/{run_id}/years/2021/people").json()
     assert page["total"] >= 1
     history_ids = {person["person_id"] for person in page["people"]}
     assert history_ids.intersection({str(person_id) for person_id in baseline_ids})
@@ -221,7 +224,8 @@ def test_historical_model_uses_lower_community_calibrated_baseline(
     snapshot = client.get(f"/api/simulation/runs/{run_id}/years/1969").json()
     assert summary["baseline_profile"] == "historical"
     assert summary["represented_population_count"] == 1_512_500
-    assert snapshot["total_population"] < 1_600_000
+    assert snapshot["total_population"] == 1_512_500
+    assert snapshot["simulation_result"]["net_change"] == 0
     catholic_share = (
         snapshot["religious_breakdown"]["catholic"] / snapshot["total_population"]
     )
@@ -233,8 +237,8 @@ def test_current_model_can_be_selected_for_a_run(client):
         "/api/simulation/run",
         json={
             "model_path": "models/ni_current.yaml",
-            "start_year": 2025,
-            "end_year": 2025,
+            "start_year": 2021,
+            "end_year": 2021,
         },
     )
 
@@ -249,14 +253,32 @@ def test_community_differentiated_model_can_be_selected(client):
         "/api/simulation/run",
         json={
             "model_path": "models/ni_current_community.yaml",
-            "start_year": 2025,
-            "end_year": 2025,
+            "start_year": 2021,
+            "end_year": 2021,
         },
     )
 
     assert response.status_code == 200
     assert response.json()["model_path"] == "models/ni_current_community.yaml"
     _wait_for_run(client, response.json()["run_id"])
+
+
+def test_zero_migration_baseline_year_is_not_simulated_twice(client):
+    response = client.post(
+        "/api/simulation/run",
+        json={
+            "model_path": "models/ni_zero_migration.yaml",
+            "start_year": 2021,
+            "end_year": 2021,
+        },
+    )
+
+    assert response.status_code == 200
+    run_id = response.json()["run_id"]
+    _wait_for_run(client, run_id)
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2021").json()
+    assert snapshot["total_population"] == 1_903_175
+    assert snapshot["simulation_result"]["net_change"] == 0
 
 
 def test_run_adjustments_are_validated_and_persisted(client):
@@ -270,7 +292,7 @@ def test_run_adjustments_are_validated_and_persisted(client):
     }
     created = client.post(
         "/api/simulation/run",
-        json={"start_year": 2024, "end_year": 2024, "adjustments": adjustments},
+        json={"start_year": 2021, "end_year": 2021, "adjustments": adjustments},
     )
     assert created.status_code == 200
     _wait_for_run(client, created.json()["run_id"])
@@ -280,20 +302,30 @@ def test_run_adjustments_are_validated_and_persisted(client):
     invalid = client.post(
         "/api/simulation/run",
         json={
-            "start_year": 2024,
-            "end_year": 2024,
+            "start_year": 2021,
+            "end_year": 2021,
             "adjustments": {"birth_multiplier": 3.1},
         },
     )
     assert invalid.status_code == 422
+
+    invalid_seed = client.post(
+        "/api/simulation/run",
+        json={
+            "start_year": 2021,
+            "end_year": 2021,
+            "adjustments": {"random_seed": -1},
+        },
+    )
+    assert invalid_seed.status_code == 422
 
 
 def test_per_community_adjustments_are_validated_and_persisted(client):
     created = client.post(
         "/api/simulation/run",
         json={
-            "start_year": 2024,
-            "end_year": 2024,
+            "start_year": 2021,
+            "end_year": 2021,
             "adjustments": {"community": {"catholic": {"birth_multiplier": 1.4}}},
         },
     )
@@ -316,13 +348,13 @@ def test_two_runs_share_immutable_baseline_and_keep_results_isolated(
     client, populated_db
 ):
     first = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     second = client.post(
         "/api/simulation/run",
         json={
-            "start_year": 2024,
-            "end_year": 2024,
+            "start_year": 2021,
+            "end_year": 2021,
             "model_path": "models/ni_zero_migration.yaml",
         },
     ).json()
@@ -344,32 +376,32 @@ def test_two_runs_share_immutable_baseline_and_keep_results_isolated(
 
 def test_run_summary_and_year_endpoints(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2022}
     ).json()
     run_id = created["run_id"]
     _wait_for_run(client, run_id)
 
     summary = client.get(f"/api/simulation/runs/{run_id}")
     years = client.get(f"/api/simulation/runs/{run_id}/years")
-    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2024")
+    snapshot = client.get(f"/api/simulation/runs/{run_id}/years/2021")
 
     assert summary.status_code == 200
-    assert summary.json()["completed_years"] == [2024, 2025]
-    assert years.json() == {"years": [2024, 2025]}
+    assert summary.json()["completed_years"] == [2021, 2022]
+    assert years.json() == {"years": [2021, 2022]}
     assert snapshot.status_code == 200
     assert snapshot.json()["run_id"] == run_id
-    assert snapshot.json()["year"] == 2024
+    assert snapshot.json()["year"] == 2021
     assert "locations" in snapshot.json()
 
 
 def test_completed_year_checkpoint_can_be_downloaded(client, tmp_path):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     _wait_for_run(client, created["run_id"])
 
     response = client.get(
-        f"/api/simulation/runs/{created['run_id']}/years/2024/checkpoint"
+        f"/api/simulation/runs/{created['run_id']}/years/2021/checkpoint"
     )
 
     assert response.status_code == 200
@@ -383,12 +415,12 @@ def test_completed_year_checkpoint_can_be_downloaded(client, tmp_path):
 
 def test_checkpoint_download_requires_an_exact_available_file(client, populated_db):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2022}
     ).json()
     _wait_for_run(client, created["run_id"])
     run_id = uuid.UUID(created["run_id"])
 
-    missing_year = client.get(f"/api/simulation/runs/{run_id}/years/2024/checkpoint")
+    missing_year = client.get(f"/api/simulation/runs/{run_id}/years/2021/checkpoint")
     assert missing_year.status_code == 404
 
     checkpoint = (
@@ -398,7 +430,7 @@ def test_checkpoint_download_requires_an_exact_available_file(client, populated_
     )
     checkpoint.storage_uri = "file:///missing/checkpoint.parquet"
     populated_db.commit()
-    unavailable = client.get(f"/api/simulation/runs/{run_id}/years/2025/checkpoint")
+    unavailable = client.get(f"/api/simulation/runs/{run_id}/years/2022/checkpoint")
     assert unavailable.status_code == 410
 
 
@@ -406,7 +438,7 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
     client, populated_db
 ):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     _wait_for_run(client, created["run_id"])
     stored = (
@@ -415,7 +447,7 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
         .one()
     )
 
-    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2024").json()
+    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2021").json()
 
     assert stored.data["_polling_inputs"]
     assert len(stored.data["_polling_inputs"][0]) == 5
@@ -424,12 +456,12 @@ def test_polling_inputs_are_persisted_but_not_exposed_in_aggregate_api(
 
 def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2022}
     ).json()
     _wait_for_run(client, created["run_id"])
 
     response = client.get(
-        f"/api/simulation/runs/{created['run_id']}/years/2024/voting-prediction",
+        f"/api/simulation/runs/{created['run_id']}/years/2021/voting-prediction",
         params={"custom_unite": 50, "custom_remain": 40, "custom_undecided": 10},
     )
 
@@ -442,7 +474,7 @@ def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
         prediction["by_location"]["belfast"]["unite_share"]
     )
     later = client.get(
-        f"/api/simulation/runs/{created['run_id']}/years/2025/voting-prediction",
+        f"/api/simulation/runs/{created['run_id']}/years/2022/voting-prediction",
         params={"custom_unite": 50, "custom_remain": 40, "custom_undecided": 10},
     ).json()
     # A tiny one-year demographic change can legitimately round the NI-wide
@@ -456,24 +488,24 @@ def test_snapshot_polling_can_be_recalculated_from_custom_baseline(client):
 
 def test_run_exposes_paginated_people_and_individual_history(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2025}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2022}
     ).json()
     run_id = created["run_id"]
     _wait_for_run(client, run_id)
 
     page = client.get(
-        f"/api/simulation/runs/{run_id}/years/2025/people",
+        f"/api/simulation/runs/{run_id}/years/2022/people",
         params={"limit": 5, "location": "belfast"},
     )
 
     assert page.status_code == 200
     data = page.json()
     assert data["run_id"] == run_id
-    assert data["year"] == 2025
+    assert data["year"] == 2022
     assert len(data["people"]) <= 5
     assert all(person["location"] == "belfast" for person in data["people"])
     person = data["people"][0]
-    assert person["age"] == 2025 - person["birth_year"]
+    assert person["age"] == 2022 - person["birth_year"]
 
     history = client.get(
         f"/api/simulation/runs/{run_id}/people/{person['person_id']}/history"
@@ -485,18 +517,18 @@ def test_run_exposes_paginated_people_and_individual_history(client):
 
 def test_people_endpoint_validates_year_and_pagination(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     _wait_for_run(client, created["run_id"])
     run_id = created["run_id"]
 
     assert (
-        client.get(f"/api/simulation/runs/{run_id}/years/2025/people").status_code
+        client.get(f"/api/simulation/runs/{run_id}/years/2022/people").status_code
         == 422
     )
     assert (
         client.get(
-            f"/api/simulation/runs/{run_id}/years/2024/people?limit=1001"
+            f"/api/simulation/runs/{run_id}/years/2021/people?limit=1001"
         ).status_code
         == 422
     )
@@ -521,7 +553,7 @@ def test_pending_run_can_be_cancelled(client, populated_db):
 
 def test_completed_run_can_be_deleted(client):
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     _wait_for_run(client, created["run_id"])
 
@@ -582,15 +614,15 @@ def test_missing_run_and_snapshot_return_404(client):
     assert client.get(f"/api/simulation/runs/{missing_id}").status_code == 404
 
     created = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     ).json()
     _wait_for_run(client, created["run_id"])
-    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2025")
+    response = client.get(f"/api/simulation/runs/{created['run_id']}/years/2022")
     assert response.status_code == 404
 
 
 def test_stream_persists_run_and_emits_run_id(client, populated_db):
-    response = client.get("/api/simulation/stream?start_year=2024&end_year=2025")
+    response = client.get("/api/simulation/stream?start_year=2021&end_year=2022")
 
     assert response.status_code == 200
     run_id = uuid.UUID(response.headers["x-simulation-run-id"])
@@ -600,7 +632,7 @@ def test_stream_persists_run_and_emits_run_id(client, populated_db):
     assert events[0]["data"]["run_id"] == str(run_id)
     assert events[1]["data"]["voting_predictions"] == {}
     prediction = client.get(
-        f"/api/simulation/runs/{run_id}/years/2024/voting-prediction",
+        f"/api/simulation/runs/{run_id}/years/2021/voting-prediction",
         params={"calibration": "nilt_2024"},
     ).json()
     assert prediction["source"]["id"] == "nilt_2024"
@@ -634,11 +666,25 @@ def test_run_rejects_invalid_model_and_years(client):
     assert invalid_year.status_code == 422
 
 
+def test_run_rejects_skipped_baseline_and_unsupported_projection_year(client):
+    skipped_baseline = client.post(
+        "/api/simulation/run", json={"start_year": 2022, "end_year": 2025}
+    )
+    beyond_projection = client.post(
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2076}
+    )
+
+    assert skipped_baseline.status_code == 422
+    assert "2021 baseline year" in skipped_baseline.json()["detail"]
+    assert beyond_projection.status_code == 422
+    assert "2075 limit" in beyond_projection.json()["detail"]
+
+
 def test_public_run_horizon_limit(client, monkeypatch):
     monkeypatch.setenv("MAX_SIMULATION_HORIZON_YEARS", "2")
 
     response = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2026}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2023}
     )
 
     assert response.status_code == 422
@@ -652,10 +698,10 @@ def test_public_active_run_limit_is_per_anonymous_client(
     monkeypatch.setenv("MAX_ACTIVE_RUNS_PER_USER", "1")
 
     first = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     )
     second = client.post(
-        "/api/simulation/run", json={"start_year": 2024, "end_year": 2024}
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
     )
 
     assert first.status_code == 200
@@ -664,16 +710,35 @@ def test_public_active_run_limit_is_per_anonymous_client(
     assert len(run.owner_key) == 64
 
 
+def test_rest_runs_are_isolated_by_browser_owner(client):
+    created = client.post(
+        "/api/simulation/run", json={"start_year": 2021, "end_year": 2021}
+    )
+    assert created.status_code == 200
+    run_id = created.json()["run_id"]
+    _wait_for_run(client, run_id)
+
+    client.cookies.set("ni_model_owner", "a-different-browser")
+
+    assert client.get(f"/api/simulation/runs/{run_id}").status_code == 404
+    assert all(
+        run["run_id"] != run_id for run in client.get("/api/simulation/runs").json()
+    )
+    assert client.delete(f"/api/simulation/runs/{run_id}").status_code == 404
+
+
 def test_stream_rejects_path_traversal_and_invalid_range(client):
     traversal = client.get(
         "/api/simulation/stream"
-        "?start_year=2024&end_year=2024&model_path=../pyproject.toml"
+        "?start_year=2021&end_year=2021&model_path=../pyproject.toml"
     )
     reversed_years = client.get("/api/simulation/stream?start_year=2025&end_year=2024")
     malformed_community = client.get(
         "/api/simulation/stream?community_adjustments=not-json"
     )
+    invalid_seed = client.get("/api/simulation/stream?random_seed=-1")
 
     assert traversal.status_code == 422
     assert reversed_years.status_code == 422
     assert malformed_community.status_code == 422
+    assert invalid_seed.status_code == 422

@@ -3,6 +3,7 @@ import hashlib
 import json
 import math
 import os
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -57,9 +58,19 @@ MODELS_DIR = PROJECT_ROOT / "models"
 ACTIVE_STATUSES = {"pending", "running", "cancelling"}
 
 
+@dataclass(frozen=True)
+class ModelRunSettings:
+    baseline_profile: str
+    baseline_population: int
+    baseline_year: int
+    final_year: int
+
+
 def _owner_key(request: Request) -> str:
-    host = request.client.host if request.client else "unknown"
-    return hashlib.sha256(host.encode()).hexdigest()
+    token = getattr(request.state, "owner_token", None)
+    if token is None:
+        token = request.client.host if request.client else "unknown"
+    return hashlib.sha256(str(token).encode()).hexdigest()
 
 
 def _enforce_run_limits(
@@ -127,7 +138,7 @@ def _load_director(
         ) from exc
 
 
-def _baseline_settings(model_path: str) -> tuple[str, int]:
+def _baseline_settings(model_path: str) -> ModelRunSettings:
     path = _resolve_model_path(model_path)
     try:
         with path.open(encoding="utf-8") as model_file:
@@ -135,14 +146,20 @@ def _baseline_settings(model_path: str) -> tuple[str, int]:
         config = configure_historical_model_from_file(config, path)
         profile = config.get("baseline_profile", "current")
         population = int(config["baseline_population"])
+        baseline_year = int(config["baseline_year"])
+        final_year = int(config["default_end_year"])
     except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as exc:
         raise HTTPException(
             status_code=422,
             detail=f"Invalid model baseline configuration: {exc}",
         ) from exc
-    if profile not in {"current", "historical"} or population < 1:
+    if (
+        profile not in {"current", "historical"}
+        or population < 1
+        or not 1900 <= baseline_year <= final_year <= 2200
+    ):
         raise HTTPException(status_code=422, detail="Invalid model baseline profile")
-    return profile, population
+    return ModelRunSettings(profile, population, baseline_year, final_year)
 
 
 @router.get("/models", response_model=list[SimulationModelSummary])
@@ -395,6 +412,22 @@ def _stored_columnar_snapshot(snapshot: SimulationYearSnapshot, voting_rows) -> 
     return data
 
 
+def _baseline_year_result(year: int) -> dict:
+    """Describe the unchanged observed baseline before projected events begin."""
+    return {
+        "year": year,
+        "births": 0,
+        "deaths": 0,
+        "immigration": 0,
+        "emigration": 0,
+        "migration": 0,
+        "internal_migration": 0,
+        "community_transitions": 0,
+        "community_transition_breakdown": {},
+        "net_change": 0,
+    }
+
+
 def _columnar_years(
     db: Session,
     run: SimulationRun,
@@ -426,6 +459,13 @@ def _columnar_years(
         ).delete(synchronize_session=False)
         db.commit()
     else:
+        db.query(SimulationPersonEvent).filter(
+            SimulationPersonEvent.run_id == run.id
+        ).delete(synchronize_session=False)
+        db.query(SimulationSnapshot).filter(SimulationSnapshot.run_id == run.id).delete(
+            synchronize_session=False
+        )
+        db.commit()
         worker = ColumnarSimulationWorker.load_baseline(
             db,
             director.config,
@@ -441,7 +481,11 @@ def _columnar_years(
         db.refresh(run)
         if run.status == "cancelling":
             return
-        result = worker.run_year(year)
+        result = (
+            _baseline_year_result(year)
+            if year == run.start_year
+            else worker.run_year(year)
+        )
         voting_rows = worker.voting_rows(year)
         snapshot = _capture_columnar_snapshot(
             worker,
@@ -470,9 +514,15 @@ def _columnar_years(
         yield result, snapshot
 
 
-def _get_run(db: Session, run_id: UUID) -> SimulationRun:
+def _get_run(
+    db: Session, run_id: UUID, request: Optional[Request] = None
+) -> SimulationRun:
     run = db.get(SimulationRun, run_id)
-    if not run:
+    if not run or (
+        request is not None
+        and run.owner_key is not None
+        and run.owner_key != _owner_key(request)
+    ):
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
     db.refresh(run)
     return run
@@ -485,8 +535,13 @@ def _submit_if_embedded(run_id: UUID, db: Session) -> None:
 
 
 @router.get("/runs", response_model=list[SimulationRunSummary])
-def simulation_runs(db: Session = Depends(get_db)):
-    runs = db.query(SimulationRun).order_by(SimulationRun.created_at.desc()).all()
+def simulation_runs(request: Request, db: Session = Depends(get_db)):
+    runs = (
+        db.query(SimulationRun)
+        .filter(SimulationRun.owner_key == _owner_key(request))
+        .order_by(SimulationRun.created_at.desc())
+        .all()
+    )
     return [_run_summary(run) for run in runs]
 
 
@@ -508,19 +563,21 @@ def _run_summary(run: SimulationRun) -> SimulationRunSummary:
 
 
 @router.get("/runs/{run_id}", response_model=SimulationRunSummary)
-def simulation_run(run_id: UUID, db: Session = Depends(get_db)):
-    return _run_summary(_get_run(db, run_id))
+def simulation_run(run_id: UUID, request: Request, db: Session = Depends(get_db)):
+    return _run_summary(_get_run(db, run_id, request))
 
 
 @router.get("/runs/{run_id}/years", response_model=SimulationYearsList)
-def simulation_years(run_id: UUID, db: Session = Depends(get_db)):
-    run = _get_run(db, run_id)
+def simulation_years(run_id: UUID, request: Request, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id, request)
     return SimulationYearsList(years=[snapshot.year for snapshot in run.snapshots])
 
 
 @router.get("/runs/{run_id}/years/{year}", response_model=SimulationYearSnapshot)
-def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_db)):
-    _get_run(db, run_id)
+def simulation_year_snapshot(
+    run_id: UUID, year: int, request: Request, db: Session = Depends(get_db)
+):
+    _get_run(db, run_id, request)
     snapshot = (
         db.query(SimulationSnapshot)
         .filter(
@@ -541,6 +598,7 @@ def simulation_year_snapshot(run_id: UUID, year: int, db: Session = Depends(get_
 def simulation_year_voting_prediction(
     run_id: UUID,
     year: int,
+    request: Request,
     calibration: str = "lucidtalk_winter_2025",
     community_basis: str = "reported",
     custom_unite: Optional[float] = Query(None, ge=0, le=100),
@@ -548,7 +606,7 @@ def simulation_year_voting_prediction(
     custom_undecided: Optional[float] = Query(None, ge=0, le=100),
     db: Session = Depends(get_db),
 ):
-    _get_run(db, run_id)
+    _get_run(db, run_id, request)
     snapshot = (
         db.query(SimulationSnapshot)
         .filter(SimulationSnapshot.run_id == run_id, SimulationSnapshot.year == year)
@@ -606,9 +664,11 @@ def simulation_year_voting_prediction(
 
 
 @router.get("/runs/{run_id}/years/{year}/checkpoint")
-def simulation_year_checkpoint(run_id: UUID, year: int, db: Session = Depends(get_db)):
+def simulation_year_checkpoint(
+    run_id: UUID, year: int, request: Request, db: Session = Depends(get_db)
+):
     """Download an exact, durable full-population Parquet checkpoint."""
-    _get_run(db, run_id)
+    _get_run(db, run_id, request)
     checkpoint = (
         db.query(SimulationCheckpoint)
         .filter(
@@ -646,13 +706,14 @@ def simulation_year_checkpoint(run_id: UUID, year: int, db: Session = Depends(ge
 def simulation_year_people(
     run_id: UUID,
     year: int,
+    request: Request,
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     location: Optional[str] = None,
     religious_background: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-    run = _get_run(db, run_id)
+    run = _get_run(db, run_id, request)
     try:
         total, people = PopulationReconstructor(db).page(
             run,
@@ -679,9 +740,12 @@ def simulation_year_people(
     response_model=SimulationPersonHistory,
 )
 def simulation_person_history(
-    run_id: UUID, person_id: UUID, db: Session = Depends(get_db)
+    run_id: UUID,
+    person_id: UUID,
+    request: Request,
+    db: Session = Depends(get_db),
 ):
-    run = _get_run(db, run_id)
+    run = _get_run(db, run_id, request)
     try:
         return SimulationPersonHistory(
             **PopulationReconstructor(db).history(run, person_id)
@@ -697,6 +761,24 @@ def _validate_stream_years(start_year: int, end_year: int) -> None:
         )
     if end_year < start_year:
         raise HTTPException(status_code=422, detail="end_year must be >= start_year")
+
+
+def _validate_model_years(
+    settings: ModelRunSettings, start_year: int, end_year: int
+) -> None:
+    if start_year != settings.baseline_year:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"start_year must equal this model's {settings.baseline_year} "
+                "baseline year"
+            ),
+        )
+    if end_year > settings.final_year:
+        raise HTTPException(
+            status_code=422,
+            detail=f"end_year cannot exceed this model's {settings.final_year} limit",
+        )
 
 
 def _stream_adjustments(
@@ -769,23 +851,24 @@ async def _simulation_event_stream(request, run_id, session_factory):
 @router.get("/stream")
 def stream_simulation(
     request: Request,
-    start_year: int = 2024,
-    end_year: int = 2030,
+    start_year: int = 2021,
+    end_year: int = 2075,
     model_path: str = "models/ni_current.yaml",
     birth_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     death_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     migration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     relocation_multiplier: float = Query(1.0, ge=0.0, le=3.0),
     integration_multiplier: float = Query(1.0, ge=0.0, le=3.0),
-    random_seed: Optional[int] = None,
+    random_seed: Optional[int] = Query(None, ge=0, le=4_294_967_295),
     community_adjustments: Optional[str] = None,
     population_limit: Optional[int] = Query(None, ge=1, le=1_903_175),
     db: Session = Depends(get_db),
 ):
     _validate_stream_years(start_year, end_year)
+    settings = _baseline_settings(model_path)
+    _validate_model_years(settings, start_year, end_year)
     owner_key = _enforce_run_limits(db, request, start_year, end_year)
 
-    baseline_profile, represented_population = _baseline_settings(model_path)
     adjustments = _stream_adjustments(
         birth_multiplier,
         death_multiplier,
@@ -805,8 +888,8 @@ def stream_simulation(
             clone_population=False,
             owner_key=owner_key,
             population_limit=population_limit,
-            baseline_profile=baseline_profile,
-            represented_population_count=represented_population,
+            baseline_profile=settings.baseline_profile,
+            represented_population_count=settings.baseline_population,
         )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -826,7 +909,8 @@ def run_simulation(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    baseline_profile, represented_population = _baseline_settings(payload.model_path)
+    settings = _baseline_settings(payload.model_path)
+    _validate_model_years(settings, payload.start_year, payload.end_year)
     owner_key = _enforce_run_limits(db, request, payload.start_year, payload.end_year)
     try:
         run = PopulationManager.create_run(
@@ -838,8 +922,8 @@ def run_simulation(
             clone_population=False,
             owner_key=owner_key,
             population_limit=payload.population_limit,
-            baseline_profile=baseline_profile,
-            represented_population_count=represented_population,
+            baseline_profile=settings.baseline_profile,
+            represented_population_count=settings.baseline_population,
         )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -862,8 +946,8 @@ def run_simulation(
 
 
 @router.post("/runs/{run_id}/cancel", response_model=SimulationRunSummary)
-def cancel_simulation(run_id: UUID, db: Session = Depends(get_db)):
-    run = _get_run(db, run_id)
+def cancel_simulation(run_id: UUID, request: Request, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id, request)
     if run.status == "pending":
         run.status = "cancelled"
         run.completed_at = datetime.now(UTC)
@@ -875,8 +959,8 @@ def cancel_simulation(run_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.delete("/runs/{run_id}", status_code=204)
-def delete_simulation(run_id: UUID, db: Session = Depends(get_db)):
-    run = _get_run(db, run_id)
+def delete_simulation(run_id: UUID, request: Request, db: Session = Depends(get_db)):
+    run = _get_run(db, run_id, request)
     if run.status in {"running", "cancelling"}:
         raise HTTPException(
             status_code=409, detail="cancel the running simulation first"

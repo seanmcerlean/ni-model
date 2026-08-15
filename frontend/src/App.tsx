@@ -5,7 +5,7 @@ import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { isStaticDeployment, loadRecordingManifest, STATIC_SEEDS } from "./deployment";
+import { isStaticDeployment, loadRecordingManifest } from "./deployment";
 import { allocateUndecided, applyPollingShock, PollingShock, UndecidedAllocation } from "./polling";
 import { ChildBackgroundRule, CommunityBackground, CommunityBasis, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
@@ -25,7 +25,7 @@ function defaultAdjustments(): SimulationAdjustments {
   });
   return {
     birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
-    relocation_multiplier: 1, random_seed: isStaticDeployment ? STATIC_SEEDS[0] : randomSeed(),
+    relocation_multiplier: 1, random_seed: isStaticDeployment ? null : randomSeed(),
     integration_multiplier: 1,
     community: {
       catholic: rateDefaults(), protestant: rateDefaults(),
@@ -41,7 +41,7 @@ function randomSeed(): number {
 }
 
 export default function App() {
-  const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
+  const { snapshots, years, status, error: streamError, startStream, abort, reset } = useSimulationStream();
 
   const [startYear, setStartYear] = useState(2021);
   const [endYear, setEndYear] = useState(2075);
@@ -50,6 +50,7 @@ export default function App() {
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [models, setModels] = useState<SimulationModel[]>([]);
+  const [recordedSeeds, setRecordedSeeds] = useState<Record<string, number>>({});
   const [modelPath, setModelPath] = useState("models/ni_current_community.yaml");
   const [modelError, setModelError] = useState<string | null>(null);
   const [voting, setVoting] = useState<VotingPrediction | null>(null);
@@ -77,23 +78,33 @@ export default function App() {
   );
 
   useEffect(() => {
-    const modelsRequest = isStaticDeployment
-      ? loadRecordingManifest().then((manifest) => manifest.models)
+    const modelsRequest: Promise<{
+      models: SimulationModel[];
+      seeds: Record<string, number>;
+    }> = isStaticDeployment
+      ? loadRecordingManifest().then((manifest) => ({
+          models: manifest.models,
+          seeds: Object.fromEntries(
+            manifest.scenarios.map((scenario) => [scenario.model_path, scenario.seed]),
+          ),
+        }))
       : fetch("/api/simulation/models").then((response) => {
           if (!response.ok) throw new Error("Could not load model definitions.");
-          return response.json() as Promise<SimulationModel[]>;
+          return response.json().then((models: SimulationModel[]) => ({
+            models,
+            seeds: {},
+          }));
         });
     modelsRequest
-      .then((availableModels: SimulationModel[]) => {
+      .then(({ models: availableModels, seeds }) => {
         setModels(availableModels);
+        setRecordedSeeds(seeds);
         if (isStaticDeployment) {
-          const selectedIndex = availableModels.findIndex(
-            (model) => model.path === modelPath,
-          );
-          if (selectedIndex >= 0) {
+          const seed = seeds[modelPath];
+          if (seed !== undefined) {
             setAdjustments((current) => ({
               ...current,
-              random_seed: STATIC_SEEDS[selectedIndex],
+              random_seed: seed,
             }));
           }
         }
@@ -101,7 +112,11 @@ export default function App() {
       })
       .catch(() => {
         setModels([]);
-        setModelError("Could not load model definitions from the local API.");
+        setModelError(
+          isStaticDeployment
+            ? "Could not load the recorded model catalogue."
+            : "Could not load model definitions from the local API.",
+        );
       });
   }, []);
 
@@ -200,17 +215,18 @@ export default function App() {
   }, []);
 
   const handleModelChange = useCallback((path: string) => {
+    reset();
     setModelPath(path);
     const model = models.find((item) => item.path === path);
-    const modelIndex = models.findIndex((item) => item.path === path);
     if (model?.default_start_year) setStartYear(model.default_start_year);
     if (model?.default_end_year) setEndYear(model.default_end_year);
-    if (isStaticDeployment && modelIndex >= 0) {
-      setAdjustments((current) => ({ ...current, random_seed: STATIC_SEEDS[modelIndex] }));
+    const recordedSeed = recordedSeeds[path];
+    if (isStaticDeployment && recordedSeed !== undefined) {
+      setAdjustments((current) => ({ ...current, random_seed: recordedSeed }));
     }
     setCurrentYear(null);
     setIsPlaying(false);
-  }, [models]);
+  }, [models, recordedSeeds, reset]);
 
   const handleScrub = useCallback((year: number) => {
     // Snap to nearest buffered year
@@ -244,6 +260,7 @@ export default function App() {
             id="model-select"
             className="model-select"
             value={modelPath}
+            disabled={models.length === 0}
             onChange={(event) => handleModelChange(event.target.value)}
           >
             {models.length === 0 && <option value={modelPath}>NI Current Community Model</option>}
@@ -268,7 +285,7 @@ export default function App() {
               <div className="seed-control">
                 <label htmlFor="random-seed">Simulation seed</label>
                 {isStaticDeployment ? (
-                  <input id="random-seed" type="number" disabled value={adjustments.random_seed ?? STATIC_SEEDS[0]} />
+                  <input id="random-seed" type="number" disabled value={adjustments.random_seed ?? ""} />
                 ) : <>
                   <input id="random-seed" type="number" min="0" max="4294967295"
                     disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
@@ -370,8 +387,13 @@ export default function App() {
         startYear={startYear}
         endYear={endYear}
         error={streamError}
-        canRun={startYear <= endYear && status !== "streaming"}
-        yearsLocked={isStaticDeployment}
+        canRun={models.length > 0 && startYear <= endYear
+          && endYear <= (selectedModel?.default_end_year ?? endYear)
+          && (!isStaticDeployment || adjustments.random_seed !== null)
+          && status !== "streaming"}
+        startYearLocked
+        endYearLocked={isStaticDeployment}
+        endYearMax={selectedModel?.default_end_year ?? 2200}
         onStartStream={handleStartStream}
         onPlayPause={handlePlayPause}
         onSpeedChange={setSpeed}

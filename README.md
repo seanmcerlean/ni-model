@@ -62,10 +62,11 @@ and 1969 respectively. Historical playback is fixed at 1969–2024; future
 recordings are fixed at 2021–2075. Generated population and recording files are
 local build artifacts and are not committed.
 
-Static mode fixes seeds and demographic multipliers. Model selection, year
+Static mode fixes seeds, demographic multipliers and year ranges. Model selection, year
 playback, maps, community display, polling selection, undecided treatment and
-polling shocks remain browser-side. Use Parquet or full mode when demographic
-assumptions, seeds or year ranges must be changed.
+polling shocks remain browser-side. Parquet and full modes allow demographic
+assumptions, seeds and a shorter end year to change; every run still starts from
+the selected model's observed baseline year so demographic history is never skipped.
 
 ### Hosted static deployments
 
@@ -81,8 +82,9 @@ scripts/build_static_site.sh
 ```
 
 Pass `--refresh-recordings` to regenerate all four full-population recordings
-first. Without it, existing local recordings are used; missing recordings are
-generated automatically. Output is written to the ignored
+unconditionally. Otherwise the builder verifies the schema, model catalogue,
+source inputs, complete asset set and both Parquet baselines, regenerating all
+recordings whenever anything is stale. Output is written to the ignored
 `build/static-site/` directory.
 
 AWS deployment uses CloudFormation to create a private encrypted S3 bucket,
@@ -157,6 +159,12 @@ Public deployments can bound anonymous-client concurrency and horizons with
 retention, and checkpoint storage are controlled by
 `SIMULATION_TIMEOUT_SECONDS`, `SIMULATION_RETENTION_DAYS`, and
 `MAX_CHECKPOINT_BYTES_PER_RUN`.
+
+Browser runs are isolated with an opaque, HTTP-only owner cookie. This prevents
+one browser from listing or manipulating another browser's REST runs, but it is
+not user authentication. Put full mode behind an authentication proxy before
+exposing it to an untrusted network; static mode remains the preferred public
+deployment.
 
 The run editor supports global and per-community multipliers for births,
 deaths, external migration, internal relocation and community transition. These are sensitivity
@@ -233,7 +241,6 @@ server API and serves only the recorded aggregate JSON used by the frontend.
 | GET | `/api/population/summary` | Total population, religious/gender breakdown |
 | GET | `/api/population/by-location` | Population counts per location |
 | GET | `/api/population/location/{location}` | Drill-down: age bands, religion, gender, origin |
-| GET | `/api/population/by-year/{year}` | Demographic snapshot for a simulated year |
 | GET | `/api/simulation/runs` | List durable simulation runs |
 | GET | `/api/simulation/runs/{run_id}` | Run status and completed years |
 | GET | `/api/simulation/runs/{run_id}/years/{year}` | Durable year snapshot |
@@ -250,7 +257,9 @@ SSE stream example:
 GET /api/simulation/stream?start_year=1969&end_year=2024&model_path=models/ni_base_2024.yaml
 ```
 
-Each event contains the run ID and full demographic snapshot for that year.
+The first event is the unchanged observed baseline and reports zero demographic
+events; changes are applied from the following year. Each event contains the
+run ID and full demographic snapshot for that year.
 The response also exposes `X-Simulation-Run-ID`; a final `event: complete`
 signals the end. Run events, snapshots and checkpoints are deleted together
 through the terminal-run deletion endpoint.
@@ -305,6 +314,11 @@ newborn conditional on one sampled parent's background. Neither mechanism is a
 claim that upbringing literally changes. The causal calibration, evidence
 boundary, and one-parent approximation are documented in
 [the community-transition methodology](docs/community-transitions.md).
+
+Immigrant community, origin and LGD profiles use the documented model inputs.
+Until a sourced migrant age-by-LGD series is added, immigrant ages use the
+evolving resident age distribution as an explicit proxy; education values are
+kept compatible with age.
 
 ## Frontend
 

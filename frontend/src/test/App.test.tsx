@@ -144,11 +144,11 @@ describe("App", () => {
     expect(screen.getByText("5×")).toBeInTheDocument();
   });
 
-  it("updates start year on input change", () => {
+  it("locks the factual baseline year", () => {
     render(<App />);
     const start = screen.getByLabelText("Start");
-    fireEvent.change(start, { target: { value: "2000" } });
-    expect(start).toHaveValue(2000);
+    expect(start).toBeDisabled();
+    expect(start).toHaveValue(2021);
   });
 
   it("lists and describes the sourced current model", async () => {

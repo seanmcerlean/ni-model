@@ -55,10 +55,18 @@ describe("Controls", () => {
   });
 
   it("locks the recorded year range when requested", () => {
-    render(<Controls {...baseProps} yearsLocked />);
+    render(<Controls {...baseProps} startYearLocked endYearLocked />);
 
     expect(screen.getByLabelText("Start")).toBeDisabled();
     expect(screen.getByLabelText("End")).toBeDisabled();
+  });
+
+  it("allows only the end year to change for dynamic models", () => {
+    render(<Controls {...baseProps} startYearLocked endYearMax={2075} />);
+
+    expect(screen.getByLabelText("Start")).toBeDisabled();
+    expect(screen.getByLabelText("End")).toBeEnabled();
+    expect(screen.getByLabelText("End")).toHaveAttribute("max", "2075");
   });
 
   it("calls onSpeedChange when speed button clicked", () => {

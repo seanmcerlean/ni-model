@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PopulationMode, SimulationAdjustments, StreamStatus, YearSnapshot } from "../types";
 import { isStaticDeployment, loadRecordingManifest, RecordedScenarioData } from "../deployment";
@@ -10,6 +10,7 @@ export interface UseSimulationStream {
   error: string | null;
   startStream: (startYear: number, endYear: number, modelPath?: string, adjustments?: SimulationAdjustments, populationMode?: PopulationMode) => void;
   abort: () => void;
+  reset: () => void;
 }
 
 export function useSimulationStream(): UseSimulationStream {
@@ -21,7 +22,7 @@ export function useSimulationStream(): UseSimulationStream {
   const fetchRef = useRef<AbortController | null>(null);
   const runIdRef = useRef<string | null>(null);
 
-  const abort = useCallback(() => {
+  const cancelActive = useCallback(() => {
     esRef.current?.close();
     esRef.current = null;
     fetchRef.current?.abort();
@@ -33,8 +34,22 @@ export function useSimulationStream(): UseSimulationStream {
       });
       runIdRef.current = null;
     }
-    setStatus((s) => (s === "streaming" ? "idle" : s));
   }, []);
+
+  const abort = useCallback(() => {
+    cancelActive();
+    setStatus((s) => (s === "streaming" ? "idle" : s));
+  }, [cancelActive]);
+
+  const reset = useCallback(() => {
+    cancelActive();
+    setSnapshots({});
+    setYears([]);
+    setError(null);
+    setStatus("idle");
+  }, [cancelActive]);
+
+  useEffect(() => () => cancelActive(), [cancelActive]);
 
   const startStream = useCallback(
     (
@@ -44,7 +59,7 @@ export function useSimulationStream(): UseSimulationStream {
       adjustments?: SimulationAdjustments,
       populationMode: PopulationMode = "sample",
     ) => {
-      esRef.current?.close();
+      cancelActive();
       setSnapshots({});
       setYears([]);
       setError(null);
@@ -57,8 +72,7 @@ export function useSimulationStream(): UseSimulationStream {
         void loadRecordingManifest()
           .then((manifest) => {
             const scenario = manifest.scenarios.find(
-              (item) => item.model_path === modelPath
-                && item.seed === adjustments?.random_seed,
+              (item) => item.model_path === modelPath,
             );
             if (!scenario) throw new Error("No recording exists for this model and seed.");
             return fetch(scenario.asset, { signal: controller.signal });
@@ -68,7 +82,7 @@ export function useSimulationStream(): UseSimulationStream {
             return response.json() as Promise<RecordedScenarioData>;
           })
           .then((recording) => {
-            if (controller.signal.aborted) return;
+            if (controller.signal.aborted || fetchRef.current !== controller) return;
             const selected = recording.snapshots.filter(
               (snapshot) => snapshot.year >= startYear && snapshot.year <= endYear,
             );
@@ -78,7 +92,7 @@ export function useSimulationStream(): UseSimulationStream {
             fetchRef.current = null;
           })
           .catch((caught: Error) => {
-            if (caught.name === "AbortError") return;
+            if (caught.name === "AbortError" || fetchRef.current !== controller) return;
             setError(caught.message);
             setStatus("error");
             fetchRef.current = null;
@@ -98,14 +112,23 @@ export function useSimulationStream(): UseSimulationStream {
         params.set("relocation_multiplier", String(adjustments.relocation_multiplier));
         params.set("integration_multiplier", String(adjustments.integration_multiplier ?? 1));
         params.set("community_adjustments", JSON.stringify(adjustments.community));
-        if (adjustments.random_seed !== null) params.set("random_seed", String(adjustments.random_seed));
+        if (adjustments.random_seed != null) params.set("random_seed", String(adjustments.random_seed));
       }
       if (populationMode === "sample") params.set("population_limit", "25000");
       const es = new EventSource(`/api/simulation/stream?${params}`);
       esRef.current = es;
 
       es.onmessage = (e) => {
-        const snap: YearSnapshot = JSON.parse(e.data);
+        if (esRef.current !== es) return;
+        let snap: YearSnapshot;
+        try {
+          snap = JSON.parse(e.data) as YearSnapshot;
+        } catch {
+          cancelActive();
+          setError("The server returned malformed simulation data.");
+          setStatus("error");
+          return;
+        }
         if (snap.run_id) runIdRef.current = snap.run_id;
         setSnapshots((prev) => ({ ...prev, [snap.year]: snap }));
         setYears((prev) =>
@@ -114,11 +137,19 @@ export function useSimulationStream(): UseSimulationStream {
       };
 
       es.addEventListener("started", (event) => {
+        if (esRef.current !== es) return;
         const message = event as MessageEvent<string>;
-        runIdRef.current = (JSON.parse(message.data) as { run_id: string }).run_id;
+        try {
+          runIdRef.current = (JSON.parse(message.data) as { run_id: string }).run_id;
+        } catch {
+          cancelActive();
+          setError("The server returned malformed simulation metadata.");
+          setStatus("error");
+        }
       });
 
       es.addEventListener("complete", () => {
+        if (esRef.current !== es) return;
         es.close();
         esRef.current = null;
         runIdRef.current = null;
@@ -126,6 +157,7 @@ export function useSimulationStream(): UseSimulationStream {
       });
 
       es.addEventListener("cancelled", () => {
+        if (esRef.current !== es) return;
         es.close();
         esRef.current = null;
         runIdRef.current = null;
@@ -133,14 +165,14 @@ export function useSimulationStream(): UseSimulationStream {
       });
 
       es.onerror = () => {
-        es.close();
-        esRef.current = null;
+        if (esRef.current !== es) return;
+        cancelActive();
         setError("Stream error — check server connection");
         setStatus("error");
       };
     },
-    []
+    [cancelActive]
   );
 
-  return { snapshots, years, status, error, startStream, abort };
+  return { snapshots, years, status, error, startStream, abort, reset };
 }

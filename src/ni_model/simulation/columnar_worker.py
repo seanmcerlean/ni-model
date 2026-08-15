@@ -510,9 +510,37 @@ class ColumnarSimulationWorker:
             return self._templated_immigrants(cohort, count, rng)
         return self._fallback_immigrants(count, rng)
 
+    @staticmethod
+    def _arrival_life_course_attributes(year, count, cohort, rng):
+        """Use the evolving resident age profile as an explicit migration proxy."""
+        if cohort.height:
+            templates = cohort[
+                rng.choice(cohort.height, size=count, replace=True).tolist()
+            ]
+            birth_years = templates["birth_year"].to_list()
+            genders = templates["gender"].to_list()
+            education = templates["education_level"].to_list()
+        else:
+            ages = np.clip(rng.normal(30, 18, size=count).round(), 0, 85).astype(int)
+            birth_years = (year - ages).tolist()
+            genders = rng.choice(["male", "female"], size=count).tolist()
+            education = [
+                "pre_primary" if age < 5 else "primary" if age < 12 else "secondary"
+                for age in ages
+            ]
+        ages = [year - birth_year for birth_year in birth_years]
+        education = [
+            "secondary" if age >= 18 and value in {"pre_primary", "primary"} else value
+            for age, value in zip(ages, education)
+        ]
+        return birth_years, genders, education
+
     def _arrival_frame(self, year, count, cohort, rng):
         backgrounds, probable, locations, origins = self._immigrant_attributes(
             cohort, count, rng
+        )
+        birth_years, genders, education = self._arrival_life_course_attributes(
+            year, count, cohort, rng
         )
         numbers = range(self._next_person_number, self._next_person_number + count)
         self._next_person_number += count
@@ -520,20 +548,11 @@ class ColumnarSimulationWorker:
             {
                 "person_id": self._new_ids(year, "arrival", count),
                 "person_number": numbers,
-                "birth_year": year - rng.integers(18, 46, size=count),
+                "birth_year": birth_years,
                 "religious_background": backgrounds,
                 "probable_community": probable,
-                "gender": rng.choice(["male", "female"], size=count),
-                "education_level": rng.choice(
-                    [
-                        "pre_primary",
-                        "primary",
-                        "secondary",
-                        "tertiary",
-                        "postgraduate",
-                    ],
-                    size=count,
-                ),
+                "gender": genders,
+                "education_level": education,
                 "location": locations,
                 "origin": origins,
             },

@@ -168,7 +168,7 @@ class SimulationAdjustments(BaseModel):
     migration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     relocation_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
     integration_multiplier: float = Field(default=1.0, ge=0.0, le=3.0)
-    random_seed: Optional[int] = None
+    random_seed: Optional[int] = Field(default=None, ge=0, le=4_294_967_295)
     community: Optional[CommunityAdjustments] = None
 
 

@@ -23,3 +23,13 @@ def test_historical_configuration_contains_causal_inputs_not_checkpoint_targets(
     assert raw_config["historical_calibration"]["accepted_candidates"] == (
         calibration_result["method"]["accepted_candidates"]
     )
+
+
+def test_historical_migration_has_no_pre_gfa_rule_gap():
+    config = yaml.safe_load(Path("models/ni_base_2024.yaml").read_text())
+
+    for year in range(1969, 2025):
+        assert any(
+            rule.get("year_min", 0) <= year <= rule.get("year_max", 9999)
+            for rule in config["migration_rates"]
+        ), f"no external migration rule covers {year}"
