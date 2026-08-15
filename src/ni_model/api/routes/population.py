@@ -1,13 +1,18 @@
 import math
+import uuid
 from typing import Optional
 from uuid import UUID
 
+import polars as pl
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ...core.database import SessionLocal
+from ...core.deployment import DeploymentMode, deployment_mode
 from ...core.models import Location, Person
+from ...data.parquet_population import baseline_frame
+from ...simulation.columnar_worker import ColumnarSimulationWorker
 from ...simulation.voting_predictor import VotingPredictor
 from ..queries import (
     age_band_breakdown,
@@ -27,6 +32,10 @@ from ..schemas import (
 router = APIRouter(prefix="/api/population", tags=["population"])
 
 
+def baseline_worker() -> ColumnarSimulationWorker:
+    return ColumnarSimulationWorker(baseline_frame(), {}, uuid.UUID(int=0), seed=42)
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -37,6 +46,22 @@ def get_db():
 
 @router.get("/summary", response_model=PopulationSummary)
 def population_summary(db: Session = Depends(get_db)):
+    if deployment_mode() == DeploymentMode.PARQUET:
+        worker = baseline_worker()
+        summary = worker.demographic_summary(2021)
+        ages = worker.population.select((2021 - pl.col("birth_year")).alias("age"))
+        age = ages["age"]
+        return PopulationSummary(
+            total_population=summary["total_population"],
+            age_stats={
+                "average": float(age.mean()),
+                "minimum": int(age.min()),
+                "maximum": int(age.max()),
+            },
+            religious_breakdown=summary["religious_breakdown"],
+            probable_community_breakdown=summary["probable_community_breakdown"],
+            gender_breakdown=summary["gender_breakdown"],
+        )
     baseline = db.query(Person).filter(
         Person.run_id.is_(None), Person.baseline_profile == "current"
     )
@@ -62,6 +87,17 @@ def population_summary(db: Session = Depends(get_db)):
 
 @router.get("/by-location", response_model=list[LocationSummary])
 def population_by_location(db: Session = Depends(get_db)):
+    if deployment_mode() == DeploymentMode.PARQUET:
+        locations = baseline_worker().demographic_summary(2021)["locations"]
+        return [
+            LocationSummary(
+                location=location,
+                total=detail["total"],
+                religious_breakdown=detail["religious_breakdown"],
+                probable_community_breakdown=detail["probable_community_breakdown"],
+            )
+            for location, detail in locations.items()
+        ]
     return [
         LocationSummary(
             location=loc.value,
@@ -85,6 +121,12 @@ def population_location_detail(location_name: str, db: Session = Depends(get_db)
         raise HTTPException(
             status_code=404, detail=f"Location '{location_name}' not found"
         )
+
+    if deployment_mode() == DeploymentMode.PARQUET:
+        detail = baseline_worker().demographic_summary(2021)["locations"][
+            location.value
+        ]
+        return LocationDetail(location=location.value, **detail)
 
     total = (
         db.query(Person)
@@ -127,12 +169,25 @@ def voting_prediction(
             if not math.isclose(sum(custom_values), 100.0, abs_tol=0.01):
                 raise ValueError("custom baseline values must sum to 100")
             custom_baseline = tuple(value / 100 for value in custom_values)
+        parquet_rows = None
+        if deployment_mode() == DeploymentMode.PARQUET and run_id is None:
+            parquet_rows = baseline_worker().voting_rows(2021)
         predictor = VotingPredictor(
             db,
             run_id=run_id,
             calibration=calibration,
             custom_baseline=custom_baseline,
-            custom_reference_rows=VotingPredictor.aggregate_population(db),
+            aggregate_rows=parquet_rows,
+            total_population=(
+                baseline_worker().population.height
+                if parquet_rows is not None
+                else None
+            ),
+            custom_reference_rows=(
+                parquet_rows
+                if parquet_rows is not None
+                else VotingPredictor.aggregate_population(db)
+            ),
             community_basis=community_basis,
         )
     except ValueError as exc:

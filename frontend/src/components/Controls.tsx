@@ -10,6 +10,7 @@ interface Props {
   endYear: number;
   error?: string | null;
   canRun?: boolean;
+  yearsLocked?: boolean;
   onStartStream: () => void;
   onPlayPause: () => void;
   onSpeedChange: (s: PlaybackSpeed) => void;
@@ -30,6 +31,7 @@ export function Controls({
   endYear,
   error = null,
   canRun = true,
+  yearsLocked = false,
   onStartStream,
   onPlayPause,
   onSpeedChange,
@@ -53,6 +55,7 @@ export function Controls({
           min={1900}
           max={2200}
           className="year-input"
+          disabled={yearsLocked}
           onChange={(e) => onStartYearChange(Number(e.target.value))}
         />
         <label className="control-label" htmlFor="end-year">End</label>
@@ -63,6 +66,7 @@ export function Controls({
           min={1900}
           max={2200}
           className="year-input"
+          disabled={yearsLocked}
           onChange={(e) => onEndYearChange(Number(e.target.value))}
         />
         <button className="primary-button" onClick={onStartStream} disabled={status === "streaming" || !canRun}>

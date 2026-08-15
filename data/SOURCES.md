@@ -166,14 +166,22 @@ day and living in an NI LGD on Census day. Each simulated year's official
 NI-wide inflow (or observed net addition where separate flows are unavailable)
 is allocated using that observed joint origin, destination-LGD and
 current-religion distribution. ROI is separated from the UK table's aggregate
-Outside UK category using the dedicated ROI table.
+Outside UK category using the dedicated ROI table. Because ODMG20 reports
+current religion rather than religion or religion brought up in, arrivals with
+no current religion are apportioned using the NI-wide Census 2021 bridge from
+MS-B21 to MS-B23: 17.87% Catholic, 32.24% Protestant/other Christian, 0.83%
+Other and 49.06% None. This preserves every observed origin/LGD flow while
+avoiding the unsupported assumption that all migrants with no current religion
+also have no community background.
 
 This is an arrival-composition baseline, not evidence that the 2021 pattern
 will remain unchanged. Current religion is again a proxy for community
 background. Equivalent destination-LGD-by-religion evidence is not available
-for people leaving NI, so emigration retains the conservative estimated
-community differentials above and remains spatially proportional within each
-community cohort.
+for people leaving NI, so emigration is evidence-neutral across community
+backgrounds and remains spatially proportional within each cohort.
+
+- [Census 2021 current religion table MS-B21](https://www.nisra.gov.uk/system/files/statistics/census-2021-ms-b21.xlsx)
+- [Census 2021 religion or religion brought up in table MS-B23](https://www.nisra.gov.uk/system/files/statistics/census-2021-ms-b23.xlsx)
 
 - [Census 2021 migration origin-destination tables (UK)](https://www.nisra.gov.uk/publications/census-2021-origin-destination-migration-tables-uk)
 - [Census 2021 migration origin-destination tables (ROI)](https://www.nisra.gov.uk/publications/census-2021-origin-destination-migration-tables-roi)

@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "./app.css";
 import { Controls } from "./components/Controls";
 import { LocationDetail } from "./components/LocationDetail";
 import { NiMap } from "./components/NiMap";
 import { useSimulationStream } from "./hooks/useSimulationStream";
-import { allocateUndecided, UndecidedAllocation } from "./polling";
+import { isStaticDeployment, loadRecordingManifest, STATIC_SEEDS } from "./deployment";
+import { allocateUndecided, applyPollingShock, PollingShock, UndecidedAllocation } from "./polling";
 import { ChildBackgroundRule, CommunityBackground, CommunityBasis, CommunityRateAdjustments, ModelRule, PlaybackSpeed, PopulationMode, SimulationAdjustments, SimulationModel, VotingPrediction, YearSnapshot } from "./types";
 
 const BACKGROUNDS: CommunityBackground[] = ["catholic", "protestant", "other", "none"];
@@ -24,7 +25,7 @@ function defaultAdjustments(): SimulationAdjustments {
   });
   return {
     birth_multiplier: 1, death_multiplier: 1, migration_multiplier: 1,
-    relocation_multiplier: 1, random_seed: randomSeed(),
+    relocation_multiplier: 1, random_seed: isStaticDeployment ? STATIC_SEEDS[0] : randomSeed(),
     integration_multiplier: 1,
     community: {
       catholic: rateDefaults(), protestant: rateDefaults(),
@@ -43,7 +44,7 @@ export default function App() {
   const { snapshots, years, status, error: streamError, startStream, abort } = useSimulationStream();
 
   const [startYear, setStartYear] = useState(2021);
-  const [endYear, setEndYear] = useState(2050);
+  const [endYear, setEndYear] = useState(2075);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
@@ -56,8 +57,11 @@ export default function App() {
   const [votingError, setVotingError] = useState<string | null>(null);
   const [votingCalibration, setVotingCalibration] = useState("lucidtalk_winter_2025");
   const [undecidedAllocation, setUndecidedAllocation] = useState<UndecidedAllocation>("reported");
+  const [pollingShock, setPollingShock] = useState<PollingShock>("neutral");
   const [customPolling, setCustomPolling] = useState({ unite: 41.4, remain: 48.5, undecided: 10.1 });
-  const [populationMode, setPopulationMode] = useState<PopulationMode>("sample");
+  const [populationMode, setPopulationMode] = useState<PopulationMode>(
+    isStaticDeployment ? "full" : "sample",
+  );
   const [communityBasis, setCommunityBasis] = useState<CommunityBasis>("reported");
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
   const [panelTab, setPanelTab] = useState<PanelTab>("setup");
@@ -67,15 +71,32 @@ export default function App() {
   const snapshot: YearSnapshot | null =
     currentYear !== null ? (snapshots[currentYear] ?? null) : null;
   const selectedModel = models.find((model) => model.path === modelPath);
+  const displayedVoting = useMemo(
+    () => applyPollingShock(voting, pollingShock),
+    [voting, pollingShock],
+  );
 
   useEffect(() => {
-    fetch("/api/simulation/models")
-      .then((response) => {
-        if (!response.ok) throw new Error("Could not load model definitions.");
-        return response.json();
-      })
+    const modelsRequest = isStaticDeployment
+      ? loadRecordingManifest().then((manifest) => manifest.models)
+      : fetch("/api/simulation/models").then((response) => {
+          if (!response.ok) throw new Error("Could not load model definitions.");
+          return response.json() as Promise<SimulationModel[]>;
+        });
+    modelsRequest
       .then((availableModels: SimulationModel[]) => {
         setModels(availableModels);
+        if (isStaticDeployment) {
+          const selectedIndex = availableModels.findIndex(
+            (model) => model.path === modelPath,
+          );
+          if (selectedIndex >= 0) {
+            setAdjustments((current) => ({
+              ...current,
+              random_seed: STATIC_SEEDS[selectedIndex],
+            }));
+          }
+        }
         setModelError(null);
       })
       .catch(() => {
@@ -90,6 +111,19 @@ export default function App() {
     if (isCustom && Math.abs(customTotal - 100) > 0.01) {
       setVotingError(`Custom baseline totals ${customTotal.toFixed(1)}%; it must total 100%.`);
       setVotingLoading(false);
+      return;
+    }
+
+    if (isStaticDeployment) {
+      const key = `${votingCalibration}:${communityBasis}`;
+      const prediction = snapshot?.voting_predictions?.[key]
+        ?? snapshot?.voting_predictions?.[votingCalibration]
+        ?? null;
+      setVoting(prediction);
+      setVotingLoading(false);
+      setVotingError(
+        prediction || snapshot === null ? null : "This recording has no matching polling estimate.",
+      );
       return;
     }
 
@@ -168,8 +202,12 @@ export default function App() {
   const handleModelChange = useCallback((path: string) => {
     setModelPath(path);
     const model = models.find((item) => item.path === path);
+    const modelIndex = models.findIndex((item) => item.path === path);
     if (model?.default_start_year) setStartYear(model.default_start_year);
     if (model?.default_end_year) setEndYear(model.default_end_year);
+    if (isStaticDeployment && modelIndex >= 0) {
+      setAdjustments((current) => ({ ...current, random_seed: STATIC_SEEDS[modelIndex] }));
+    }
     setCurrentYear(null);
     setIsPlaying(false);
   }, [models]);
@@ -220,24 +258,29 @@ export default function App() {
           {panelTab === "setup" && (
             <section className="panel-tab-content" role="tabpanel" id="setup-panel" aria-labelledby="setup-tab">
               <p className="panel-intro">Choose the population size and assumptions for the next run.</p>
+              {isStaticDeployment && <p className="model-note">Recorded full-population run. Demographic assumptions and the model-specific seed are fixed.</p>}
               <label className="population-toggle">
                 <span><b>Full population</b><small>{populationMode === "full" ? "Every resident in the selected baseline" : "Off — representative 25,000-person sample"}</small></span>
                 <input type="checkbox" role="switch" checked={populationMode === "full"}
-                  disabled={status === "streaming"}
+                  disabled={status === "streaming" || isStaticDeployment}
                   onChange={(event) => setPopulationMode(event.target.checked ? "full" : "sample")} />
               </label>
               <div className="seed-control">
                 <label htmlFor="random-seed">Simulation seed</label>
-                <input id="random-seed" type="number" min="0" max="4294967295"
-                  disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
-                  onChange={(event) => setAdjustments({
-                    ...adjustments,
-                    random_seed: event.target.value === "" ? null : Number(event.target.value),
-                  })} />
-                <button type="button" className="control-button" disabled={status === "streaming"}
-                  onClick={() => setAdjustments({ ...adjustments, random_seed: randomSeed() })}>New seed</button>
+                {isStaticDeployment ? (
+                  <input id="random-seed" type="number" disabled value={adjustments.random_seed ?? STATIC_SEEDS[0]} />
+                ) : <>
+                  <input id="random-seed" type="number" min="0" max="4294967295"
+                    disabled={status === "streaming"} value={adjustments.random_seed ?? ""}
+                    onChange={(event) => setAdjustments({
+                      ...adjustments,
+                      random_seed: event.target.value === "" ? null : Number(event.target.value),
+                    })} />
+                  <button type="button" className="control-button" disabled={status === "streaming"}
+                    onClick={() => setAdjustments({ ...adjustments, random_seed: randomSeed() })}>New seed</button>
+                </>}
               </div>
-              <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming"} />
+              <AdjustmentEditor value={adjustments} onChange={setAdjustments} disabled={status === "streaming" || isStaticDeployment} />
             </section>
           )}
           {panelTab === "model" && (
@@ -289,9 +332,10 @@ export default function App() {
                 <input type="checkbox" role="switch" checked={communityBasis === "probable"}
                   onChange={(event) => setCommunityBasis(event.target.checked ? "probable" : "reported")} />
               </label>
-              <VotingPanel prediction={voting} calibration={votingCalibration}
+              <VotingPanel prediction={displayedVoting} calibration={votingCalibration}
                 customPolling={customPolling} onCustomPollingChange={setCustomPolling}
                 loading={votingLoading} error={votingError}
+                pollingShock={pollingShock} onPollingShockChange={setPollingShock}
                 undecidedAllocation={undecidedAllocation}
                 onUndecidedAllocationChange={setUndecidedAllocation}
                 onCalibrationChange={setVotingCalibration} />
@@ -302,13 +346,13 @@ export default function App() {
         <main className="map-column">
           <OverallStats snapshot={snapshot} communityBasis={communityBasis} />
           <div className="map-frame">
-            <NiMap snapshot={snapshot} voting={voting} communityBasis={communityBasis} onLocationClick={setSelectedLocation} />
+            <NiMap snapshot={snapshot} voting={displayedVoting} communityBasis={communityBasis} onLocationClick={setSelectedLocation} />
             <LocationDetail
               locationId={selectedLocation}
               year={currentYear}
               detail={selectedLocation && snapshot ? snapshot.locations?.[selectedLocation] ?? null : null}
-              voting={selectedLocation ? voting?.by_location?.[selectedLocation] ?? null : null}
-              pollingSource={voting?.source.name ?? null}
+              voting={selectedLocation ? displayedVoting?.by_location?.[selectedLocation] ?? null : null}
+              pollingSource={displayedVoting?.source.name ?? null}
               undecidedAllocation={undecidedAllocation}
               communityBasis={communityBasis}
               onClose={() => setSelectedLocation(null)}
@@ -327,6 +371,7 @@ export default function App() {
         endYear={endYear}
         error={streamError}
         canRun={startYear <= endYear && status !== "streaming"}
+        yearsLocked={isStaticDeployment}
         onStartStream={handleStartStream}
         onPlayPause={handlePlayPause}
         onSpeedChange={setSpeed}
@@ -422,15 +467,17 @@ function AdjustmentEditor({ value, onChange, disabled }: {
   </details>;
 }
 
-function VotingPanel({ prediction, calibration, customPolling, loading, error, undecidedAllocation, onCalibrationChange, onCustomPollingChange, onUndecidedAllocationChange }: {
+function VotingPanel({ prediction, calibration, customPolling, loading, error, pollingShock, undecidedAllocation, onCalibrationChange, onCustomPollingChange, onPollingShockChange, onUndecidedAllocationChange }: {
   prediction: VotingPrediction | null;
   calibration: string;
   customPolling: { unite: number; remain: number; undecided: number };
   loading: boolean;
   error: string | null;
+  pollingShock: PollingShock;
   undecidedAllocation: UndecidedAllocation;
   onCalibrationChange: (value: string) => void;
   onCustomPollingChange: (value: { unite: number; remain: number; undecided: number }) => void;
+  onPollingShockChange: (value: PollingShock) => void;
   onUndecidedAllocationChange: (value: UndecidedAllocation) => void;
 }) {
   if (!prediction) return (
@@ -446,6 +493,11 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, u
   return (
     <section className="voting-panel" aria-labelledby="voting-heading">
       <div className="panel-kicker" id="voting-heading">BORDER POLL SCENARIO</div>
+      <div className="voting-headline" aria-live="polite">
+        <span><b>{percentage(displayed.unite_share, 1)}</b> Unite</span>
+        <span><b>{percentage(displayed.remain_share, 1)}</b> Remain</span>
+        <span><b>{percentage(displayed.undecided_share, 1)}</b> Undecided</span>
+      </div>
       <label className="field-label" htmlFor="voting-calibration">Polling calibration</label>
       <select id="voting-calibration" className="model-select" value={calibration}
         onChange={(event) => onCalibrationChange(event.target.value)}>
@@ -453,7 +505,7 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, u
         <option value="lucidtalk_summer_2021_high">LucidTalk Aug 2021 — five-year high</option>
         <option value="lucidtalk_winter_2024_low">LucidTalk Feb 2024 — five-year low</option>
         <option value="nilt_2024">NILT 2024</option>
-        <option value="custom_lucidtalk">Custom baseline (LucidTalk-relative)</option>
+        {!isStaticDeployment && <option value="custom_lucidtalk">Custom baseline (LucidTalk-relative)</option>}
       </select>
       {calibration === "custom_lucidtalk" && (
         <><fieldset className="custom-polling" aria-label="Custom polling baseline">
@@ -472,6 +524,24 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, u
       )}
       <div className="calibration-status">Showing {prediction.source.name}</div>
       {error && <p className="inline-error" role="alert">{error}</p>}
+      <fieldset className="undecided-allocation polling-shock">
+        <legend>Polling shock</legend>
+        {([
+          ["neutral", "Neutral"],
+          ["brexit", "Brexit"],
+          ["anti_brexit", "Anti-Brexit"],
+        ] as Array<[PollingShock, string]>).map(([value, label]) => (
+          <label key={value}>
+            <input type="radio" name="polling-shock" value={value}
+              checked={pollingShock === value}
+              onChange={() => onPollingShockChange(value)} />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+      <p className="custom-polling-note">
+        Brexit transfers 4.6 points toward Unite, matching the 2015–2016 NILT change in long-term unity preference. Anti-Brexit is the symmetric counterfactual. Undecided is unchanged.
+      </p>
       <fieldset className="undecided-allocation">
         <legend>Undecided treatment</legend>
         {([
@@ -489,11 +559,6 @@ function VotingPanel({ prediction, calibration, customPolling, loading, error, u
       <p className="allocation-note">
         The headline view excludes undecided respondents and renormalises Unite and Remain to 100%; it does not predict how undecided people will vote.
       </p>
-      <div className="voting-headline">
-        <span><b>{percentage(displayed.unite_share, 1)}</b> Unite</span>
-        <span><b>{percentage(displayed.remain_share, 1)}</b> Remain</span>
-        <span><b>{percentage(displayed.undecided_share, 1)}</b> Undecided</span>
-      </div>
       <dl className="model-facts">
         <div><dt>Adult proxy</dt><dd>{prediction.eligible_population.toLocaleString()}</dd></div>
         <div><dt>Projected turnout</dt><dd>{percentage(prediction.turnout_rate, 1)}</dd></div>

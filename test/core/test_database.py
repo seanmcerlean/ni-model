@@ -52,3 +52,11 @@ def test_database_session_cleanup():
     # Test that session exists and can execute queries
     result = db.execute(text("SELECT 1 as test"))
     assert result.fetchone()[0] == 1
+
+
+def test_schema_compiles_for_portable_sqlite():
+    sqlite = create_engine("sqlite:///:memory:")
+
+    Base.metadata.create_all(sqlite)
+
+    assert "simulation_runs" in Base.metadata.tables

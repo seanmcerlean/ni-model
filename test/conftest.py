@@ -1,11 +1,15 @@
 """Shared infrastructure for database-backed tests."""
 
+import os
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from src.ni_model.core.database import Base
+os.environ.setdefault("NI_MODEL_MODE", "full")
+
+from src.ni_model.core.database import Base  # noqa: E402
 
 
 @pytest.fixture(scope="session")

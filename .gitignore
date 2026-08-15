@@ -18,6 +18,8 @@ venv/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/public/recordings/*.json
+data/baselines/*.parquet
 
 # Editors and local tooling
 .amazonq/

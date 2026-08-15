@@ -365,6 +365,25 @@ def _rate(count, population):
     return round(count * 1000 / population, 6)
 
 
+def _carry_forward_projection_year(row, year=2075):
+    """Extend the official series by one clearly-labelled estimated year."""
+    population_start = row["population_end"]
+    population_end = (
+        population_start
+        + row["births"]
+        - row["deaths"]
+        + row["net_migration"]
+        + row["reconciliation_adjustment"]
+    )
+    return {
+        **row,
+        "year": year,
+        "population_start": population_start,
+        "population_end": population_end,
+        "evidence": "estimated_2074_carry_forward",
+    }
+
+
 def build_internal_migration_rules(internal_flows):
     return [
         {
@@ -382,6 +401,9 @@ def build_internal_migration_rules(internal_flows):
 
 
 def build_model(rows, internal_flows):
+    rows = list(rows)
+    if rows and rows[-1]["year"] < 2075:
+        rows.append(_carry_forward_projection_year(rows[-1]))
     births = []
     deaths = []
     migration = []
@@ -390,7 +412,9 @@ def build_model(rows, internal_flows):
         population = row["population_start"]
         after_births = population + row["births"]
         before_migration = after_births - row["deaths"]
-        source = "observed" if year <= 2024 else "principal_projection"
+        source = row.get(
+            "evidence", "observed" if year <= 2024 else "principal_projection"
+        )
         births.append(
             {
                 "rate": _rate(row["births"], population),
@@ -452,7 +476,8 @@ def build_model(rows, internal_flows):
         "baseline_population": 1_903_175,
         "description": (
             "Observed NISRA components for 2022–2024 followed by the official "
-            "2024-based principal projection for 2025–2074. The population "
+            "2024-based principal projection for 2025–2074, with 2075 estimated "
+            "by carrying forward the final projected component rates. The population "
             "baseline uses Census 2021 marginals; internal relocation follows "
             "the Census 2021 LGD origin–destination pattern balanced toward the "
             "official 2022-based LGD population trajectory. This is a projection "
@@ -460,9 +485,11 @@ def build_model(rows, internal_flows):
         ),
         "baseline_year": 2021,
         "data_through": 2024,
-        "projection_version": "NISRA/ONS 2024-based principal projection",
+        "projection_version": (
+            "NISRA/ONS 2024-based principal projection plus estimated 2075 tail"
+        ),
         "default_start_year": 2021,
-        "default_end_year": 2035,
+        "default_end_year": 2075,
         "rate_jitter": 0,
         "random_seed": 42,
         "integration_rates": [

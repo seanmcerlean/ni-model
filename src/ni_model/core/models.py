@@ -16,8 +16,8 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    Uuid,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
@@ -68,7 +68,7 @@ class Origin(enum.Enum):
 class Person(Base):
     __tablename__ = "persons"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     person_number = Column(
         BigInteger,
         nullable=True,
@@ -77,7 +77,7 @@ class Person(Base):
         server_default=FetchedValue(),
     )
     run_id = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
         nullable=True,
         index=True,
@@ -125,7 +125,7 @@ class Person(Base):
 class SimulationRun(Base):
     __tablename__ = "simulation_runs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     model_path = Column(String(255), nullable=False)
     start_year = Column(Integer, nullable=False)
     end_year = Column(Integer, nullable=False)
@@ -157,9 +157,9 @@ class SimulationRun(Base):
 class SimulationSnapshot(Base):
     __tablename__ = "simulation_snapshots"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     run_id = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -186,11 +186,11 @@ class SimulationPersonEvent(Base):
         autoincrement=True,
     )
     run_id = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
         nullable=False,
     )
-    person_id = Column(UUID(as_uuid=True), nullable=False)
+    person_id = Column(Uuid(as_uuid=True), nullable=False)
     year = Column(Integer, nullable=False)
     event_type = Column(String(24), nullable=False)
     data = Column(JSON, nullable=False, default=dict)
@@ -211,9 +211,9 @@ class SimulationCheckpoint(Base):
 
     __tablename__ = "simulation_checkpoints"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     run_id = Column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         ForeignKey("simulation_runs.id", ondelete="CASCADE"),
         nullable=False,
     )

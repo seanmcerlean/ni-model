@@ -60,9 +60,12 @@ def test_current_model_rates_are_derived_from_checked_in_series():
     with COMMUNITY_MIGRATION_PATH.open(encoding="utf-8", newline="") as source:
         community_flows = list(csv.DictReader(source))
     assert len(model["internal_migration_rates"]) == len(community_flows)
-    assert len(model["birth_rates"]) == len(rows)
-    assert len(model["death_rates"]) == len(rows)
-    assert len(model["migration_rates"]) == 3 + 2 * 50
+    assert model["default_end_year"] == 2075
+    assert len(model["birth_rates"]) == len(rows) + 1
+    assert len(model["death_rates"]) == len(rows) + 1
+    assert len(model["migration_rates"]) == 3 + 2 * 51
+    assert model["birth_rates"][-1]["year_min"] == 2075
+    assert model["birth_rates"][-1]["evidence"] == "estimated_2074_carry_forward"
 
     first = rows[0]
     expected_birth_rate = int(first["births"]) * 1000 / int(first["population_start"])

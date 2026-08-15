@@ -170,8 +170,12 @@ Parquet or DuckDB runtime. Only aggregate data is published.
 
 ### Portable local mode
 
-The configurable counterpart should eventually be a single-container local
-mode for Docker Desktop or WSL. It should load the immutable baseline from
-Parquet into Polars, run one simulation at a time, and avoid a database server
-unless durable person history is explicitly requested. The current PostgreSQL
-API/worker architecture remains available as an advanced durable profile.
+The configurable counterpart is a single-container local mode for Docker
+Desktop or WSL. It loads the immutable baseline from Parquet into Polars, runs
+one simulation at a time, and uses an embedded SQLite store for local run
+metadata, aggregate snapshots, events, and checkpoint references. It does not
+operate a shared resident database. The current PostgreSQL API/worker
+architecture remains available as the `full` durable mode.
+
+Deployment is selected with `NI_MODEL_MODE=static|parquet|full`; `parquet` is
+the default. The same React and snapshot contracts are retained across modes.

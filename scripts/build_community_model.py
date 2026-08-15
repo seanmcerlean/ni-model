@@ -18,6 +18,18 @@ SOURCE_PATH = ROOT / "models" / "ni_current.yaml"
 TARGET_PATH = ROOT / "models" / "ni_current_community.yaml"
 ARRIVAL_PROFILE_PATH = ROOT / "data" / "ni_external_arrivals_lgd_2021_by_religion.csv"
 
+# ODMG20 reports current religion, while the model field represents the Census
+# "religion or religion brought up in" measure. The allocations below are the
+# published national differences between MS-B21 and MS-B23, normalized over
+# their 361,496 total. The 16-person discrepancy from the MS-B21 pool is Census
+# disclosure-control noise.
+CURRENT_NONE_TO_BACKGROUND = {
+    "CATHOLIC": 64_602 / 361_496,
+    "PROTESTANT": 116_544 / 361_496,
+    "OTHER": 2_990 / 361_496,
+    "NONE": 177_360 / 361_496,
+}
+
 SHARES = {
     "CATHOLIC": 869_753 / 1_903_172,
     "PROTESTANT": 827_545 / 1_903_172,
@@ -49,9 +61,9 @@ MULTIPLIERS = {
     },
     "migration_out": {
         "CATHOLIC": 1.00,
-        "PROTESTANT": 0.85,
-        "OTHER": 1.15,
-        "NONE": 1.25,
+        "PROTESTANT": 1.00,
+        "OTHER": 1.00,
+        "NONE": 1.00,
     },
 }
 
@@ -64,9 +76,38 @@ def _split_rule(rule, multipliers):
             "rate": round(rule["rate"] * multipliers[group] / denominator, 6),
             "filters": {**rule.get("filters", {}), "religious_background": group},
             "evidence": "estimated_community_differential",
+            "source_evidence": rule.get("evidence"),
         }
         for group in SHARES
     ]
+
+
+def _arrival_profiles(rows):
+    profiles = []
+    for row in rows:
+        profile = {
+            "origin": row["origin"].upper(),
+            "location": row["destination"].upper(),
+        }
+        background = row["religious_background"].upper()
+        if background != "NONE":
+            profiles.append(
+                {
+                    **profile,
+                    "religious_background": background,
+                    "weight": int(row["count"]),
+                }
+            )
+            continue
+        profiles.extend(
+            {
+                **profile,
+                "religious_background": destination,
+                "weight": int(row["count"]) * proportion,
+            }
+            for destination, proportion in CURRENT_NONE_TO_BACKGROUND.items()
+        )
+    return profiles
 
 
 def build_model(source):
@@ -79,7 +120,10 @@ def build_model(source):
                 "conservative estimated differentials calibrated to Census "
                 "2011–2021 change. External arrivals follow the Census 2021 joint "
                 "origin, destination-LGD and current-religion profile; emigration "
-                "differentials remain estimated. Annual component rates are "
+                "rates are evidence-neutral because no equivalent departure "
+                "breakdown is published. Current-religion arrivals are converted "
+                "to the community-background measure using the national Census "
+                "2021 relationship. Annual component rates are "
                 "normalized to the official starting total. Estimated two-way "
                 "community-identification transitions are included. Census-derived "
                 "internal routes are balanced toward NISRA's 2022-based LGD population "
@@ -90,7 +134,7 @@ def build_model(source):
                 "Estimated community differential over NISRA/ONS 2024 principal"
             ),
             "default_start_year": 2021,
-            "default_end_year": 2050,
+            "default_end_year": 2075,
         }
     )
     for section in ("birth_rates", "death_rates"):
@@ -106,6 +150,7 @@ def build_model(source):
                 {
                     **deepcopy(rule),
                     "evidence": "census_2021_arrival_profile_scaled_to_annual_total",
+                    "source_evidence": rule.get("evidence"),
                 }
             )
         else:
@@ -114,15 +159,9 @@ def build_model(source):
             )
     if ARRIVAL_PROFILE_PATH.exists():
         with ARRIVAL_PROFILE_PATH.open(encoding="utf-8", newline="") as source_file:
-            model["immigration_profiles"] = [
-                {
-                    "origin": row["origin"].upper(),
-                    "location": row["destination"].upper(),
-                    "religious_background": row["religious_background"].upper(),
-                    "weight": int(row["count"]),
-                }
-                for row in csv.DictReader(source_file)
-            ]
+            model["immigration_profiles"] = _arrival_profiles(
+                csv.DictReader(source_file)
+            )
     return model
 
 

@@ -5,6 +5,33 @@ population at individual person level. Runs iterative year-by-year simulations
 (ageing → births → deaths → migration → community transition) and generates voting scenarios from the
 resulting population state.
 
+## Deployment modes
+
+Set `NI_MODEL_MODE` in `.env` or the shell, then run `./deploy.sh`. The default
+is `parquet`.
+
+| Mode | Purpose | Population storage |
+|---|---|---|
+| `parquet` | Default local/WSL deployment with configurable runs | Immutable full baselines in Parquet; SQLite stores local run metadata |
+| `static` | ChatGPT Sites or static hosting | Recorded full-population aggregate JSON only |
+| `full` | Durable multi-user/server deployment | PostgreSQL, API worker, events and checkpoints |
+
+```bash
+./deploy.sh                         # default Parquet mode
+NI_MODEL_MODE=static ./deploy.sh   # generate and serve recorded site
+NI_MODEL_MODE=full ./deploy.sh     # existing PostgreSQL deployment
+```
+
+The first Parquet or static deployment creates deterministic `current` and
+`historical` full-population baselines under `data/baselines/`. Static mode
+then records every model exposed by the frontend selector using its canonical
+seed and default year range. The generated population and recording files are
+build artifacts and are not committed.
+
+Static mode fixes seeds and demographic multipliers. Model selection, year
+playback, maps, community display, polling selection, and undecided treatment
+remain browser-side. Use Parquet or full mode when assumptions must be changed.
+
 ## What it does
 
 - Maintains one immutable PostgreSQL baseline and isolated per-run event history

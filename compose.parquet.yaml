@@ -1,0 +1,35 @@
+services:
+  baseline-builder:
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: parquet
+    profiles: ["tools"]
+    environment:
+      BASELINE_PARQUET_DIR: /app/data/baselines
+      NI_MODEL_MODE: parquet
+    volumes:
+      - ./data/baselines:/app/data/baselines
+      - ./frontend/public/recordings:/recordings
+
+  app:
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: parquet
+    environment:
+      NI_MODEL_MODE: parquet
+      DATABASE_URL: sqlite:////app/runtime/ni-model.db
+      BASELINE_PARQUET_DIR: /app/data/baselines
+      CHECKPOINT_DIR: /app/runtime/checkpoints
+      EMBEDDED_SIMULATION_WORKER: "true"
+      SIMULATION_WORKERS: "1"
+    command: ["python", "scripts/start_portable.py"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/baselines:/app/data/baselines:ro
+      - portable-runtime:/app/runtime
+
+volumes:
+  portable-runtime:

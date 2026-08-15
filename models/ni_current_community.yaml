@@ -3,16 +3,18 @@ baseline_profile: current
 baseline_population: 1903175
 description: NISRA 2024 principal totals split by community background using conservative
   estimated differentials calibrated to Census 2011–2021 change. External arrivals follow
-  the Census 2021 joint origin, destination-LGD and current-religion profile; emigration differentials
-  remain estimated. Annual component rates are normalized to the official starting total.
-  Estimated two-way community-identification transitions are included. Census-derived internal
-  routes are balanced toward NISRA's 2022-based LGD population trajectory without targeting
-  community shares. This sensitivity scenario is not an official projection.
+  the Census 2021 joint origin, destination-LGD and current-religion profile; emigration rates
+  are evidence-neutral because no equivalent departure breakdown is published. Current-religion
+  arrivals are converted to the community-background measure using the national Census 2021
+  relationship. Annual component rates are normalized to the official starting total. Estimated
+  two-way community-identification transitions are included. Census-derived internal routes
+  are balanced toward NISRA's 2022-based LGD population trajectory without targeting community
+  shares. This sensitivity scenario is not an official projection.
 baseline_year: 2021
 data_through: 2024
 projection_version: Estimated community differential over NISRA/ONS 2024 principal
 default_start_year: 2021
-default_end_year: 2050
+default_end_year: 2075
 rate_jitter: 0
 random_seed: 42
 integration_rates:
@@ -140,1272 +142,1512 @@ birth_rates:
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.112868
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 11.798347
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 12.360173
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 11.310803
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 9.425669
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.996614
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 11.520262
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 11.091953
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 9.243294
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.783844
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 11.29736
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.639054
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.865878
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.343524
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.836073
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.613938
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.844949
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.319107
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.810493
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.456201
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.7135
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.165751
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.649834
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.305001
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.587501
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.018751
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.495834
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.167238
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.472698
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.884814
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.35552
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.046297
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.371914
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.767234
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.23234
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.943572
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.28631
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.667362
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.127713
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.854447
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.212039
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.580712
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.036937
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.786477
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.155398
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.514631
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.967708
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.739829
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.116524
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.469278
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.920196
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.719784
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.09982
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.44979
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.89978
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.727349
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.106124
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.457145
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.907485
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.763539
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.136282
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.49233
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.944345
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.818966
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.182472
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.546217
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.000799
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.891755
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.243129
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.616984
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.074936
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.96946
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.307883
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.69253
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.154079
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.044766
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.370639
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.765745
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.230781
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.113646
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.428038
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.832711
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.300936
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.166921
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.472434
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.884507
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.355197
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.208113
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.506761
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.924555
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.397153
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.219479
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.516233
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.935605
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.408729
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.205152
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.504293
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.921675
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.394136
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.173276
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.47773
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.890685
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.36167
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.129108
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.440924
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.847744
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.316684
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.064156
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.386797
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.784596
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.25053
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.976859
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.314049
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.699724
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.161616
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.860007
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.216672
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.586118
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.042599
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.737354
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.114461
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.466872
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.917675
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.603251
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.002709
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.336494
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.781089
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.462733
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.885611
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.19988
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.637969
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.319586
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.766322
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.060708
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.492171
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.180043
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.650036
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.925042
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.350044
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.053048
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.544206
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.801574
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.220697
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.932246
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.443539
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.684128
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.097658
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.825445
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.354538
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.580294
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.988879
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.731414
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.276178
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.488875
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.893107
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.649615
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.208012
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.409348
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.809793
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.589227
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.157689
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.350637
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.748286
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.541504
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.11792
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.30424
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.69968
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.503521
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.086267
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.267312
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.660993
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.480494
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.067078
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.244925
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.63754
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.470635
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.058862
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.235339
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.627498
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.472253
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.060211
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.236912
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.629146
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.484218
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.070182
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.248545
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.641333
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.507176
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.089313
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.270865
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.664716
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.538795
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.115662
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.301606
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.696921
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.573658
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.144715
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.335501
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.732429
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.614942
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.179118
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.375638
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.774478
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.654009
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.211674
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.413619
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.814268
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.69458
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.245483
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.453064
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.85559
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
+- rate: 8.734323
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: CATHOLIC
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 7.278602
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: PROTESTANT
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 8.491703
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: OTHER
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 8.89607
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: NONE
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
 death_rates:
 - rate: 8.575951
   year_min: 2022
@@ -1413,2988 +1655,3520 @@ death_rates:
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.440288
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 7.457348
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 6.711613
   year_min: 2022
   year_max: 2022
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 8.501975
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.35023
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 7.393022
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 6.65372
   year_min: 2023
   year_max: 2023
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 8.582205
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 10.447902
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 7.462787
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 6.716508
   year_min: 2024
   year_max: 2024
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: observed
 - rate: 8.22726
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.015794
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.154139
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.438725
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.457584
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.296189
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.354421
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.618979
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.532651
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.387575
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.419696
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.677727
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.618337
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.491889
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.494206
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.744786
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.715898
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.610659
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.579042
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.821138
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.823636
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.741817
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.672727
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.905454
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.940046
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.883534
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.773953
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 6.996557
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.057075
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.026004
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.875717
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.088145
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.186991
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.184163
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.988688
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.189819
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.315258
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.340315
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.100225
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.290202
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.444502
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.497655
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.212611
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.39135
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.574167
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.655508
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.325363
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.492826
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.704145
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.813741
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.438387
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.594548
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.830182
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.967179
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.547985
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.693186
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.954436
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.118444
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.656031
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.790428
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.073915
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.263897
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.759926
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.883934
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.190045
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.405273
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.860909
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 7.974818
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.299866
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.538967
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.956405
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.060765
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.411
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.674261
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.053044
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.147739
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.519712
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.806606
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.147576
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.232818
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.625921
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.935903
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.239931
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.315938
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.735207
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.068947
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.334962
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.401466
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.839732
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.196196
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.425854
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.483269
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.943614
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.322661
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.516186
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.564568
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.05135
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.453818
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.60987
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.648883
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.158945
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.584802
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.70343
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.733087
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.261032
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.709083
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.792202
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.812982
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.368807
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.840287
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.885919
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.897327
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.469439
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 13.962795
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.973425
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 8.976083
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.563966
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.077872
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.055623
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.05006
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.650325
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.183005
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.130718
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.117646
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.73539
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.286562
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.204687
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.184218
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.809506
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.37679
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.269136
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.242222
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.872109
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.453003
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.323573
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.291216
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.928616
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.521793
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.37271
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.335439
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 11.982266
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.587107
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.419362
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.377426
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.022967
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.636656
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.454754
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.409279
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.060133
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.681901
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.487072
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.438365
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.092064
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.720773
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.514838
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.463354
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.1211
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.756122
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.540087
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.486078
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.148351
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.789297
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.563784
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.507405
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.181206
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.829295
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.592353
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.533118
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.210419
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.864858
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.617756
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.55598
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.246669
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.908989
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.649278
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.58435
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.28835
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 14.959731
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.685522
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.61697
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.333396
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 15.014569
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.724692
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.652223
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.388626
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 15.081806
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.772718
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.695446
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.44585
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 15.151469
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.822478
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.74023
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.510278
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 15.229904
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.878503
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.790652
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 12.581511
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 15.316622
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 10.940444
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
+  source_evidence: principal_projection
 - rate: 9.8464
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
+  source_evidence: principal_projection
+- rate: 12.638558
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: CATHOLIC
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 15.386071
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: PROTESTANT
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 10.990051
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: OTHER
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
+- rate: 9.891046
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: NONE
+  evidence: estimated_community_differential
+  source_evidence: estimated_2074_carry_forward
 migration_rates:
 - rate: 1.212585
   year_min: 2022
   year_max: 2022
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
+  source_evidence: observed_net_only
 - rate: 3.932538
   year_min: 2023
   year_max: 2023
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
+  source_evidence: observed_net_only
 - rate: 3.001074
   year_min: 2024
   year_max: 2024
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
+  source_evidence: observed_net_only
 - rate: 12.422981
   year_min: 2025
   year_max: 2025
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.939132
+  source_evidence: principal_projection
+- rate: -11.465407
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.148262
+  source_evidence: principal_projection
+- rate: -11.465407
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.730001
+  source_evidence: principal_projection
+- rate: -11.465407
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.923914
+  source_evidence: principal_projection
+- rate: -11.465407
   year_min: 2025
   year_max: 2025
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.370043
   year_min: 2026
   year_max: 2026
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.911586
+  source_evidence: principal_projection
+- rate: -11.438954
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.124848
+  source_evidence: principal_projection
+- rate: -11.438954
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.698323
+  source_evidence: principal_projection
+- rate: -11.438954
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.889482
+  source_evidence: principal_projection
+- rate: -11.438954
   year_min: 2026
   year_max: 2026
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.337372
   year_min: 2027
   year_max: 2027
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.922979
+  source_evidence: principal_projection
+- rate: -11.449895
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.134532
+  source_evidence: principal_projection
+- rate: -11.449895
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.711425
+  source_evidence: principal_projection
+- rate: -11.449895
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.903723
+  source_evidence: principal_projection
+- rate: -11.449895
   year_min: 2027
   year_max: 2027
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.31174
   year_min: 2028
   year_max: 2028
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.969364
+  source_evidence: principal_projection
+- rate: -11.49444
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.17396
+  source_evidence: principal_projection
+- rate: -11.49444
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.764769
+  source_evidence: principal_projection
+- rate: -11.49444
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.961705
+  source_evidence: principal_projection
+- rate: -11.49444
   year_min: 2028
   year_max: 2028
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.301235
   year_min: 2029
   year_max: 2029
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.993654
+  source_evidence: principal_projection
+- rate: -11.517766
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.194606
+  source_evidence: principal_projection
+- rate: -11.517766
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.792702
+  source_evidence: principal_projection
+- rate: -11.517766
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.992067
+  source_evidence: principal_projection
+- rate: -11.517766
   year_min: 2029
   year_max: 2029
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.288839
   year_min: 2030
   year_max: 2030
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.009442
+  source_evidence: principal_projection
+- rate: -11.532928
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.208026
+  source_evidence: principal_projection
+- rate: -11.532928
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.810859
+  source_evidence: principal_projection
+- rate: -11.532928
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.011803
+  source_evidence: principal_projection
+- rate: -11.532928
   year_min: 2030
   year_max: 2030
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.295469
   year_min: 2031
   year_max: 2031
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.043344
+  source_evidence: principal_projection
+- rate: -11.565484
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.236842
+  source_evidence: principal_projection
+- rate: -11.565484
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.849845
+  source_evidence: principal_projection
+- rate: -11.565484
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.054179
+  source_evidence: principal_projection
+- rate: -11.565484
   year_min: 2031
   year_max: 2031
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.298795
   year_min: 2032
   year_max: 2032
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.07427
+  source_evidence: principal_projection
+- rate: -11.595183
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.263129
+  source_evidence: principal_projection
+- rate: -11.595183
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.88541
+  source_evidence: principal_projection
+- rate: -11.595183
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.092837
+  source_evidence: principal_projection
+- rate: -11.595183
   year_min: 2032
   year_max: 2032
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.307486
   year_min: 2033
   year_max: 2033
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.071799
+  source_evidence: principal_projection
+- rate: -11.59281
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.261029
+  source_evidence: principal_projection
+- rate: -11.59281
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.882568
+  source_evidence: principal_projection
+- rate: -11.59281
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.089748
+  source_evidence: principal_projection
+- rate: -11.59281
   year_min: 2033
   year_max: 2033
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.314724
   year_min: 2034
   year_max: 2034
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.070394
+  source_evidence: principal_projection
+- rate: -11.591461
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.259835
+  source_evidence: principal_projection
+- rate: -11.591461
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.880953
+  source_evidence: principal_projection
+- rate: -11.591461
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.087992
+  source_evidence: principal_projection
+- rate: -11.591461
   year_min: 2034
   year_max: 2034
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.322221
   year_min: 2035
   year_max: 2035
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.07659
+  source_evidence: principal_projection
+- rate: -11.597411
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.265101
+  source_evidence: principal_projection
+- rate: -11.597411
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.888078
+  source_evidence: principal_projection
+- rate: -11.597411
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.095737
+  source_evidence: principal_projection
+- rate: -11.597411
   year_min: 2035
   year_max: 2035
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.326695
   year_min: 2036
   year_max: 2036
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.086009
+  source_evidence: principal_projection
+- rate: -11.606457
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.273108
+  source_evidence: principal_projection
+- rate: -11.606457
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.898911
+  source_evidence: principal_projection
+- rate: -11.606457
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.107512
+  source_evidence: principal_projection
+- rate: -11.606457
   year_min: 2036
   year_max: 2036
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.328453
   year_min: 2037
   year_max: 2037
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.063884
+  source_evidence: principal_projection
+- rate: -11.585209
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.254301
+  source_evidence: principal_projection
+- rate: -11.585209
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.873466
+  source_evidence: principal_projection
+- rate: -11.585209
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.079854
+  source_evidence: principal_projection
+- rate: -11.585209
   year_min: 2037
   year_max: 2037
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.33408
   year_min: 2038
   year_max: 2038
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.03922
+  source_evidence: principal_projection
+- rate: -11.561524
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.233337
+  source_evidence: principal_projection
+- rate: -11.561524
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.845103
+  source_evidence: principal_projection
+- rate: -11.561524
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.049025
+  source_evidence: principal_projection
+- rate: -11.561524
   year_min: 2038
   year_max: 2038
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.33657
   year_min: 2039
   year_max: 2039
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -12.009154
+  source_evidence: principal_projection
+- rate: -11.532651
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.207781
+  source_evidence: principal_projection
+- rate: -11.532651
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.810527
+  source_evidence: principal_projection
+- rate: -11.532651
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -15.011442
+  source_evidence: principal_projection
+- rate: -11.532651
   year_min: 2039
   year_max: 2039
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.325343
   year_min: 2040
   year_max: 2040
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.964527
+  source_evidence: principal_projection
+- rate: -11.489795
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.169848
+  source_evidence: principal_projection
+- rate: -11.489795
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.759206
+  source_evidence: principal_projection
+- rate: -11.489795
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.955659
+  source_evidence: principal_projection
+- rate: -11.489795
   year_min: 2040
   year_max: 2040
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.320612
   year_min: 2041
   year_max: 2041
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.913072
+  source_evidence: principal_projection
+- rate: -11.440381
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.126111
+  source_evidence: principal_projection
+- rate: -11.440381
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.700032
+  source_evidence: principal_projection
+- rate: -11.440381
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.891339
+  source_evidence: principal_projection
+- rate: -11.440381
   year_min: 2041
   year_max: 2041
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.307184
   year_min: 2042
   year_max: 2042
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.893296
+  source_evidence: principal_projection
+- rate: -11.42139
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.109302
+  source_evidence: principal_projection
+- rate: -11.42139
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.67729
+  source_evidence: principal_projection
+- rate: -11.42139
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.86662
+  source_evidence: principal_projection
+- rate: -11.42139
   year_min: 2042
   year_max: 2042
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.285131
   year_min: 2043
   year_max: 2043
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.810101
+  source_evidence: principal_projection
+- rate: -11.341496
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.038586
+  source_evidence: principal_projection
+- rate: -11.341496
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.581616
+  source_evidence: principal_projection
+- rate: -11.341496
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.762626
+  source_evidence: principal_projection
+- rate: -11.341496
   year_min: 2043
   year_max: 2043
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.262238
   year_min: 2044
   year_max: 2044
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.743043
+  source_evidence: principal_projection
+- rate: -11.277099
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.981587
+  source_evidence: principal_projection
+- rate: -11.277099
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.5045
+  source_evidence: principal_projection
+- rate: -11.277099
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.678804
+  source_evidence: principal_projection
+- rate: -11.277099
   year_min: 2044
   year_max: 2044
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.239481
   year_min: 2045
   year_max: 2045
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.671143
+  source_evidence: principal_projection
+- rate: -11.208052
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.920472
+  source_evidence: principal_projection
+- rate: -11.208052
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.421815
+  source_evidence: principal_projection
+- rate: -11.208052
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.588929
+  source_evidence: principal_projection
+- rate: -11.208052
   year_min: 2045
   year_max: 2045
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.21307
   year_min: 2046
   year_max: 2046
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.61412
+  source_evidence: principal_projection
+- rate: -11.153291
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.872002
+  source_evidence: principal_projection
+- rate: -11.153291
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.356238
+  source_evidence: principal_projection
+- rate: -11.153291
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.51765
+  source_evidence: principal_projection
+- rate: -11.153291
   year_min: 2046
   year_max: 2046
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.178526
   year_min: 2047
   year_max: 2047
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.564233
+  source_evidence: principal_projection
+- rate: -11.105384
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.829598
+  source_evidence: principal_projection
+- rate: -11.105384
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.298868
+  source_evidence: principal_projection
+- rate: -11.105384
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.455292
+  source_evidence: principal_projection
+- rate: -11.105384
   year_min: 2047
   year_max: 2047
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.148166
   year_min: 2048
   year_max: 2048
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.510883
+  source_evidence: principal_projection
+- rate: -11.054151
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.784251
+  source_evidence: principal_projection
+- rate: -11.054151
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.237516
+  source_evidence: principal_projection
+- rate: -11.054151
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.388604
+  source_evidence: principal_projection
+- rate: -11.054151
   year_min: 2048
   year_max: 2048
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.122172
   year_min: 2049
   year_max: 2049
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.467149
+  source_evidence: principal_projection
+- rate: -11.012152
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.747077
+  source_evidence: principal_projection
+- rate: -11.012152
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.187221
+  source_evidence: principal_projection
+- rate: -11.012152
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.333936
+  source_evidence: principal_projection
+- rate: -11.012152
   year_min: 2049
   year_max: 2049
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.097145
   year_min: 2050
   year_max: 2050
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.426864
+  source_evidence: principal_projection
+- rate: -10.973465
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.712834
+  source_evidence: principal_projection
+- rate: -10.973465
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.140893
+  source_evidence: principal_projection
+- rate: -10.973465
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.28358
+  source_evidence: principal_projection
+- rate: -10.973465
   year_min: 2050
   year_max: 2050
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.077644
   year_min: 2051
   year_max: 2051
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.395727
+  source_evidence: principal_projection
+- rate: -10.943564
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.686368
+  source_evidence: principal_projection
+- rate: -10.943564
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.105086
+  source_evidence: principal_projection
+- rate: -10.943564
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.244659
+  source_evidence: principal_projection
+- rate: -10.943564
   year_min: 2051
   year_max: 2051
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.053266
   year_min: 2052
   year_max: 2052
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.364785
+  source_evidence: principal_projection
+- rate: -10.91385
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.660068
+  source_evidence: principal_projection
+- rate: -10.91385
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.069503
+  source_evidence: principal_projection
+- rate: -10.91385
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.205982
+  source_evidence: principal_projection
+- rate: -10.91385
   year_min: 2052
   year_max: 2052
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.030902
   year_min: 2053
   year_max: 2053
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.343798
+  source_evidence: principal_projection
+- rate: -10.893695
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.642228
+  source_evidence: principal_projection
+- rate: -10.893695
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.045367
+  source_evidence: principal_projection
+- rate: -10.893695
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.179747
+  source_evidence: principal_projection
+- rate: -10.893695
   year_min: 2053
   year_max: 2053
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.021748
   year_min: 2054
   year_max: 2054
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.327843
+  source_evidence: principal_projection
+- rate: -10.878373
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.628666
+  source_evidence: principal_projection
+- rate: -10.878373
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.027019
+  source_evidence: principal_projection
+- rate: -10.878373
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.159803
+  source_evidence: principal_projection
+- rate: -10.878373
   year_min: 2054
   year_max: 2054
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.008197
   year_min: 2055
   year_max: 2055
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.323027
+  source_evidence: principal_projection
+- rate: -10.873748
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.624573
+  source_evidence: principal_projection
+- rate: -10.873748
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.021481
+  source_evidence: principal_projection
+- rate: -10.873748
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.153783
+  source_evidence: principal_projection
+- rate: -10.873748
   year_min: 2055
   year_max: 2055
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.000438
   year_min: 2056
   year_max: 2056
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.311299
+  source_evidence: principal_projection
+- rate: -10.862486
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.614604
+  source_evidence: principal_projection
+- rate: -10.862486
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.007994
+  source_evidence: principal_projection
+- rate: -10.862486
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.139124
+  source_evidence: principal_projection
+- rate: -10.862486
   year_min: 2056
   year_max: 2056
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 11.99538
   year_min: 2057
   year_max: 2057
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.325798
+  source_evidence: principal_projection
+- rate: -10.876409
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.626928
+  source_evidence: principal_projection
+- rate: -10.876409
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.024667
+  source_evidence: principal_projection
+- rate: -10.876409
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.157247
+  source_evidence: principal_projection
+- rate: -10.876409
   year_min: 2057
   year_max: 2057
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.002171
   year_min: 2058
   year_max: 2058
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.339588
+  source_evidence: principal_projection
+- rate: -10.889652
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.63865
+  source_evidence: principal_projection
+- rate: -10.889652
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.040526
+  source_evidence: principal_projection
+- rate: -10.889652
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.174485
+  source_evidence: principal_projection
+- rate: -10.889652
   year_min: 2058
   year_max: 2058
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.010305
   year_min: 2059
   year_max: 2059
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.357969
+  source_evidence: principal_projection
+- rate: -10.907304
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.654274
+  source_evidence: principal_projection
+- rate: -10.907304
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.061664
+  source_evidence: principal_projection
+- rate: -10.907304
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.197461
+  source_evidence: principal_projection
+- rate: -10.907304
   year_min: 2059
   year_max: 2059
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.025045
   year_min: 2060
   year_max: 2060
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.390812
+  source_evidence: principal_projection
+- rate: -10.938844
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.68219
+  source_evidence: principal_projection
+- rate: -10.938844
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.099434
+  source_evidence: principal_projection
+- rate: -10.938844
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.238515
+  source_evidence: principal_projection
+- rate: -10.938844
   year_min: 2060
   year_max: 2060
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.04573
   year_min: 2061
   year_max: 2061
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.423571
+  source_evidence: principal_projection
+- rate: -10.970303
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.710035
+  source_evidence: principal_projection
+- rate: -10.970303
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.137107
+  source_evidence: principal_projection
+- rate: -10.970303
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.279464
+  source_evidence: principal_projection
+- rate: -10.970303
   year_min: 2061
   year_max: 2061
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.065511
   year_min: 2062
   year_max: 2062
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.459909
+  source_evidence: principal_projection
+- rate: -11.005199
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.740922
+  source_evidence: principal_projection
+- rate: -11.005199
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.178895
+  source_evidence: principal_projection
+- rate: -11.005199
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.324886
+  source_evidence: principal_projection
+- rate: -11.005199
   year_min: 2062
   year_max: 2062
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.088597
   year_min: 2063
   year_max: 2063
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.503054
+  source_evidence: principal_projection
+- rate: -11.046632
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.777596
+  source_evidence: principal_projection
+- rate: -11.046632
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.228512
+  source_evidence: principal_projection
+- rate: -11.046632
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.378817
+  source_evidence: principal_projection
+- rate: -11.046632
   year_min: 2063
   year_max: 2063
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.118783
   year_min: 2064
   year_max: 2064
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.54276
+  source_evidence: principal_projection
+- rate: -11.084763
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.811346
+  source_evidence: principal_projection
+- rate: -11.084763
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.274174
+  source_evidence: principal_projection
+- rate: -11.084763
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.42845
+  source_evidence: principal_projection
+- rate: -11.084763
   year_min: 2064
   year_max: 2064
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.154691
   year_min: 2065
   year_max: 2065
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.5815
+  source_evidence: principal_projection
+- rate: -11.121966
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.844275
+  source_evidence: principal_projection
+- rate: -11.121966
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.318725
+  source_evidence: principal_projection
+- rate: -11.121966
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.476875
+  source_evidence: principal_projection
+- rate: -11.121966
   year_min: 2065
   year_max: 2065
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.192351
   year_min: 2066
   year_max: 2066
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.618014
+  source_evidence: principal_projection
+- rate: -11.157031
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.875312
+  source_evidence: principal_projection
+- rate: -11.157031
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.360716
+  source_evidence: principal_projection
+- rate: -11.157031
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.522518
+  source_evidence: principal_projection
+- rate: -11.157031
   year_min: 2066
   year_max: 2066
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.225448
   year_min: 2067
   year_max: 2067
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.660763
+  source_evidence: principal_projection
+- rate: -11.198084
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.911649
+  source_evidence: principal_projection
+- rate: -11.198084
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.409878
+  source_evidence: principal_projection
+- rate: -11.198084
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.575954
+  source_evidence: principal_projection
+- rate: -11.198084
   year_min: 2067
   year_max: 2067
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.262368
   year_min: 2068
   year_max: 2068
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.691901
+  source_evidence: principal_projection
+- rate: -11.227986
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.938116
+  source_evidence: principal_projection
+- rate: -11.227986
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.445686
+  source_evidence: principal_projection
+- rate: -11.227986
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.614876
+  source_evidence: principal_projection
+- rate: -11.227986
   year_min: 2068
   year_max: 2068
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.296799
   year_min: 2069
   year_max: 2069
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.717553
+  source_evidence: principal_projection
+- rate: -11.25262
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.95992
+  source_evidence: principal_projection
+- rate: -11.25262
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.475186
+  source_evidence: principal_projection
+- rate: -11.25262
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.646941
+  source_evidence: principal_projection
+- rate: -11.25262
   year_min: 2069
   year_max: 2069
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.335975
   year_min: 2070
   year_max: 2070
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.745042
+  source_evidence: principal_projection
+- rate: -11.279019
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -9.983286
+  source_evidence: principal_projection
+- rate: -11.279019
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.506799
+  source_evidence: principal_projection
+- rate: -11.279019
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.681303
+  source_evidence: principal_projection
+- rate: -11.279019
   year_min: 2070
   year_max: 2070
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.364692
   year_min: 2071
   year_max: 2071
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.765873
+  source_evidence: principal_projection
+- rate: -11.299023
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.000992
+  source_evidence: principal_projection
+- rate: -11.299023
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.530754
+  source_evidence: principal_projection
+- rate: -11.299023
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.707341
+  source_evidence: principal_projection
+- rate: -11.299023
   year_min: 2071
   year_max: 2071
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.403886
   year_min: 2072
   year_max: 2072
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.786719
+  source_evidence: principal_projection
+- rate: -11.319042
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.018711
+  source_evidence: principal_projection
+- rate: -11.319042
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.554727
+  source_evidence: principal_projection
+- rate: -11.319042
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.733399
+  source_evidence: principal_projection
+- rate: -11.319042
   year_min: 2072
   year_max: 2072
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.436482
   year_min: 2073
   year_max: 2073
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.800097
+  source_evidence: principal_projection
+- rate: -11.331889
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.030082
+  source_evidence: principal_projection
+- rate: -11.331889
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.570111
+  source_evidence: principal_projection
+- rate: -11.331889
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.750121
+  source_evidence: principal_projection
+- rate: -11.331889
   year_min: 2073
   year_max: 2073
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
 - rate: 12.463567
   year_min: 2074
   year_max: 2074
   filters: {}
   evidence: census_2021_arrival_profile_scaled_to_annual_total
   flow: in
-- rate: -11.813024
+  source_evidence: principal_projection
+- rate: -11.344303
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: CATHOLIC
   evidence: estimated_community_differential
   flow: out
-- rate: -10.04107
+  source_evidence: principal_projection
+- rate: -11.344303
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: PROTESTANT
   evidence: estimated_community_differential
   flow: out
-- rate: -13.584977
+  source_evidence: principal_projection
+- rate: -11.344303
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: OTHER
   evidence: estimated_community_differential
   flow: out
-- rate: -14.76628
+  source_evidence: principal_projection
+- rate: -11.344303
   year_min: 2074
   year_max: 2074
   filters:
     religious_background: NONE
   evidence: estimated_community_differential
   flow: out
+  source_evidence: principal_projection
+- rate: 12.520857
+  year_min: 2075
+  year_max: 2075
+  filters: {}
+  evidence: census_2021_arrival_profile_scaled_to_annual_total
+  flow: in
+  source_evidence: estimated_2074_carry_forward
+- rate: -11.395803
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: CATHOLIC
+  evidence: estimated_community_differential
+  flow: out
+  source_evidence: estimated_2074_carry_forward
+- rate: -11.395803
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: PROTESTANT
+  evidence: estimated_community_differential
+  flow: out
+  source_evidence: estimated_2074_carry_forward
+- rate: -11.395803
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: OTHER
+  evidence: estimated_community_differential
+  flow: out
+  source_evidence: estimated_2074_carry_forward
+- rate: -11.395803
+  year_min: 2075
+  year_max: 2075
+  filters:
+    religious_background: NONE
+  evidence: estimated_community_differential
+  flow: out
+  source_evidence: estimated_2074_carry_forward
 internal_migration_rates:
 - rate: 0.917752
   year_min: 2022
@@ -7685,8 +8459,20 @@ immigration_profiles:
   weight: 183
 - origin: GB
   location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 97.21681014451059
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 175.38212317701993
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 4.499524199437892
+- origin: GB
+  location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: NONE
-  weight: 544
+  weight: 266.9015424790316
 - origin: GB
   location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: OTHER
@@ -7701,8 +8487,20 @@ immigration_profiles:
   weight: 328
 - origin: GB
   location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 58.97343262442738
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 106.38989089782459
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 2.7294907827472503
+- origin: GB
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: NONE
-  weight: 330
+  weight: 161.90718569500078
 - origin: GB
   location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: OTHER
@@ -7717,8 +8515,20 @@ immigration_profiles:
   weight: 737
 - origin: GB
   location: BELFAST
+  religious_background: CATHOLIC
+  weight: 287.18274614380243
+- origin: GB
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 518.0865293115277
+- origin: GB
+  location: BELFAST
+  religious_background: OTHER
+  weight: 13.291792993560096
+- origin: GB
+  location: BELFAST
   religious_background: NONE
-  weight: 1607
+  weight: 788.4389315511098
 - origin: GB
   location: BELFAST
   religious_background: OTHER
@@ -7733,8 +8543,20 @@ immigration_profiles:
   weight: 225
 - origin: GB
   location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 57.00765153694647
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 102.84356120123044
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 2.6385077566556756
+- origin: GB
+  location: CAUSEWAY_COAST_GLENS
   religious_background: NONE
-  weight: 319
+  weight: 156.51027950516743
 - origin: GB
   location: CAUSEWAY_COAST_GLENS
   religious_background: OTHER
@@ -7749,8 +8571,20 @@ immigration_profiles:
   weight: 480
 - origin: GB
   location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 51.467723017682076
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 92.84935932901055
+- origin: GB
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 2.3821010467612367
+- origin: GB
+  location: DERRY_STRABANE
   religious_background: NONE
-  weight: 288
+  weight: 141.30081660654614
 - origin: GB
   location: DERRY_STRABANE
   religious_background: OTHER
@@ -7765,8 +8599,20 @@ immigration_profiles:
   weight: 324
 - origin: GB
   location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 41.102695465509996
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 74.15053001969594
+- origin: GB
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 1.9023723637329322
+- origin: GB
+  location: FERMANAGH_OMAGH
   religious_background: NONE
-  weight: 230
+  weight: 112.84440215106115
 - origin: GB
   location: FERMANAGH_OMAGH
   religious_background: OTHER
@@ -7781,8 +8627,20 @@ immigration_profiles:
   weight: 235
 - origin: GB
   location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 95.42973642861885
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 172.15818708920708
+- origin: GB
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 4.41681235753646
+- origin: GB
+  location: LISBURN_CASTLEREAGH
   religious_background: NONE
-  weight: 534
+  weight: 261.99526412463763
 - origin: GB
   location: LISBURN_CASTLEREAGH
   religious_background: OTHER
@@ -7797,8 +8655,20 @@ immigration_profiles:
   weight: 117
 - origin: GB
   location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 58.616017881249036
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 105.74510368026202
+- origin: GB
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 2.712948414366964
+- origin: GB
+  location: MID_EAST_ANTRIM
   religious_background: NONE
-  weight: 328
+  weight: 160.92593002412198
 - origin: GB
   location: MID_EAST_ANTRIM
   religious_background: OTHER
@@ -7813,8 +8683,20 @@ immigration_profiles:
   weight: 312
 - origin: GB
   location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 33.239571115586344
+- origin: GB
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 59.965211233319316
+- origin: GB
+  location: MID_ULSTER
+  religious_background: OTHER
+  weight: 1.5384402593666322
+- origin: GB
+  location: MID_ULSTER
   religious_background: NONE
-  weight: 186
+  weight: 91.25677739172771
 - origin: GB
   location: MID_ULSTER
   religious_background: OTHER
@@ -7829,8 +8711,20 @@ immigration_profiles:
   weight: 484
 - origin: GB
   location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 62.90499479938921
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 113.4825502910129
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 2.9114568349304006
+- origin: GB
+  location: NEWRY_MOURNE_DOWN
   religious_background: NONE
-  weight: 352
+  weight: 172.7009980746675
 - origin: GB
   location: NEWRY_MOURNE_DOWN
   religious_background: OTHER
@@ -7845,8 +8739,20 @@ immigration_profiles:
   weight: 123
 - origin: GB
   location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 126.88223382831346
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 228.89946223471352
+- origin: GB
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 5.87254077500166
+- origin: GB
+  location: ARDS_NORTH_DOWN
   religious_background: NONE
-  weight: 710
+  weight: 348.3457631619714
 - origin: GB
   location: ARDS_NORTH_DOWN
   religious_background: OTHER
@@ -7861,8 +8767,20 @@ immigration_profiles:
   weight: 143
 - origin: OTHER
   location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 39.13691437802908
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 70.60420032310178
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 1.8113893376413572
+- origin: OTHER
+  location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: NONE
-  weight: 219
+  weight: 107.44749596122779
 - origin: OTHER
   location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: OTHER
@@ -7877,8 +8795,20 @@ immigration_profiles:
   weight: 359
 - origin: OTHER
   location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 57.365066280124815
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 103.48834841879301
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 2.6550501250359617
+- origin: OTHER
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: NONE
-  weight: 321
+  weight: 157.49153517604623
 - origin: OTHER
   location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: OTHER
@@ -7893,8 +8823,20 @@ immigration_profiles:
   weight: 809
 - origin: OTHER
   location: BELFAST
+  religious_background: CATHOLIC
+  weight: 395.12199858366347
+- origin: OTHER
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 712.8122690154248
+- origin: OTHER
+  location: BELFAST
+  religious_background: OTHER
+  weight: 18.287588244406578
+- origin: OTHER
+  location: BELFAST
   religious_background: NONE
-  weight: 2211
+  weight: 1084.7781441565053
 - origin: OTHER
   location: BELFAST
   religious_background: OTHER
@@ -7909,8 +8851,20 @@ immigration_profiles:
   weight: 166
 - origin: OTHER
   location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 23.589373049770952
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 42.55595635912984
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 1.0917963130989001
+- origin: OTHER
+  location: CAUSEWAY_COAST_GLENS
   religious_background: NONE
-  weight: 132
+  weight: 64.76287427800031
 - origin: OTHER
   location: CAUSEWAY_COAST_GLENS
   religious_background: OTHER
@@ -7925,8 +8879,20 @@ immigration_profiles:
   weight: 243
 - origin: OTHER
   location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 21.087469847522517
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 38.042445836191824
+- origin: OTHER
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 0.9759997344368956
+- origin: OTHER
+  location: DERRY_STRABANE
   religious_background: NONE
-  weight: 118
+  weight: 57.894084581848766
 - origin: OTHER
   location: DERRY_STRABANE
   religious_background: OTHER
@@ -7941,8 +8907,20 @@ immigration_profiles:
   weight: 256
 - origin: OTHER
   location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 20.73005510434417
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 37.39765861862925
+- origin: OTHER
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 0.9594573660566093
+- origin: OTHER
+  location: FERMANAGH_OMAGH
   religious_background: NONE
-  weight: 116
+  weight: 56.91282891096997
 - origin: OTHER
   location: FERMANAGH_OMAGH
   religious_background: OTHER
@@ -7957,8 +8935,20 @@ immigration_profiles:
   weight: 153
 - origin: OTHER
   location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 39.851743864385774
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 71.89377475822693
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 1.84447407440193
+- origin: OTHER
+  location: LISBURN_CASTLEREAGH
   religious_background: NONE
-  weight: 223
+  weight: 109.41000730298538
 - origin: OTHER
   location: LISBURN_CASTLEREAGH
   religious_background: OTHER
@@ -7973,8 +8963,20 @@ immigration_profiles:
   weight: 82
 - origin: OTHER
   location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 29.48671631221369
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 53.19494544891229
+- origin: OTHER
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 1.3647453913736252
+- origin: OTHER
+  location: MID_EAST_ANTRIM
   religious_background: NONE
-  weight: 165
+  weight: 80.95359284750039
 - origin: OTHER
   location: MID_EAST_ANTRIM
   religious_background: OTHER
@@ -7989,8 +8991,20 @@ immigration_profiles:
   weight: 406
 - origin: OTHER
   location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 32.346034257640476
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 58.35324318941288
+- origin: OTHER
+  location: MID_ULSTER
+  religious_background: OTHER
+  weight: 1.4970843384159163
+- origin: OTHER
+  location: MID_ULSTER
   religious_background: NONE
-  weight: 181
+  weight: 88.80363821453074
 - origin: OTHER
   location: MID_ULSTER
   religious_background: OTHER
@@ -8005,8 +9019,20 @@ immigration_profiles:
   weight: 436
 - origin: OTHER
   location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 27.520935224732778
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 49.64861575231814
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 1.2737623652820502
+- origin: OTHER
+  location: NEWRY_MOURNE_DOWN
   religious_background: NONE
-  weight: 154
+  weight: 75.55668665766703
 - origin: OTHER
   location: NEWRY_MOURNE_DOWN
   religious_background: OTHER
@@ -8021,8 +9047,20 @@ immigration_profiles:
   weight: 98
 - origin: OTHER
   location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 48.25099032907695
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 87.0462743709474
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 2.2332197313386595
+- origin: OTHER
+  location: ARDS_NORTH_DOWN
   religious_background: NONE
-  weight: 270
+  weight: 132.469515568637
 - origin: OTHER
   location: ARDS_NORTH_DOWN
   religious_background: OTHER
@@ -8037,8 +9075,20 @@ immigration_profiles:
   weight: 37
 - origin: ROI
   location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: CATHOLIC
+  weight: 4.110269546550999
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: PROTESTANT
+  weight: 7.415053001969593
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
+  religious_background: OTHER
+  weight: 0.1902372363732932
+- origin: ROI
+  location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: NONE
-  weight: 23
+  weight: 11.284440215106114
 - origin: ROI
   location: ANTRIM_AND_NEWTOWNABBEY
   religious_background: OTHER
@@ -8053,8 +9103,20 @@ immigration_profiles:
   weight: 152
 - origin: ROI
   location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: CATHOLIC
+  weight: 11.615979153296303
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: PROTESTANT
+  weight: 20.955584570783632
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
+  religious_background: OTHER
+  weight: 0.5376269723593069
+- origin: ROI
+  location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: NONE
-  weight: 65
+  weight: 31.89080930356076
 - origin: ROI
   location: ARMAGH_BANBRIDGE_CRAIGAVON
   religious_background: OTHER
@@ -8069,8 +9131,20 @@ immigration_profiles:
   weight: 517
 - origin: ROI
   location: BELFAST
+  religious_background: CATHOLIC
+  weight: 72.19777812202625
+- origin: ROI
+  location: BELFAST
+  religious_background: PROTESTANT
+  weight: 130.2470179476398
+- origin: ROI
+  location: BELFAST
+  religious_background: OTHER
+  weight: 3.341558412817846
+- origin: ROI
+  location: BELFAST
   religious_background: NONE
-  weight: 404
+  weight: 198.2136455175161
 - origin: ROI
   location: BELFAST
   religious_background: OTHER
@@ -8085,8 +9159,20 @@ immigration_profiles:
   weight: 105
 - origin: ROI
   location: CAUSEWAY_COAST_GLENS
+  religious_background: CATHOLIC
+  weight: 6.969587491977781
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: PROTESTANT
+  weight: 12.57335074247018
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
+  religious_background: OTHER
+  weight: 0.32257618341558414
+- origin: ROI
+  location: CAUSEWAY_COAST_GLENS
   religious_background: NONE
-  weight: 39
+  weight: 19.134485582136456
 - origin: ROI
   location: CAUSEWAY_COAST_GLENS
   religious_background: OTHER
@@ -8101,8 +9187,20 @@ immigration_profiles:
   weight: 332
 - origin: ROI
   location: DERRY_STRABANE
+  religious_background: CATHOLIC
+  weight: 16.08366344302565
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: PROTESTANT
+  weight: 29.015424790315798
+- origin: ROI
+  location: DERRY_STRABANE
+  religious_background: OTHER
+  weight: 0.7444065771128865
+- origin: ROI
+  location: DERRY_STRABANE
   religious_background: NONE
-  weight: 90
+  weight: 44.15650518954567
 - origin: ROI
   location: DERRY_STRABANE
   religious_background: OTHER
@@ -8117,8 +9215,20 @@ immigration_profiles:
   weight: 269
 - origin: ROI
   location: FERMANAGH_OMAGH
+  religious_background: CATHOLIC
+  weight: 16.441078186203995
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: PROTESTANT
+  weight: 29.66021200787837
+- origin: ROI
+  location: FERMANAGH_OMAGH
+  religious_background: OTHER
+  weight: 0.7609489454931728
+- origin: ROI
+  location: FERMANAGH_OMAGH
   religious_background: NONE
-  weight: 92
+  weight: 45.13776086042446
 - origin: ROI
   location: FERMANAGH_OMAGH
   religious_background: OTHER
@@ -8133,8 +9243,20 @@ immigration_profiles:
   weight: 69
 - origin: ROI
   location: LISBURN_CASTLEREAGH
+  religious_background: CATHOLIC
+  weight: 9.65019806581539
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: PROTESTANT
+  weight: 17.40925487418948
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
+  religious_background: OTHER
+  weight: 0.4466439462677319
+- origin: ROI
+  location: LISBURN_CASTLEREAGH
   religious_background: NONE
-  weight: 54
+  weight: 26.493903113727402
 - origin: ROI
   location: LISBURN_CASTLEREAGH
   religious_background: OTHER
@@ -8149,8 +9271,20 @@ immigration_profiles:
   weight: 26
 - origin: ROI
   location: MID_EAST_ANTRIM
+  religious_background: CATHOLIC
+  weight: 4.467684289729347
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: PROTESTANT
+  weight: 8.059840219532166
+- origin: ROI
+  location: MID_EAST_ANTRIM
+  religious_background: OTHER
+  weight: 0.2067796047535796
+- origin: ROI
+  location: MID_EAST_ANTRIM
   religious_background: NONE
-  weight: 25
+  weight: 12.265695885984908
 - origin: ROI
   location: MID_EAST_ANTRIM
   religious_background: OTHER
@@ -8165,8 +9299,20 @@ immigration_profiles:
   weight: 138
 - origin: ROI
   location: MID_ULSTER
+  religious_background: CATHOLIC
+  weight: 3.3954400601943036
+- origin: ROI
+  location: MID_ULSTER
+  religious_background: PROTESTANT
+  weight: 6.125478566844446
+- origin: ROI
+  location: MID_ULSTER
+  religious_background: OTHER
+  weight: 0.1571524996127205
+- origin: ROI
+  location: MID_ULSTER
   religious_background: NONE
-  weight: 19
+  weight: 9.32192887334853
 - origin: ROI
   location: MID_ULSTER
   religious_background: PROTESTANT
@@ -8177,8 +9323,20 @@ immigration_profiles:
   weight: 311
 - origin: ROI
   location: NEWRY_MOURNE_DOWN
+  religious_background: CATHOLIC
+  weight: 18.94298138845243
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: PROTESTANT
+  weight: 34.173722530816384
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
+  religious_background: OTHER
+  weight: 0.8767455241551775
+- origin: ROI
+  location: NEWRY_MOURNE_DOWN
   religious_background: NONE
-  weight: 106
+  weight: 52.00655055657601
 - origin: ROI
   location: NEWRY_MOURNE_DOWN
   religious_background: OTHER
@@ -8193,8 +9351,20 @@ immigration_profiles:
   weight: 25
 - origin: ROI
   location: ARDS_NORTH_DOWN
+  religious_background: CATHOLIC
+  weight: 9.828905437404563
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: PROTESTANT
+  weight: 17.731648482970765
+- origin: ROI
+  location: ARDS_NORTH_DOWN
+  religious_background: OTHER
+  weight: 0.45491513045787507
+- origin: ROI
+  location: ARDS_NORTH_DOWN
   religious_background: NONE
-  weight: 55
+  weight: 26.984530949166796
 - origin: ROI
   location: ARDS_NORTH_DOWN
   religious_background: OTHER

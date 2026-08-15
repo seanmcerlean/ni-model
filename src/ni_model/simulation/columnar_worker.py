@@ -13,6 +13,7 @@ import polars as pl
 from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
+from ..core.deployment import DeploymentMode, baseline_path, deployment_mode
 from ..core.models import Location, Person, ReligiousBackground
 from .relocation_calibration import relocation_pair_scales
 from .sampling import stochastic_round
@@ -212,13 +213,27 @@ class ColumnarSimulationWorker:
         population_limit: Optional[int] = None,
         baseline_profile: str = "current",
     ) -> "ColumnarSimulationWorker":
-        frame = cls.baseline_frame(
-            db,
-            start_year,
-            recorder=recorder,
-            population_limit=population_limit,
-            baseline_profile=baseline_profile,
-        )
+        if deployment_mode() == DeploymentMode.PARQUET:
+            path = baseline_path(baseline_profile)
+            if not path.is_file():
+                raise FileNotFoundError(
+                    f"Parquet baseline is missing: {path}. "
+                    "Run scripts/build_parquet_baselines.py first."
+                )
+            stage = recorder.stage("baseline_load") if recorder else nullcontext()
+            with stage:
+                lazy = pl.scan_parquet(path)
+                if population_limit is not None:
+                    lazy = lazy.head(population_limit)
+                frame = lazy.collect()
+        else:
+            frame = cls.baseline_frame(
+                db,
+                start_year,
+                recorder=recorder,
+                population_limit=population_limit,
+                baseline_profile=baseline_profile,
+            )
         return cls(frame, config, run_id, seed=seed, recorder=recorder)
 
     def _stage(self, name: str):

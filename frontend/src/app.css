@@ -63,7 +63,7 @@ button, input, select { font: inherit; }
 .seed-control { display: grid; grid-template-columns: 1fr 88px auto; align-items: center; gap: 7px; margin: 12px 0; color: #cbd5e1; font-size: 10px; }
 .seed-control input { min-width: 0; padding: 5px; border: 1px solid #334b68; border-radius: 4px; background: #13263e; color: #f8fafc; }
 .voting-panel { margin-top: 4px; }
-.voting-headline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
+.voting-headline { position: sticky; z-index: 2; top: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 8px; padding: 4px 0; background: #0d1a2b; }
 .voting-headline span { padding: 7px 4px; border-radius: 4px; background: #13263e; color: #94a3b8; font-size: 8px; text-align: center; text-transform: uppercase; }
 .voting-headline b { display: block; color: #f8fafc; font-size: 13px; }
 .scenario-list { padding-bottom: 7px; }
@@ -77,6 +77,7 @@ button, input, select { font: inherit; }
 .custom-polling input { width: 100%; min-width: 0; box-sizing: border-box; }
 .custom-polling-note { margin: 6px 0 0; color: #94a3b8; font-size: 9px; line-height: 1.4; }
 .undecided-allocation { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; margin: 12px 0 0; padding: 3px; border: 1px solid #334b68; border-radius: 6px; }
+.undecided-allocation.polling-shock { grid-template-columns: repeat(3, 1fr); }
 .undecided-allocation legend { padding: 0 4px; color: #94a3b8; font-size: 9px; }
 .undecided-allocation label { position: relative; padding: 6px 3px; border-radius: 4px; color: #94a3b8; font-size: 8px; text-align: center; cursor: pointer; }
 .undecided-allocation label:has(input:checked) { background: #123653; color: #f8fafc; }

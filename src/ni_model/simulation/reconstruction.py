@@ -7,12 +7,14 @@ from urllib.parse import unquote, urlparse
 import polars as pl
 from sqlalchemy.orm import Session
 
+from ..core.deployment import DeploymentMode, deployment_mode
 from ..core.models import (
     Person,
     SimulationCheckpoint,
     SimulationPersonEvent,
     SimulationRun,
 )
+from ..data.parquet_population import baseline_frame
 from .columnar_worker import COLUMN_TYPES, ColumnarSimulationWorker
 from .event_store import EventStore
 
@@ -44,12 +46,14 @@ class PopulationReconstructor:
                 )
             after_year = checkpoint.year
         else:
-            population = ColumnarSimulationWorker.baseline_frame(
+            population = ColumnarSimulationWorker.load_baseline(
                 self.db,
+                {},
+                run.id,
                 run.start_year,
                 population_limit=run.base_population_count,
                 baseline_profile=run.baseline_profile,
-            )
+            ).population
             after_year = run.start_year - 1
         events = (
             self.db.query(SimulationPersonEvent)
@@ -213,15 +217,27 @@ class PopulationReconstructor:
         return records
 
     def history(self, run: SimulationRun, person_id: uuid.UUID) -> dict:
-        baseline = (
-            self.db.query(Person)
-            .filter(
-                Person.run_id.is_(None),
-                Person.baseline_profile == run.baseline_profile,
-                Person.id == person_id,
+        if deployment_mode() == DeploymentMode.PARQUET:
+            rows = (
+                baseline_frame(run.baseline_profile)
+                .filter(
+                    pl.col("person_id") == person_id.bytes,
+                    pl.col("person_number") <= run.base_population_count,
+                )
+                .head(1)
+                .to_dicts()
             )
-            .one_or_none()
-        )
+            baseline = rows[0] if rows else None
+        else:
+            baseline = (
+                self.db.query(Person)
+                .filter(
+                    Person.run_id.is_(None),
+                    Person.baseline_profile == run.baseline_profile,
+                    Person.id == person_id,
+                )
+                .one_or_none()
+            )
         events = (
             self.db.query(SimulationPersonEvent)
             .filter(
@@ -232,7 +248,12 @@ class PopulationReconstructor:
             .all()
         )
         initial = None
-        if baseline:
+        if isinstance(baseline, dict):
+            initial = {
+                **baseline,
+                "person_id": str(uuid.UUID(bytes=baseline["person_id"])),
+            }
+        elif baseline:
             initial = {
                 "person_id": str(baseline.id),
                 "person_number": baseline.person_number,

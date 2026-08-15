@@ -3,7 +3,12 @@ import csv
 import pytest
 import yaml
 
-from scripts.build_community_model import MULTIPLIERS, SHARES, build_model
+from scripts.build_community_model import (
+    CURRENT_NONE_TO_BACKGROUND,
+    MULTIPLIERS,
+    SHARES,
+    build_model,
+)
 
 
 def _source_model():
@@ -60,6 +65,7 @@ def test_differentials_have_documented_direction():
     assert (
         MULTIPLIERS["migration_in"]["OTHER"] > MULTIPLIERS["migration_in"]["CATHOLIC"]
     )
+    assert len(set(MULTIPLIERS["migration_out"].values())) == 1
 
 
 def test_immigration_uses_observed_joint_arrival_profiles():
@@ -72,12 +78,25 @@ def test_immigration_uses_observed_joint_arrival_profiles():
     assert incoming[0]["evidence"] == (
         "census_2021_arrival_profile_scaled_to_annual_total"
     )
-    assert len(model["immigration_profiles"]) == 131
+    assert len(model["immigration_profiles"]) == 230
     assert {profile["origin"] for profile in model["immigration_profiles"]} == {
         "GB",
         "ROI",
         "OTHER",
     }
+
+
+def test_arrivals_bridge_current_religion_to_community_background():
+    profiles = build_model(_source_model())["immigration_profiles"]
+    total_weight = sum(profile["weight"] for profile in profiles)
+    none_weight = sum(
+        profile["weight"]
+        for profile in profiles
+        if profile["religious_background"] == "NONE"
+    )
+
+    assert total_weight == pytest.approx(27_257)
+    assert none_weight == pytest.approx(10_510 * CURRENT_NONE_TO_BACKGROUND["NONE"])
 
 
 def test_checked_in_arrival_profile_preserves_census_composition():

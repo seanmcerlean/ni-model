@@ -2,14 +2,15 @@ name: NI Current – NISRA 2024 principal projection
 baseline_profile: current
 baseline_population: 1903175
 description: Observed NISRA components for 2022–2024 followed by the official 2024-based principal
-  projection for 2025–2074. The population baseline uses Census 2021 marginals; internal relocation
-  follows the Census 2021 LGD origin–destination pattern balanced toward the official 2022-based
-  LGD population trajectory. This is a projection scenario, not a forecast.
+  projection for 2025–2074, with 2075 estimated by carrying forward the final projected component
+  rates. The population baseline uses Census 2021 marginals; internal relocation follows the
+  Census 2021 LGD origin–destination pattern balanced toward the official 2022-based LGD population
+  trajectory. This is a projection scenario, not a forecast.
 baseline_year: 2021
 data_through: 2024
-projection_version: NISRA/ONS 2024-based principal projection
+projection_version: NISRA/ONS 2024-based principal projection plus estimated 2075 tail
 default_start_year: 2021
-default_end_year: 2035
+default_end_year: 2075
 rate_jitter: 0
 random_seed: 42
 integration_rates:
@@ -396,6 +397,11 @@ birth_rates:
   year_max: 2074
   filters: {}
   evidence: principal_projection
+- rate: 8.112779
+  year_min: 2075
+  year_max: 2075
+  filters: {}
+  evidence: estimated_2074_carry_forward
 death_rates:
 - rate: 9.196109
   year_min: 2022
@@ -662,6 +668,11 @@ death_rates:
   year_max: 2074
   filters: {}
   evidence: principal_projection
+- rate: 13.552499
+  year_min: 2075
+  year_max: 2075
+  filters: {}
+  evidence: estimated_2074_carry_forward
 migration_rates:
 - rate: 1.212585
   year_min: 2022
@@ -1277,6 +1288,18 @@ migration_rates:
   year_max: 2074
   filters: {}
   evidence: principal_projection
+  flow: out
+- rate: 12.520857
+  year_min: 2075
+  year_max: 2075
+  filters: {}
+  evidence: estimated_2074_carry_forward
+  flow: in
+- rate: -11.395803
+  year_min: 2075
+  year_max: 2075
+  filters: {}
+  evidence: estimated_2074_carry_forward
   flow: out
 internal_migration_rates:
 - rate: 0.917752

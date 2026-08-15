@@ -1,0 +1,9 @@
+services:
+  site:
+    build:
+      context: .
+      target: static
+      args:
+        VITE_DEPLOYMENT_MODE: static
+    ports:
+      - "8000:8080"

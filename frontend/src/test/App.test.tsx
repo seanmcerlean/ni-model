@@ -110,7 +110,7 @@ describe("App", () => {
 
   it("defaults to a useful current projection horizon", () => {
     render(<App />);
-    expect(screen.getByLabelText("End")).toHaveValue(2050);
+    expect(screen.getByLabelText("End")).toHaveValue(2075);
   });
 
   it("defaults to Unite and Remain map colouring with a community option", () => {
@@ -310,8 +310,14 @@ describe("App", () => {
     expect(screen.getByRole("option", { name: "LucidTalk Aug 2021 — five-year high" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "LucidTalk Feb 2024 — five-year low" })).toBeInTheDocument();
     expect(screen.getByLabelText("All respondents")).toBeChecked();
+    expect(screen.getByLabelText("Neutral")).toBeChecked();
+    fireEvent.click(screen.getByLabelText("Brexit"));
+    let votingHeadline = document.querySelector(".voting-headline");
+    expect(within(votingHeadline as HTMLElement).getByText("40.6%")).toBeInTheDocument();
+    expect(within(votingHeadline as HTMLElement).getByText("37.4%")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Neutral"));
     fireEvent.click(screen.getByLabelText("Decided voters (headline)"));
-    const votingHeadline = document.querySelector(".voting-headline");
+    votingHeadline = document.querySelector(".voting-headline");
     expect(votingHeadline).not.toBeNull();
     expect(within(votingHeadline as HTMLElement).getByText("46.2%")).toBeInTheDocument();
     expect(within(votingHeadline as HTMLElement).getByText("53.8%")).toBeInTheDocument();

@@ -54,6 +54,13 @@ describe("Controls", () => {
     expect(onStartStream).toHaveBeenCalledOnce();
   });
 
+  it("locks the recorded year range when requested", () => {
+    render(<Controls {...baseProps} yearsLocked />);
+
+    expect(screen.getByLabelText("Start")).toBeDisabled();
+    expect(screen.getByLabelText("End")).toBeDisabled();
+  });
+
   it("calls onSpeedChange when speed button clicked", () => {
     const onSpeedChange = vi.fn();
     render(<Controls {...baseProps} onSpeedChange={onSpeedChange} />);

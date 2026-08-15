@@ -1,26 +1,38 @@
 #!/bin/bash
+set -euo pipefail
 
-# Deploy NI Model to Kubernetes
-echo "Deploying NI Model to Kubernetes..."
+mode="${NI_MODEL_MODE:-parquet}"
 
-# Apply namespace
-kubectl apply -f k8s/namespace.yaml
+case "$mode" in
+  parquet)
+    docker compose -f compose.static.yaml stop site >/dev/null 2>&1 || true
+    docker compose -f compose.yaml stop worker current-db >/dev/null 2>&1 || true
+    if [[ ! -f data/baselines/current.parquet || ! -f data/baselines/historical.parquet ]]; then
+      docker compose -f compose.parquet.yaml run --rm --build baseline-builder \
+        python scripts/build_parquet_baselines.py --output-dir /app/data/baselines
+    fi
+    docker compose -f compose.parquet.yaml up -d --build app
+    ;;
+  static)
+    docker compose -f compose.parquet.yaml stop app >/dev/null 2>&1 || true
+    docker compose -f compose.yaml stop app worker current-db >/dev/null 2>&1 || true
+    if [[ ! -f data/baselines/current.parquet || ! -f data/baselines/historical.parquet ]]; then
+      docker compose -f compose.parquet.yaml run --rm --build baseline-builder \
+        python scripts/build_parquet_baselines.py --output-dir /app/data/baselines
+    fi
+    docker compose -f compose.parquet.yaml run --rm --build baseline-builder \
+      python scripts/export_static_recordings.py \
+      --baseline-dir /app/data/baselines --output-dir /recordings
+    docker compose -f compose.static.yaml up -d --build
+    ;;
+  full)
+    docker compose -f compose.static.yaml stop site >/dev/null 2>&1 || true
+    docker compose up -d --build
+    ;;
+  *)
+    echo "NI_MODEL_MODE must be static, parquet, or full" >&2
+    exit 2
+    ;;
+esac
 
-# Apply database and cache
-kubectl apply -f k8s/postgres.yaml
-kubectl apply -f k8s/redis.yaml
-
-# Wait for database to be ready
-echo "Waiting for PostgreSQL to be ready..."
-kubectl wait --for=condition=ready pod -l app=postgres -n ni-model --timeout=300s
-
-echo "Waiting for Redis to be ready..."
-kubectl wait --for=condition=ready pod -l app=redis -n ni-model --timeout=300s
-
-# Build and deploy app (requires Docker image to be built first)
-echo "Note: Build Docker image with 'docker build -t ni-model:latest .'"
-echo "Then apply app deployment:"
-echo "kubectl apply -f k8s/app.yaml"
-
-echo "Deployment complete!"
-echo "Check status with: kubectl get pods -n ni-model"
+echo "NI Model $mode mode is available at http://localhost:8000"

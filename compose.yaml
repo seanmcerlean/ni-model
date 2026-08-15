@@ -14,7 +14,10 @@ services:
       - current-data:/var/lib/postgresql/data
 
   current-seed:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: full
     environment:
       DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
     command: ["python", "scripts/seed_population.py", "current"]
@@ -23,8 +26,12 @@ services:
         condition: service_healthy
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: full
     environment:
+      NI_MODEL_MODE: full
       DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
       EMBEDDED_SIMULATION_WORKER: "false"
       CHECKPOINT_DIR: /app/data/checkpoints
@@ -39,8 +46,12 @@ services:
       - checkpoints:/app/data/checkpoints
 
   worker:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: full
     environment:
+      NI_MODEL_MODE: full
       DATABASE_URL: postgresql://ni_user:ni_password@current-db:5432/ni_current
       CHECKPOINT_DIR: /app/data/checkpoints
       SIMULATION_TIMEOUT_SECONDS: "1800"
@@ -69,7 +80,10 @@ services:
       - historical-data:/var/lib/postgresql/data
 
   historical-seed:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_DEPLOYMENT_MODE: full
     profiles: ["historical"]
     environment:
       DATABASE_URL: postgresql://ni_user:ni_password@historical-db:5432/ni_historical

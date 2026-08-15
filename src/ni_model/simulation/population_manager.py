@@ -5,7 +5,9 @@ from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from ..core.deployment import DeploymentMode, deployment_mode
 from ..core.models import Person, SimulationRun, SimulationSnapshot
+from ..data.parquet_population import baseline_frame
 from ..data.repository import PersonRepository
 
 
@@ -44,14 +46,17 @@ class PopulationManager:
         represented_population_count: Optional[int] = None,
     ) -> SimulationRun:
         """Create a durable run and clone the immutable baseline into it."""
-        available_count = (
-            db_session.query(Person)
-            .filter(
-                Person.run_id.is_(None),
-                Person.baseline_profile == baseline_profile,
+        if deployment_mode() == DeploymentMode.PARQUET:
+            available_count = baseline_frame(baseline_profile).height
+        else:
+            available_count = (
+                db_session.query(Person)
+                .filter(
+                    Person.run_id.is_(None),
+                    Person.baseline_profile == baseline_profile,
+                )
+                .count()
             )
-            .count()
-        )
         if available_count == 0:
             raise ValueError(f"baseline profile '{baseline_profile}' is not seeded")
         baseline_count = (

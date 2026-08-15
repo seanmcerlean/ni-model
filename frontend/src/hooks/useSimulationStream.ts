@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { PopulationMode, SimulationAdjustments, StreamStatus, YearSnapshot } from "../types";
+import { isStaticDeployment, loadRecordingManifest, RecordedScenarioData } from "../deployment";
 
 export interface UseSimulationStream {
   snapshots: Record<number, YearSnapshot>;
@@ -17,11 +18,14 @@ export function useSimulationStream(): UseSimulationStream {
   const [status, setStatus] = useState<StreamStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  const fetchRef = useRef<AbortController | null>(null);
   const runIdRef = useRef<string | null>(null);
 
   const abort = useCallback(() => {
     esRef.current?.close();
     esRef.current = null;
+    fetchRef.current?.abort();
+    fetchRef.current = null;
     if (runIdRef.current) {
       void fetch(`/api/simulation/runs/${runIdRef.current}/cancel`, {
         method: "POST",
@@ -46,6 +50,41 @@ export function useSimulationStream(): UseSimulationStream {
       setError(null);
       setStatus("streaming");
       runIdRef.current = null;
+
+      if (isStaticDeployment) {
+        const controller = new AbortController();
+        fetchRef.current = controller;
+        void loadRecordingManifest()
+          .then((manifest) => {
+            const scenario = manifest.scenarios.find(
+              (item) => item.model_path === modelPath
+                && item.seed === adjustments?.random_seed,
+            );
+            if (!scenario) throw new Error("No recording exists for this model and seed.");
+            return fetch(scenario.asset, { signal: controller.signal });
+          })
+          .then((response) => {
+            if (!response.ok) throw new Error("Could not load the recorded simulation.");
+            return response.json() as Promise<RecordedScenarioData>;
+          })
+          .then((recording) => {
+            if (controller.signal.aborted) return;
+            const selected = recording.snapshots.filter(
+              (snapshot) => snapshot.year >= startYear && snapshot.year <= endYear,
+            );
+            setSnapshots(Object.fromEntries(selected.map((snapshot) => [snapshot.year, snapshot])));
+            setYears(selected.map((snapshot) => snapshot.year).sort((a, b) => a - b));
+            setStatus("complete");
+            fetchRef.current = null;
+          })
+          .catch((caught: Error) => {
+            if (caught.name === "AbortError") return;
+            setError(caught.message);
+            setStatus("error");
+            fetchRef.current = null;
+          });
+        return;
+      }
 
       const params = new URLSearchParams({
         start_year: String(startYear),

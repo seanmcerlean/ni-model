@@ -1,11 +1,17 @@
 FROM node:22-bookworm-slim AS frontend
+ARG VITE_DEPLOYMENT_MODE=parquet
+ENV VITE_DEPLOYMENT_MODE=${VITE_DEPLOYMENT_MODE}
 WORKDIR /build/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-FROM python:3.12-slim
+FROM nginx:1.27-alpine AS static
+COPY nginx.static.conf /etc/nginx/conf.d/default.conf
+COPY --from=frontend /build/frontend/dist /usr/share/nginx/html
+
+FROM python:3.12-slim AS application
 WORKDIR /app
 COPY requirements.txt pyproject.toml ./
 RUN pip install --no-cache-dir -r requirements.txt
