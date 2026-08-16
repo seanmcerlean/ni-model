@@ -69,6 +69,7 @@ export default function App() {
   const [adjustments, setAdjustments] = useState<SimulationAdjustments>(defaultAdjustments);
   const [panelTab, setPanelTab] = useState<PanelTab>("setup");
   const [page, setPage] = useState<AppPage>("simulator");
+  const [mobileOptionsOpen, setMobileOptionsOpen] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -210,6 +211,7 @@ export default function App() {
   const handleStartStream = useCallback(() => {
     setCurrentYear(null);
     setIsPlaying(false);
+    setMobileOptionsOpen(false);
     startStream(startYear, endYear, modelPath, adjustments, populationMode);
   }, [startYear, endYear, modelPath, adjustments, populationMode, startStream]);
 
@@ -251,6 +253,17 @@ export default function App() {
           <span className="year-badge">{currentYear}</span>
         )}
         <div className="header-actions">
+          {page === "simulator" && (
+            <button
+              type="button"
+              className="mobile-panel-toggle"
+              aria-controls="simulation-options"
+              aria-expanded={mobileOptionsOpen}
+              onClick={() => setMobileOptionsOpen((open) => !open)}
+            >
+              {mobileOptionsOpen ? "View map" : "Options"}
+            </button>
+          )}
           <nav className="primary-navigation" aria-label="Primary navigation">
             <button type="button" aria-current={page === "simulator" ? "page" : undefined}
               onClick={() => setPage("simulator")}>Simulator</button>
@@ -265,7 +278,10 @@ export default function App() {
 
       {page === "about" ? <AboutPage /> : <>
       <div className="workspace">
-        <aside className="model-panel">
+        <aside
+          className={`model-panel${mobileOptionsOpen ? " mobile-panel-open" : ""}`}
+          id="simulation-options"
+        >
           <div className="panel-kicker">MODEL</div>
           <label className="field-label" htmlFor="model-select">Scenario definition</label>
           <select

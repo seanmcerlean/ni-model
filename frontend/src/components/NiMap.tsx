@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GeoJSON as GeoJSONComponent, MapContainer } from "react-leaflet";
+import { GeoJSON as GeoJSONComponent, MapContainer, useMap } from "react-leaflet";
 import { GeoJSON as GeoJSONLayer, Layer, PathOptions } from "leaflet";
 
 import niGeoJsonRaw from "../geo/ni.geojson?raw";
@@ -33,6 +33,34 @@ const COLOURS: Record<string, Rgb> = {
   other: [168, 85, 247],
   none: [148, 163, 184],
 };
+
+function ResponsiveMapSize() {
+  const map = useMap();
+
+  useEffect(() => {
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const updateSize = () => {
+      if (pending !== null) clearTimeout(pending);
+      pending = setTimeout(() => map.invalidateSize({ animate: false }), 0);
+    };
+    const container = map.getContainer();
+    const observer = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(updateSize);
+
+    observer?.observe(container);
+    window.addEventListener("resize", updateSize);
+    updateSize();
+
+    return () => {
+      if (pending !== null) clearTimeout(pending);
+      observer?.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
+  }, [map]);
+
+  return null;
+}
 
 export function blendedColour(parts: Array<[number, Rgb]>, contrast = 1): string {
   const adjusted = parts.map(([weight, colour]) => [
@@ -117,6 +145,7 @@ export function NiMap({ snapshot, voting, communityBasis, onLocationClick }: Pro
       keyboard={false}
       touchZoom={false}
     >
+      <ResponsiveMapSize />
       <GeoJSONComponent
         ref={geoJsonRef}
         data={niGeoJson}

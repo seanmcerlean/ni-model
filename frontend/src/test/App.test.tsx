@@ -16,6 +16,10 @@ vi.mock("react-leaflet", async () => {
       data-bounds={JSON.stringify(bounds)}>{children}</div>,
     TileLayer: () => <div data-testid="tile-layer" />,
     GeoJSON: forwardRef(() => null),
+    useMap: () => ({
+      getContainer: () => document.createElement("div"),
+      invalidateSize: vi.fn(),
+    }),
   };
 });
 
@@ -52,6 +56,22 @@ describe("App", () => {
   it("renders Run button", () => {
     render(<App />);
     expect(screen.getByText("Run")).toBeInTheDocument();
+  });
+
+  it("offers an accessible mobile options and map toggle", () => {
+    render(<App />);
+    const toggle = screen.getByRole("button", { name: "Options" });
+    const options = document.getElementById("simulation-options");
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(options).not.toHaveClass("mobile-panel-open");
+
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "View map" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(options).toHaveClass("mobile-panel-open");
   });
 
   it("opens the model explanation from the top navigation", () => {
