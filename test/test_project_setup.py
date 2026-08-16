@@ -68,13 +68,15 @@ def test_root_build_targets_the_static_sites_bundle():
 
 def test_frontend_has_mobile_viewport_fallbacks_and_short_screen_scrolling():
     styles = Path("frontend/src/app.css").read_text(encoding="utf-8")
-    mobile_map_fallback = (
-        ".map-column {\n"
-        "    min-height: calc(100vh - 126px);\n"
-        "    min-height: calc(100dvh - 126px);"
-    )
+    tablet_styles = styles.split("@media (max-width: 900px)", 1)[1]
 
-    assert mobile_map_fallback in styles
+    assert "body { overflow-y: auto; }" in tablet_styles
+    assert (
+        ".workspace { display: flex; flex: none; flex-direction: column; }"
+        in tablet_styles
+    )
+    assert ".map-frame { flex: none; height: 62vh; min-height: 380px;" in tablet_styles
+    assert "max(28px, calc(env(safe-area-inset-bottom) + 16px))" in tablet_styles
     assert "@media (max-height: 720px)" in styles
     short_screen_styles = styles.split("@media (max-height: 720px)", 1)[1]
     assert "body { overflow-y: auto; }" in short_screen_styles

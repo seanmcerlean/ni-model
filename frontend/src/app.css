@@ -255,20 +255,39 @@ button, input, select { font: inherit; }
 .stream-error { grid-column: 1 / -1; color: #fca5a5; font-size: 11px; }
 
 @media (max-width: 900px) {
-  .workspace { grid-template-columns: 210px 1fr; }
+  body { overflow-y: auto; }
+  .app-shell { min-height: 100vh; min-height: 100dvh; height: auto; }
+  .workspace { display: flex; flex: none; flex-direction: column; }
   .stat-card { padding: 8px; }
   .stat-label { font-size: 8px; }
   .stat-value { font-size: 14px; }
   .community-split { gap: 2px 6px; font-size: 10px; }
-  .model-panel { padding: 12px; }
+  .mobile-panel-toggle {
+    display: block;
+    padding: 6px 8px;
+    border: 1px solid #0ea5e9;
+    border-radius: 5px;
+    background: #123653;
+    color: #f8fafc;
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .mobile-panel-toggle:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+  .model-panel { display: none; max-height: none; padding: 12px; border-right: 0; border-bottom: 1px solid #23364f; }
+  .model-panel.mobile-panel-open { display: block; min-height: 520px; }
+  .model-panel.mobile-panel-open + .map-column { display: none; }
+  .map-column { min-height: 0; }
+  .map-frame { flex: none; height: 62vh; min-height: 380px; max-height: 680px; }
   .controls {
-    max-height: 42vh;
-    max-height: 42dvh;
+    position: static;
+    max-height: none;
+    flex: none;
     grid-template-columns: 1fr;
     gap: 7px;
-    overflow-y: auto;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    overflow: visible;
+    padding-bottom: max(28px, calc(env(safe-area-inset-bottom) + 16px));
   }
+  .scrub-row { padding: 7px 0 12px; }
   .progress-bar { grid-column: 1; }
   .about-card-grid { grid-template-columns: 1fr; }
   .pipeline-steps { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -292,39 +311,14 @@ button, input, select { font: inherit; }
   .brand-title { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
   .year-badge { display: none; }
   .header-actions { flex: 0 0 auto; gap: 4px; margin-left: 0; }
-  .mobile-panel-toggle {
-    display: block;
-    padding: 6px 7px;
-    border: 1px solid #0ea5e9;
-    border-radius: 5px;
-    background: #123653;
-    color: #f8fafc;
-    font-size: 9px;
-    cursor: pointer;
-  }
-  .mobile-panel-toggle:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+  .mobile-panel-toggle { padding: 6px 7px; font-size: 9px; }
   .primary-navigation button { padding: 6px 7px; font-size: 9px; }
   .stop-button { padding: 6px 7px; font-size: 9px; }
-  .workspace { display: flex; flex-direction: column; }
-  .model-panel { display: none; max-height: none; border-right: 0; border-bottom: 1px solid #23364f; }
-  .model-panel.mobile-panel-open {
-    display: block;
-    min-height: calc(100vh - 126px);
-    min-height: calc(100dvh - 126px);
-  }
-  .model-panel.mobile-panel-open + .map-column { display: none; }
-  .map-column {
-    min-height: calc(100vh - 126px);
-    min-height: calc(100dvh - 126px);
-  }
   .stats-strip { overflow-x: auto; grid-template-columns: repeat(5, minmax(105px, .8fr)) minmax(220px, 1.5fr); }
-  .map-frame { min-height: 58vh; min-height: 58dvh; }
+  .map-frame { height: 62vh; min-height: 360px; }
   .controls {
-    position: sticky;
-    bottom: 0;
-    z-index: 1100;
     gap: 6px;
-    padding: 8px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    padding: 8px max(10px, env(safe-area-inset-right)) max(28px, calc(env(safe-area-inset-bottom) + 16px)) max(10px, env(safe-area-inset-left));
   }
   .controls .control-row { flex-wrap: wrap; }
   .controls .playback-row { display: grid; grid-template-columns: auto 44px repeat(4, minmax(34px, 1fr)); gap: 4px; }
@@ -359,7 +353,7 @@ button, input, select { font: inherit; }
 }
 
 @supports (-webkit-touch-callout: none) {
-  @media (max-width: 650px) {
+  @media (max-width: 900px) {
     input, select { font-size: 16px; }
   }
 }
@@ -367,12 +361,12 @@ button, input, select { font: inherit; }
 @media (max-height: 720px) {
   body { overflow-y: auto; }
   .app-shell { min-height: 100vh; min-height: 100dvh; height: auto; }
-  .workspace { min-height: 520px; flex: none; }
+  .workspace { flex: none; }
   .controls {
     position: static;
     max-height: none;
     flex: none;
     overflow: visible;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-bottom: max(28px, calc(env(safe-area-inset-bottom) + 16px));
   }
 }
