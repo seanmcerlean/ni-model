@@ -64,3 +64,18 @@ def test_root_build_targets_the_static_sites_bundle():
     assert "prepare_sites_bundle.mjs" in build_command
     assert Path("sites/server/index.js").is_file()
     assert Path("frontend/public/recordings/manifest.json").is_file()
+
+
+def test_frontend_has_mobile_viewport_fallbacks_and_short_screen_scrolling():
+    styles = Path("frontend/src/app.css").read_text(encoding="utf-8")
+    mobile_map_fallback = (
+        ".map-column {\n"
+        "    min-height: calc(100vh - 126px);\n"
+        "    min-height: calc(100dvh - 126px);"
+    )
+
+    assert mobile_map_fallback in styles
+    assert "@media (max-height: 720px)" in styles
+    short_screen_styles = styles.split("@media (max-height: 720px)", 1)[1]
+    assert "body { overflow-y: auto; }" in short_screen_styles
+    assert "position: static;" in short_screen_styles

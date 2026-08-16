@@ -5,13 +5,13 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; overflow: hidden; }
+body { min-height: 100vh; min-height: 100dvh; margin: 0; overflow: hidden; }
 html { -webkit-text-size-adjust: 100%; }
 button, input, select { font: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .inline-error { color: #fca5a5; font-size: 10px; line-height: 1.4; }
 
-.app-shell { display: flex; flex-direction: column; height: 100vh; background: #08111f; }
+.app-shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #08111f; }
 .app-header {
   min-height: 66px;
   padding: 11px 20px;
@@ -261,7 +261,14 @@ button, input, select { font: inherit; }
   .stat-value { font-size: 14px; }
   .community-split { gap: 2px 6px; font-size: 10px; }
   .model-panel { padding: 12px; }
-  .controls { grid-template-columns: 1fr; gap: 7px; }
+  .controls {
+    max-height: 42vh;
+    max-height: 42dvh;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    overflow-y: auto;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
   .progress-bar { grid-column: 1; }
   .about-card-grid { grid-template-columns: 1fr; }
   .pipeline-steps { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -300,9 +307,16 @@ button, input, select { font: inherit; }
   .stop-button { padding: 6px 7px; font-size: 9px; }
   .workspace { display: flex; flex-direction: column; }
   .model-panel { display: none; max-height: none; border-right: 0; border-bottom: 1px solid #23364f; }
-  .model-panel.mobile-panel-open { display: block; min-height: calc(100dvh - 126px); }
+  .model-panel.mobile-panel-open {
+    display: block;
+    min-height: calc(100vh - 126px);
+    min-height: calc(100dvh - 126px);
+  }
   .model-panel.mobile-panel-open + .map-column { display: none; }
-  .map-column { min-height: calc(100dvh - 126px); }
+  .map-column {
+    min-height: calc(100vh - 126px);
+    min-height: calc(100dvh - 126px);
+  }
   .stats-strip { overflow-x: auto; grid-template-columns: repeat(5, minmax(105px, .8fr)) minmax(220px, 1.5fr); }
   .map-frame { min-height: 58vh; min-height: 58dvh; }
   .controls {
@@ -347,5 +361,18 @@ button, input, select { font: inherit; }
 @supports (-webkit-touch-callout: none) {
   @media (max-width: 650px) {
     input, select { font-size: 16px; }
+  }
+}
+
+@media (max-height: 720px) {
+  body { overflow-y: auto; }
+  .app-shell { min-height: 100vh; min-height: 100dvh; height: auto; }
+  .workspace { min-height: 520px; flex: none; }
+  .controls {
+    position: static;
+    max-height: none;
+    flex: none;
+    overflow: visible;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 }
